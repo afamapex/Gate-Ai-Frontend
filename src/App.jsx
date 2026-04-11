@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext.jsx';
-import Login from './pages/Login.jsx';
+import Landing   from './pages/Landing.jsx';
+import Login     from './pages/Login.jsx';
 import Dashboard from './pages/Dashboard.jsx';
 
 function ProtectedRoute({ children }) {
@@ -26,12 +27,22 @@ export default function App() {
     <AuthProvider>
       <BrowserRouter>
         <Routes>
+          {/* Public */}
+          <Route path="/"      element={<Landing />} />
           <Route path="/login" element={<Login />} />
-          <Route path="/*" element={
+
+          {/* Protected — dashboard lives at /dashboard */}
+          <Route path="/dashboard/*" element={
             <ProtectedRoute>
               <Dashboard />
             </ProtectedRoute>
           } />
+
+          {/* Redirect /app → /dashboard for old links */}
+          <Route path="/app/*" element={<Navigate to="/dashboard" replace />} />
+
+          {/* Catch-all — redirect unknown routes to home */}
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>
