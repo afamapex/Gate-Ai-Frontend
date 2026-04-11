@@ -150,7 +150,7 @@ export default function Landing() {
                         <div className="shield-big" id="shield-big"></div>
                         <div className="result-title" id="result-title"></div>
                         <div className="result-sub" id="result-sub"></div>
-                        <button className="replay-btn" id="replay-btn" onClick={() => window.replayChatAnim()}>↺ Replay</button>
+
                       </div>
                     </div>
                   </div>
@@ -379,21 +379,21 @@ const CALLER_AV = `<div class="chat-caller-av"><svg width="12" height="12" viewB
 const SCENARIOS = {
   blocked: [
     {r:'gate', t:'Thank you for calling. How can I help you today?', d:0},
-    {r:'caller', t:"Hi — Jake Walsh from Atlas Freight Solutions. I'm calling manufacturing companies about moving outbound freight. We specialise in flatbed and LTL and have very competitive rates right now.", d:1800},
-    {r:'gate', t:'Who specifically are you trying to reach today?', d:3400},
-    {r:'caller', t:"I don't have a contact name — I was hoping to speak with whoever handles freight procurement or shipping decisions.", d:5000},
-    {r:'gate', t:'Do you have an existing order number or prior arrangement with us you can reference?', d:6700},
-    {r:'caller', t:"No, this would be a new relationship. We work with a lot of manufacturers in the Midwest and our rates on—", d:8300},
-    {r:'gate', t:"We don't accept unsolicited calls. You're welcome to email our screening team with your details and someone will follow up if there's a fit. Have a good day.", d:10000},
-    {r:'result', type:'blocked', title:'Blocked', sub:'97% confidence · unsolicited sales call', d:11800},
+    {r:'caller', t:"Hi — Jake Walsh from Atlas Freight Solutions. I'm calling manufacturing companies about moving outbound freight. We specialise in flatbed and LTL and have very competitive rates right now.", d:2800},
+    {r:'gate', t:'Who specifically are you trying to reach today?', d:5200},
+    {r:'caller', t:"I don't have a contact name — I was hoping to speak with whoever handles freight procurement or shipping decisions.", d:7600},
+    {r:'gate', t:'Do you have an existing order number or prior arrangement with us you can reference?', d:10200},
+    {r:'caller', t:"No, this would be a new relationship. We work with a lot of manufacturers in the Midwest and our rates on—", d:12600},
+    {r:'gate', t:"We don't accept unsolicited calls. You're welcome to email our screening team with your details and someone will follow up if there's a fit. Have a good day.", d:15200},
+    {r:'result', type:'blocked', title:'Blocked', sub:'97% confidence · unsolicited sales call', d:17500},
   ],
   forwarded: [
     {r:'gate', t:'Thank you for calling. How can I help you today?', d:0},
-    {r:'caller', t:"Hi — Marcus Webb from Consolidated Freight Group. I'm calling for your logistics director Sarah Chen. Sarah and I spoke last Tuesday about your Q3 outbound on the Chicago to Memphis lane.", d:1800},
-    {r:'gate', t:'Got it. Can you confirm the date and what was discussed so I can connect you?', d:3600},
-    {r:'caller', t:"Sure — Tuesday the 8th. Sarah asked us to come back with a flat rate for 40 loads a month on that lane. I've got the quote ready for her.", d:5200},
-    {r:'gate', t:'Perfect — connecting you to Sarah now. Please hold briefly.', d:7000},
-    {r:'result', type:'forwarded', title:'Forwarded to Sarah Chen', sub:'95% confidence · verified existing business', d:8800},
+    {r:'caller', t:"Hi — Marcus Webb from Consolidated Freight Group. I'm calling for your logistics director Sarah Chen. Sarah and I spoke last Tuesday about your Q3 outbound on the Chicago to Memphis lane.", d:2800},
+    {r:'gate', t:'Got it. Can you confirm the date and what was discussed so I can connect you?', d:5400},
+    {r:'caller', t:"Sure — Tuesday the 8th. Sarah asked us to come back with a flat rate for 40 loads a month on that lane. I've got the quote ready for her.", d:8000},
+    {r:'gate', t:'Perfect — connecting you to Sarah now. Please hold briefly.', d:10800},
+    {r:'result', type:'forwarded', title:'Forwarded to Sarah Chen', sub:'95% confidence · verified existing business', d:13000},
   ],
 };
 
@@ -419,7 +419,20 @@ function showChatResult(type, title, sub) {
     rsub.textContent = sub;
     rt.style.pointerEvents = 'auto';
     rt.classList.add('show');
-    setTimeout(() => { sb.classList.add('pop'); rtitle.classList.add('show'); rsub.classList.add('show'); rbtn.classList.add('show'); }, 100);
+    setTimeout(() => { sb.classList.add('pop'); rtitle.classList.add('show'); rsub.classList.add('show'); }, 100);
+    // Auto-switch tab and replay after 4 second pause
+    setTimeout(() => {
+      _curTab = _curTab === 'blocked' ? 'forwarded' : 'blocked';
+      const tb = document.getElementById('tab-b');
+      const tf = document.getElementById('tab-f');
+      if (tb) tb.className = 'c-tab' + (_curTab === 'blocked' ? ' active' : '');
+      if (tf) tf.className = 'c-tab' + (_curTab === 'forwarded' ? ' active' : '');
+      const msgs = document.getElementById('chat-msgs');
+      if (msgs) msgs.style.opacity = '1';
+      rt.classList.remove('show'); rt.style.pointerEvents = 'none';
+      sb.classList.remove('pop'); rtitle.classList.remove('show'); rsub.classList.remove('show');
+      runChatScenario();
+    }, 4000);
   }, 400);
 }
 
@@ -431,12 +444,10 @@ function runChatScenario() {
   const sb = document.getElementById('shield-big');
   const rtitle = document.getElementById('result-title');
   const rsub = document.getElementById('result-sub');
-  const rbtn = document.getElementById('replay-btn');
   const rt = document.getElementById('result-takeover');
   if (sb) sb.classList.remove('pop');
   if (rtitle) rtitle.classList.remove('show');
   if (rsub) rsub.classList.remove('show');
-  if (rbtn) rbtn.classList.remove('show');
   if (rt) { rt.classList.remove('show'); rt.style.pointerEvents = 'none'; }
 
   SCENARIOS[_curTab].forEach((step, i) => {
@@ -637,9 +648,7 @@ h1,h2,h3{font-weight:700;letter-spacing:-0.03em;line-height:1.05;}
 .result-title.blocked{color:#ff6b6b;}.result-title.forwarded{color:#00d68f;}
 .result-sub{font-size:11.5px;color:#5c6078;opacity:0;transition:opacity 350ms ease 400ms;text-align:center;}
 .result-sub.show{opacity:1;}
-.replay-btn{margin-top:4px;padding:6px 16px;border-radius:100px;font-size:10.5px;font-weight:600;cursor:pointer;border:1px solid #2a2d40;background:transparent;color:#5c6078;font-family:var(--font);opacity:0;transition:opacity 350ms ease 600ms;}
-.replay-btn.show{opacity:1;}
-.replay-btn:hover{color:var(--accent-2);border-color:rgba(108,92,231,0.4);}
+
 
 /* rest of landing CSS */
 .industries{padding:60px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);}
