@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { useAuth } from '../context/AuthContext.jsx';
-import { useWebSocket } from '../hooks/useWebSocket.js';
+import { useState, useEffect, useCallback } from "react";
+import { useAuth } from "../context/AuthContext.jsx";
+import { useWebSocket } from "../hooks/useWebSocket.js";
 import {
   calls as callsApi,
   users as usersApi,
@@ -9,154 +9,341 @@ import {
   settings as settingsApi,
   notifications as notificationsApi,
   exportCallsCsv,
-} from '../services/api.js';
+} from "../services/api.js";
 
-// ─── ICONS ───────────────────────────────────────────────────
-const Icons = {
-  phone: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>,
-  shield: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>,
-  users: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>,
-  settings: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>,
-  activity: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>,
-  ban: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>,
-  check: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>,
-  x: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>,
-  forward: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 17 20 12 15 7"/><path d="M4 18v-2a4 4 0 0 1 4-4h12"/></svg>,
-  search: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>,
-  bell: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>,
-  download: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>,
-  plus: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>,
-  trash: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>,
-  logout: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>,
-  zap: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>,
-  clock: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>,
-  menu: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>,
-  wifi: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>,
-};
-
-// ─── HELPERS ─────────────────────────────────────────────────
-function fmt(dateStr) {
-  if (!dateStr) return '—';
-  const d = new Date(dateStr);
-  return d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
-}
-
-function fmtDate(dateStr) {
-  if (!dateStr) return '—';
-  return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+// ─── FIELD NORMALISER ────────────────────────────────────────
+// Maps backend field names to the field names the UI expects
+function normalizeCall(c) {
+  if (!c) return c;
+  return {
+    ...c,
+    caller:      c.caller_name      || c.caller      || "Unknown",
+    company:     c.caller_company   || c.company      || null,
+    phone:       c.caller_number    || c.phone        || "—",
+    status:      c.outcome          || c.call_status  || c.status || "screened",
+    confidence:  c.confidence_score ?? c.confidence   ?? 0,
+    intent:      c.classification   || c.intent       || "Unknown",
+    time:        c.created_at ? new Date(c.created_at).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }) : (c.time || "—"),
+    duration:    c.duration_seconds != null ? fmtDuration(c.duration_seconds) : (c.duration || "0:00"),
+    forwardedTo: c.forwarded_to     || c.forwardedTo  || null,
+    summary:     c.summary          || "",
+  };
 }
 
 function fmtDuration(secs) {
-  if (!secs) return '0:00';
+  if (!secs) return "0:00";
   const m = Math.floor(secs / 60);
   const s = secs % 60;
-  return `${m}:${String(s).padStart(2, '0')}`;
-}
-
-function outcomeLabel(outcome) {
-  if (outcome === 'forwarded') return 'Forwarded';
-  if (outcome === 'blocked')   return 'Blocked';
-  return 'Screened';
-}
-
-function outcomeBadgeClass(outcome) {
-  if (outcome === 'forwarded') return 'badge-green';
-  if (outcome === 'blocked')   return 'badge-red';
-  return 'badge-yellow';
+  return `${m}:${String(s).padStart(2, "0")}`;
 }
 
 function initials(name) {
-  if (!name) return '?';
-  return name.split(' ').map(p => p[0]).join('').toUpperCase().slice(0, 2);
+  if (!name) return "?";
+  return name.split(" ").map(p => p[0]).join("").toUpperCase().slice(0, 2);
 }
 
-// ─── LOADING SPINNER ─────────────────────────────────────────
-function Spinner() {
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 40 }}>
-      <div style={{
-        width: 24, height: 24, border: '2px solid #252736',
-        borderTopColor: '#6c5ce7', borderRadius: '50%',
-        animation: 'spin 0.7s linear infinite',
-      }} />
-    </div>
-  );
+// ─── ICONS (inline SVG) ──────────────────────────────────────
+const Icons = {
+  phone: (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>),
+  shield: (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>),
+  users: (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>),
+  settings: (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>),
+  activity: (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>),
+  ban: (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>),
+  check: (<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>),
+  x: (<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>),
+  forward: (<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 17 20 12 15 7"/><path d="M4 18v-2a4 4 0 0 1 4-4h12"/></svg>),
+  mic: (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>),
+  plug: (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v6"/><path d="M6 2v6"/><path d="M18 2v6"/><rect x="3" y="8" width="18" height="8" rx="2"/><path d="M9 16v4"/><path d="M15 16v4"/></svg>),
+  search: (<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>),
+  chevDown: (<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>),
+  bell: (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>),
+  zap: (<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>),
+  clock: (<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>),
+  arrowUp: (<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>),
+  arrowDown: (<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>),
+  play: (<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>),
+  eye: (<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>),
+  plus: (<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>),
+  home: (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>),
+  logout: (<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>),
+  download: (<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>),
+};
+
+// ─── STYLES (original design preserved exactly) ──────────────
+const CSS = `
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+:root {
+  --bg-primary: #0a0b0f;
+  --bg-secondary: #111218;
+  --bg-tertiary: #181a23;
+  --bg-card: #13141b;
+  --bg-hover: #1a1c26;
+  --bg-active: #1f2130;
+  --border: #252736;
+  --border-light: #2a2d40;
+  --text-primary: #e8e9ed;
+  --text-secondary: #8b8fa3;
+  --text-tertiary: #5c6078;
+  --accent: #6c5ce7;
+  --accent-light: #a29bfe;
+  --accent-dim: rgba(108, 92, 231, 0.15);
+  --accent-glow: rgba(108, 92, 231, 0.3);
+  --green: #00d68f;
+  --green-dim: rgba(0, 214, 143, 0.12);
+  --red: #ff6b6b;
+  --red-dim: rgba(255, 107, 107, 0.12);
+  --orange: #ffa94d;
+  --orange-dim: rgba(255, 169, 77, 0.12);
+  --blue: #4dabf7;
+  --blue-dim: rgba(77, 171, 247, 0.12);
+  --yellow: #ffd43b;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.4);
+  --shadow-lg: 0 8px 30px rgba(0,0,0,0.5);
+  --font-sans: 'DM Sans', -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  --transition: 180ms ease;
 }
 
-// ─── EMPTY STATE ─────────────────────────────────────────────
-function EmptyState({ icon, message }) {
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 20px', color: '#3a3d52' }}>
-      <div style={{ fontSize: 28, marginBottom: 10 }}>{icon}</div>
-      <div style={{ fontSize: 13 }}>{message}</div>
-    </div>
-  );
-}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: var(--font-sans); background: var(--bg-primary); color: var(--text-primary); -webkit-font-smoothing: antialiased; overflow: hidden; }
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-tertiary); }
 
-// ─── TOGGLE SETTING ──────────────────────────────────────────
-function ToggleSetting({ label, desc, value, onChange }) {
-  return (
-    <div className="toggle-row">
-      <div className="toggle-info">
-        <div className="toggle-label">{label}</div>
-        <div className="toggle-desc">{desc}</div>
-      </div>
-      <div
-        className={`toggle ${value ? 'toggle-on' : ''}`}
-        onClick={() => onChange(!value)}
-      >
-        <div className="toggle-thumb" />
-      </div>
-    </div>
-  );
+.app { display: flex; height: 100vh; width: 100vw; overflow: hidden; }
+.sidebar { width: 240px; min-width: 240px; background: var(--bg-secondary); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 0; z-index: 10; }
+.main { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 0; }
+.topbar { height: 60px; min-height: 60px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 28px; background: var(--bg-secondary); }
+.content { flex: 1; overflow-y: auto; padding: 24px 28px; background: var(--bg-primary); }
+
+.sidebar-logo { padding: 20px 20px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; }
+.logo-icon { width: 34px; height: 34px; background: linear-gradient(135deg, var(--accent), #a29bfe); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; color: white; letter-spacing: -0.5px; box-shadow: 0 2px 12px var(--accent-glow); }
+.logo-text { font-size: 17px; font-weight: 700; letter-spacing: -0.3px; color: var(--text-primary); }
+.logo-badge { font-size: 9px; font-weight: 600; padding: 2px 6px; background: var(--accent-dim); color: var(--accent-light); border-radius: 20px; letter-spacing: 0.5px; text-transform: uppercase; }
+.sidebar-nav { flex: 1; padding: 12px 10px; display: flex; flex-direction: column; gap: 2px; }
+.nav-section-label { font-size: 10px; font-weight: 600; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 1.2px; padding: 12px 12px 6px; }
+.nav-item { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: var(--radius-md); cursor: pointer; color: var(--text-secondary); font-size: 13.5px; font-weight: 450; transition: all var(--transition); position: relative; }
+.nav-item:hover { background: var(--bg-hover); color: var(--text-primary); }
+.nav-item.active { background: var(--accent-dim); color: var(--accent-light); }
+.nav-item.active::before { content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%); width: 3px; height: 18px; background: var(--accent); border-radius: 0 3px 3px 0; }
+.nav-badge { margin-left: auto; font-size: 11px; font-weight: 600; padding: 1px 7px; border-radius: 20px; background: var(--red-dim); color: var(--red); }
+.sidebar-footer { padding: 14px 16px; border-top: 1px solid var(--border); }
+.sidebar-status { display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: var(--green-dim); border-radius: var(--radius-md); font-size: 12px; color: var(--green); font-weight: 500; }
+.status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); animation: pulse-dot 2s ease infinite; }
+@keyframes pulse-dot { 0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(0,214,143,0.5); } 50% { opacity: 0.7; box-shadow: 0 0 0 5px rgba(0,214,143,0); } }
+
+.topbar-left { display: flex; align-items: center; gap: 16px; }
+.topbar-title { font-size: 16px; font-weight: 600; letter-spacing: -0.2px; }
+.topbar-right { display: flex; align-items: center; gap: 12px; }
+.topbar-search { display: flex; align-items: center; gap: 8px; padding: 7px 14px; background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: var(--radius-md); color: var(--text-tertiary); font-size: 13px; cursor: text; transition: all var(--transition); }
+.topbar-search:hover { border-color: var(--border-light); }
+.topbar-search input { background: none; border: none; outline: none; color: var(--text-primary); font-family: var(--font-sans); font-size: 13px; width: 160px; }
+.topbar-search input::placeholder { color: var(--text-tertiary); }
+.topbar-btn { width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: var(--radius-md); border: 1px solid var(--border); background: var(--bg-tertiary); color: var(--text-secondary); cursor: pointer; transition: all var(--transition); position: relative; }
+.topbar-btn:hover { background: var(--bg-hover); color: var(--text-primary); border-color: var(--border-light); }
+.topbar-btn .notif-dot { position: absolute; top: 6px; right: 6px; width: 7px; height: 7px; border-radius: 50%; background: var(--red); border: 2px solid var(--bg-secondary); }
+.topbar-avatar { width: 34px; height: 34px; border-radius: var(--radius-sm); background: linear-gradient(135deg, var(--accent), #a29bfe); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; color: white; cursor: pointer; }
+
+.stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+.stat-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 18px 20px; display: flex; flex-direction: column; gap: 12px; transition: all var(--transition); }
+.stat-card:hover { border-color: var(--border-light); transform: translateY(-1px); }
+.stat-header { display: flex; justify-content: space-between; align-items: center; }
+.stat-label { font-size: 12px; font-weight: 500; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; }
+.stat-icon { width: 32px; height: 32px; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; }
+.stat-value { font-size: 28px; font-weight: 700; letter-spacing: -1px; line-height: 1; }
+.stat-change { display: flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 500; }
+
+.section { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; margin-bottom: 20px; }
+.section-header { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-bottom: 1px solid var(--border); }
+.section-title { font-size: 14px; font-weight: 600; letter-spacing: -0.1px; }
+.section-actions { display: flex; gap: 8px; align-items: center; }
+
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; }
+thead th { text-align: left; padding: 10px 16px; font-size: 11px; font-weight: 600; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.8px; background: var(--bg-tertiary); border-bottom: 1px solid var(--border); white-space: nowrap; }
+tbody td { padding: 12px 16px; font-size: 13px; border-bottom: 1px solid var(--border); white-space: nowrap; color: var(--text-secondary); vertical-align: middle; }
+tbody tr { transition: background var(--transition); }
+tbody tr:hover { background: var(--bg-hover); cursor: pointer; }
+tbody tr:last-child td { border-bottom: none; }
+
+.badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; letter-spacing: 0.2px; }
+.badge-green { background: var(--green-dim); color: var(--green); }
+.badge-red { background: var(--red-dim); color: var(--red); }
+.badge-orange { background: var(--orange-dim); color: var(--orange); }
+.badge-blue { background: var(--blue-dim); color: var(--blue); }
+.badge-purple { background: var(--accent-dim); color: var(--accent-light); }
+.badge-ghost { background: rgba(255,255,255,0.05); color: var(--text-secondary); }
+
+.btn { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: var(--radius-md); font-size: 12.5px; font-weight: 550; cursor: pointer; transition: all var(--transition); border: 1px solid var(--border); background: var(--bg-tertiary); color: var(--text-secondary); font-family: var(--font-sans); white-space: nowrap; }
+.btn:hover { background: var(--bg-hover); color: var(--text-primary); border-color: var(--border-light); }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-primary { background: var(--accent); border-color: var(--accent); color: white; }
+.btn-primary:hover { background: #7c6df0; border-color: #7c6df0; }
+.btn-sm { padding: 4px 10px; font-size: 11.5px; }
+.btn-icon { width: 30px; height: 30px; padding: 0; display: flex; align-items: center; justify-content: center; }
+
+.tabs { display: flex; gap: 0; border-bottom: 1px solid var(--border); padding: 0 20px; }
+.tab { padding: 12px 16px; font-size: 13px; font-weight: 500; color: var(--text-tertiary); cursor: pointer; border-bottom: 2px solid transparent; transition: all var(--transition); margin-bottom: -1px; }
+.tab:hover { color: var(--text-secondary); }
+.tab.active { color: var(--accent-light); border-bottom-color: var(--accent); }
+
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.65); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 100; animation: fadeIn 150ms ease; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+.modal { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-xl); width: 520px; max-width: 92vw; max-height: 85vh; overflow-y: auto; box-shadow: var(--shadow-lg); animation: slideUp 200ms ease; }
+@keyframes slideUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+.modal-header { display: flex; justify-content: space-between; align-items: center; padding: 18px 22px; border-bottom: 1px solid var(--border); }
+.modal-title { font-size: 15px; font-weight: 600; }
+.modal-close { width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; border-radius: var(--radius-sm); cursor: pointer; color: var(--text-tertiary); transition: all var(--transition); background: none; border: none; }
+.modal-close:hover { background: var(--bg-hover); color: var(--text-primary); }
+.modal-body { padding: 20px 22px; }
+.modal-row { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 14px; }
+.modal-label { font-size: 11px; font-weight: 600; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.6px; min-width: 90px; padding-top: 2px; }
+.modal-value { font-size: 13.5px; color: var(--text-primary); line-height: 1.5; }
+.summary-box { background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 14px 16px; font-size: 13.5px; line-height: 1.65; color: var(--text-primary); }
+.transcript-box { background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 14px 16px; font-size: 12.5px; line-height: 1.7; color: var(--text-secondary); font-family: var(--font-mono); white-space: pre-wrap; max-height: 200px; overflow-y: auto; margin-top: 10px; }
+.confidence-bar-wrap { display: flex; align-items: center; gap: 10px; }
+.confidence-bar { flex: 1; height: 6px; background: var(--bg-hover); border-radius: 10px; overflow: hidden; }
+.confidence-fill { height: 100%; border-radius: 10px; transition: width 600ms ease; }
+.confidence-pct { font-size: 13px; font-weight: 600; font-family: var(--font-mono); }
+
+.live-indicator { display: flex; align-items: center; gap: 8px; padding: 5px 12px; background: var(--green-dim); border-radius: 20px; font-size: 12px; font-weight: 600; color: var(--green); }
+.live-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); animation: pulse-dot 1.5s ease infinite; }
+
+.toggle-wrap { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+.toggle { width: 38px; height: 20px; background: var(--bg-hover); border: 1px solid var(--border); border-radius: 20px; position: relative; transition: all var(--transition); }
+.toggle.on { background: var(--accent); border-color: var(--accent); }
+.toggle-knob { position: absolute; width: 14px; height: 14px; background: white; border-radius: 50%; top: 2px; left: 2px; transition: all var(--transition); }
+.toggle.on .toggle-knob { left: 20px; }
+.toggle-label { font-size: 13px; color: var(--text-secondary); }
+
+.integrations-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; padding: 16px 20px; }
+.integration-card { background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 18px; display: flex; flex-direction: column; gap: 12px; transition: all var(--transition); }
+.integration-card:hover { border-color: var(--border-light); }
+.integration-top { display: flex; justify-content: space-between; align-items: flex-start; }
+.integration-icon { width: 40px; height: 40px; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 700; }
+.integration-name { font-size: 14px; font-weight: 600; color: var(--text-primary); }
+.integration-desc { font-size: 12px; color: var(--text-tertiary); line-height: 1.5; }
+
+.employee-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; padding: 16px 20px; }
+.employee-card { background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 16px; display: flex; align-items: center; gap: 12px; transition: all var(--transition); }
+.employee-card:hover { border-color: var(--border-light); }
+.emp-avatar { width: 38px; height: 38px; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; color: white; flex-shrink: 0; }
+.emp-info { flex: 1; min-width: 0; }
+.emp-name { font-size: 13.5px; font-weight: 600; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.emp-role { font-size: 11.5px; color: var(--text-tertiary); margin-top: 2px; }
+.emp-ext { font-size: 11px; font-family: var(--font-mono); color: var(--text-tertiary); }
+.emp-status { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+.filter-bar { display: flex; align-items: center; gap: 8px; padding: 12px 20px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+.filter-chip { padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 500; cursor: pointer; transition: all var(--transition); border: 1px solid var(--border); background: transparent; color: var(--text-secondary); font-family: var(--font-sans); }
+.filter-chip:hover { background: var(--bg-hover); border-color: var(--border-light); }
+.filter-chip.active { background: var(--accent-dim); border-color: var(--accent); color: var(--accent-light); }
+
+.empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px; color: var(--text-tertiary); gap: 12px; }
+.empty-state svg { opacity: 0.3; }
+.empty-state p { font-size: 14px; }
+
+.mobile-menu-btn { display: none; width: 36px; height: 36px; align-items: center; justify-content: center; border-radius: var(--radius-md); border: 1px solid var(--border); background: var(--bg-tertiary); color: var(--text-secondary); cursor: pointer; transition: all var(--transition); flex-shrink: 0; }
+.mobile-menu-btn:hover { background: var(--bg-hover); color: var(--text-primary); }
+.sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(2px); z-index: 49; animation: fadeIn 150ms ease; }
+.mobile-call-cards { display: none; }
+.mobile-call-card { background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; transition: all var(--transition); }
+.mobile-call-card:active { background: var(--bg-hover); }
+.mcc-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+.mcc-caller { font-size: 14px; font-weight: 600; color: var(--text-primary); line-height: 1.3; }
+.mcc-company { font-size: 12px; color: var(--text-tertiary); margin-top: 2px; }
+.mcc-meta { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.mcc-meta-item { display: flex; align-items: center; gap: 4px; font-size: 12px; color: var(--text-tertiary); }
+.mcc-bottom { display: flex; justify-content: space-between; align-items: center; padding-top: 8px; border-top: 1px solid var(--border); }
+.mcc-intent { font-size: 11px; color: var(--text-tertiary); max-width: 60%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* Add form */
+.add-form-row { display: flex; flex-wrap: wrap; gap: 8px; padding: 14px 20px; background: var(--bg-tertiary); border-bottom: 1px solid var(--border); }
+.form-input { padding: 7px 12px; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: var(--radius-md); font-family: var(--font-sans); font-size: 13px; color: var(--text-primary); outline: none; transition: border-color var(--transition); min-width: 140px; }
+.form-input:focus { border-color: var(--accent); }
+.form-input::placeholder { color: var(--text-tertiary); }
+
+@media (max-width: 900px) {
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  .sidebar { position: fixed; left: 0; top: 0; bottom: 0; z-index: 50; transform: translateX(-100%); transition: transform 250ms ease; box-shadow: none; }
+  .sidebar.open { transform: translateX(0); box-shadow: 4px 0 24px rgba(0,0,0,0.5); }
+  .sidebar-overlay.visible { display: block; }
+  .mobile-menu-btn { display: flex; }
+  .topbar-search { display: none; }
+  .topbar-title { font-size: 15px; }
+  .topbar { padding: 0 16px; }
+  .content { padding: 16px; }
+  .dashboard-bottom-grid { grid-template-columns: 1fr !important; }
+  .employee-grid { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }
+  .integrations-grid { grid-template-columns: 1fr; }
+  .settings-grid-2col { grid-template-columns: 1fr !important; }
 }
+@media (max-width: 600px) {
+  .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .stat-card { padding: 14px 16px; }
+  .stat-value { font-size: 24px; }
+  .content { padding: 12px; }
+  .topbar { padding: 0 12px; height: 54px; min-height: 54px; }
+  .live-indicator { padding: 3px 8px; font-size: 11px; }
+  .table-wrap.desktop-table { display: none; }
+  .mobile-call-cards { display: flex; flex-direction: column; gap: 8px; padding: 12px 14px; }
+  .employee-grid { grid-template-columns: 1fr; gap: 8px; padding: 12px 14px; }
+  .tabs { padding: 0 14px; overflow-x: auto; }
+  .tab { padding: 10px 12px; font-size: 12px; white-space: nowrap; }
+  .modal { width: 100vw; max-width: 100vw; max-height: 100vh; height: 100vh; border-radius: 0; }
+  .modal-header { padding: 14px 16px; }
+  .modal-body { padding: 16px; }
+  .modal-row { flex-direction: column; gap: 4px; }
+  .modal-label { min-width: unset; }
+}
+`;
 
 // ─── SIDEBAR ─────────────────────────────────────────────────
-const NAV = [
-  { id: 'dashboard',    label: 'Dashboard',       icon: 'activity' },
-  { id: 'calls',        label: 'Call Log',         icon: 'phone' },
-  { id: 'screening',    label: 'Screening Rules',  icon: 'shield' },
-  { id: 'team',         label: 'Team & Routing',   icon: 'users' },
-  { id: 'settings',     label: 'Settings',         icon: 'settings' },
-];
-
 function Sidebar({ active, setActive, isOpen, onClose }) {
-  const { user, company, logout } = useAuth();
+  const navItems = [
+    { id: "dashboard", icon: Icons.home, label: "Dashboard" },
+    { id: "calls", icon: Icons.phone, label: "Call Log" },
+    { id: "screening", icon: Icons.shield, label: "Screening Rules" },
+    { id: "team", icon: Icons.users, label: "Team & Routing" },
+    { id: "integrations", icon: Icons.plug, label: "Integrations" },
+    { id: "settings", icon: Icons.settings, label: "Settings" },
+  ];
+
   return (
     <>
-      {isOpen && <div className="sidebar-overlay" onClick={onClose} />}
-      <div className={`sidebar ${isOpen ? 'sidebar-open' : ''}`}>
+      <div className={`sidebar-overlay ${isOpen ? "visible" : ""}`} onClick={onClose} />
+      <div className={`sidebar ${isOpen ? "open" : ""}`}>
         <div className="sidebar-logo">
-          <div className="logo-icon">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-            </svg>
-          </div>
-          <div>
-            <div className="logo-text">Gate AI</div>
-            <div className="logo-sub">{company?.name || 'Dashboard'}</div>
-          </div>
+          <div className="logo-icon">{Icons.shield}</div>
+          <span className="logo-text">Gate AI</span>
+          <span className="logo-badge">Beta</span>
         </div>
-        <nav className="sidebar-nav">
-          {NAV.map(item => (
-            <button
-              key={item.id}
-              className={`nav-item ${active === item.id ? 'nav-item-active' : ''}`}
-              onClick={() => { setActive(item.id); onClose(); }}
-            >
-              <span className="nav-icon">{Icons[item.icon]}</span>
-              {item.label}
-            </button>
-          ))}
-        </nav>
-        <div className="sidebar-footer">
-          <div className="user-row">
-            <div className="user-avatar">{initials(`${user?.first_name} ${user?.last_name}`)}</div>
-            <div className="user-info">
-              <div className="user-name">{user?.first_name} {user?.last_name}</div>
-              <div className="user-role">{user?.role}</div>
+        <div className="sidebar-nav">
+          <div className="nav-section-label">Main</div>
+          {navItems.slice(0, 4).map(item => (
+            <div key={item.id} className={`nav-item ${active === item.id ? "active" : ""}`} onClick={() => { setActive(item.id); onClose(); }}>
+              {item.icon}<span>{item.label}</span>
             </div>
-            <button className="icon-btn" onClick={logout} title="Sign out">{Icons.logout}</button>
+          ))}
+          <div className="nav-section-label">System</div>
+          {navItems.slice(4).map(item => (
+            <div key={item.id} className={`nav-item ${active === item.id ? "active" : ""}`} onClick={() => { setActive(item.id); onClose(); }}>
+              {item.icon}<span>{item.label}</span>
+            </div>
+          ))}
+        </div>
+        <div className="sidebar-footer">
+          <div className="sidebar-status">
+            <span className="status-dot" />
+            AI Receptionist Active
           </div>
         </div>
       </div>
@@ -165,18 +352,41 @@ function Sidebar({ active, setActive, isOpen, onClose }) {
 }
 
 // ─── TOPBAR ──────────────────────────────────────────────────
-function Topbar({ title, onMenuToggle, wsConnected }) {
+function Topbar({ title, onMenuToggle }) {
+  const { user, logout } = useAuth();
+  const avatarText = user ? initials(`${user.first_name || ""} ${user.last_name || ""}`) : "?";
   return (
     <div className="topbar">
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-        <button className="icon-btn menu-btn" onClick={onMenuToggle}>{Icons.menu}</button>
-        <h1 className="page-title">{title}</h1>
-      </div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, color: wsConnected ? '#00d68f' : '#3a3d52' }}>
-          {Icons.wifi}
-          <span>{wsConnected ? 'Live' : 'Offline'}</span>
+      <div className="topbar-left">
+        <div className="mobile-menu-btn" onClick={onMenuToggle}>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+          </svg>
         </div>
+        <span className="topbar-title">{title}</span>
+        <div className="live-indicator"><span className="live-dot" /> Live</div>
+      </div>
+      <div className="topbar-right">
+        <div className="topbar-search">{Icons.search}<input placeholder="Search calls, contacts..." /></div>
+        <div className="topbar-btn">{Icons.bell}<span className="notif-dot" /></div>
+        <div className="topbar-avatar" onClick={logout} title="Sign out">{avatarText}</div>
+      </div>
+    </div>
+  );
+}
+
+// ─── STAT CARD ───────────────────────────────────────────────
+function StatCard({ label, value, icon, iconBg, change, changeDir }) {
+  return (
+    <div className="stat-card">
+      <div className="stat-header">
+        <span className="stat-label">{label}</span>
+        <div className="stat-icon" style={{ background: iconBg }}>{icon}</div>
+      </div>
+      <div className="stat-value">{value ?? "—"}</div>
+      <div className="stat-change" style={{ color: changeDir === "up" ? "var(--green)" : changeDir === "down" ? "var(--red)" : "var(--text-tertiary)" }}>
+        {changeDir === "up" ? Icons.arrowUp : changeDir === "down" ? Icons.arrowDown : null}
+        {change}
       </div>
     </div>
   );
@@ -185,38 +395,68 @@ function Topbar({ title, onMenuToggle, wsConnected }) {
 // ─── CALL DETAIL MODAL ───────────────────────────────────────
 function CallDetailModal({ call, onClose }) {
   if (!call) return null;
-  const outcome = call.outcome || call.call_status || 'unknown';
+  const c = normalizeCall(call);
+  const confColor = c.confidence >= 90 ? "var(--green)" : c.confidence >= 75 ? "var(--orange)" : "var(--red)";
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal" onClick={e => e.stopPropagation()}>
         <div className="modal-header">
-          <div>
-            <div className="modal-caller">{call.caller_name || 'Unknown Caller'}</div>
-            <div className="modal-company">{call.caller_company || call.caller_number || '—'}</div>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <span className={`badge ${outcomeBadgeClass(outcome)}`}>{outcomeLabel(outcome)}</span>
-            <button className="icon-btn" onClick={onClose}>{Icons.x}</button>
-          </div>
+          <span className="modal-title">Call Summary</span>
+          <button className="modal-close" onClick={onClose}>{Icons.x}</button>
         </div>
         <div className="modal-body">
-          <div className="modal-meta">
-            <div className="meta-item"><span className="meta-label">Time</span><span>{fmtDate(call.created_at)} {fmt(call.created_at)}</span></div>
-            <div className="meta-item"><span className="meta-label">Duration</span><span>{fmtDuration(call.duration_seconds)}</span></div>
-            <div className="meta-item"><span className="meta-label">Phone</span><span>{call.caller_number || '—'}</span></div>
-            <div className="meta-item"><span className="meta-label">Confidence</span><span style={{ color: '#00d68f' }}>{call.confidence_score || 0}%</span></div>
-            {call.forwarded_to && <div className="meta-item"><span className="meta-label">Forwarded to</span><span>{call.forwarded_to}</span></div>}
+          <div className="modal-row">
+            <span className="modal-label">Caller</span>
+            <span className="modal-value" style={{ fontWeight: 600 }}>{c.caller}{c.company ? ` — ${c.company}` : ""}</span>
           </div>
-          {call.summary && (
-            <div className="modal-section">
-              <div className="modal-section-title">AI Summary</div>
-              <div className="modal-summary">{call.summary}</div>
+          <div className="modal-row">
+            <span className="modal-label">Phone</span>
+            <span className="modal-value" style={{ fontFamily: "var(--font-mono)", fontSize: 13 }}>{c.phone}</span>
+          </div>
+          <div className="modal-row">
+            <span className="modal-label">Time</span>
+            <span className="modal-value">{c.time} · {c.duration}</span>
+          </div>
+          <div className="modal-row">
+            <span className="modal-label">Status</span>
+            <span className="modal-value">
+              <span className={`badge ${c.status === "forwarded" ? "badge-green" : c.status === "blocked" ? "badge-red" : "badge-orange"}`}>
+                {c.status === "forwarded" ? Icons.check : c.status === "blocked" ? Icons.x : Icons.eye}
+                {c.status}
+              </span>
+            </span>
+          </div>
+          {c.forwardedTo && (
+            <div className="modal-row">
+              <span className="modal-label">Routed To</span>
+              <span className="modal-value">{c.forwardedTo}</span>
             </div>
           )}
-          {call.transcript && (
-            <div className="modal-section">
-              <div className="modal-section-title">Transcript</div>
-              <div className="modal-transcript">{call.transcript}</div>
+          <div className="modal-row">
+            <span className="modal-label">Intent</span>
+            <span className="modal-value"><span className="badge badge-purple">{Icons.zap} {c.intent}</span></span>
+          </div>
+          <div className="modal-row">
+            <span className="modal-label">Confidence</span>
+            <span className="modal-value" style={{ flex: 1 }}>
+              <div className="confidence-bar-wrap">
+                <div className="confidence-bar">
+                  <div className="confidence-fill" style={{ width: `${c.confidence}%`, background: confColor }} />
+                </div>
+                <span className="confidence-pct" style={{ color: confColor }}>{c.confidence}%</span>
+              </div>
+            </span>
+          </div>
+          {c.summary && (
+            <div style={{ marginTop: 8 }}>
+              <span className="modal-label" style={{ display: "block", marginBottom: 8 }}>AI Summary</span>
+              <div className="summary-box">{c.summary}</div>
+            </div>
+          )}
+          {c.transcript && (
+            <div style={{ marginTop: 12 }}>
+              <span className="modal-label" style={{ display: "block", marginBottom: 8 }}>Transcript</span>
+              <div className="transcript-box">{c.transcript}</div>
             </div>
           )}
         </div>
@@ -225,351 +465,454 @@ function CallDetailModal({ call, onClose }) {
   );
 }
 
-// ─── STAT CARD ───────────────────────────────────────────────
-function StatCard({ label, value, sub, color }) {
+// ─── MOBILE CALL CARD ────────────────────────────────────────
+function MobileCallCard({ call, onView }) {
+  const c = normalizeCall(call);
   return (
-    <div className="stat-card">
-      <div className="stat-label">{label}</div>
-      <div className="stat-value" style={{ color: color || 'var(--text-primary)' }}>{value ?? '—'}</div>
-      {sub && <div className="stat-sub">{sub}</div>}
+    <div className="mobile-call-card" onClick={() => onView(call)}>
+      <div className="mcc-top">
+        <div>
+          <div className="mcc-caller">{c.caller}</div>
+          {c.company && <div className="mcc-company">{c.company}</div>}
+        </div>
+        <span className={`badge ${c.status === "forwarded" ? "badge-green" : c.status === "blocked" ? "badge-red" : "badge-orange"}`}>{c.status}</span>
+      </div>
+      <div className="mcc-meta">
+        <span className="mcc-meta-item">{Icons.clock} {c.time}</span>
+        <span className="mcc-meta-item">{c.duration}</span>
+        {c.forwardedTo && <span className="mcc-meta-item">{Icons.forward} {c.forwardedTo}</span>}
+      </div>
+      <div className="mcc-bottom">
+        <span className="mcc-intent"><span className="badge badge-ghost">{c.intent}</span></span>
+        <button className="btn btn-sm" onClick={e => { e.stopPropagation(); onView(call); }}>{Icons.eye} View</button>
+      </div>
+    </div>
+  );
+}
+
+// ─── TOGGLE SETTING ──────────────────────────────────────────
+function ToggleSetting({ label, desc, value, onChange }) {
+  return (
+    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+      <div>
+        <div style={{ fontSize: 13.5, fontWeight: 500, color: "var(--text-primary)" }}>{label}</div>
+        <div style={{ fontSize: 12, color: "var(--text-tertiary)", marginTop: 3 }}>{desc}</div>
+      </div>
+      <div className="toggle-wrap" onClick={() => onChange && onChange(!value)}>
+        <div className={`toggle ${value ? "on" : ""}`}><div className="toggle-knob" /></div>
+      </div>
+    </div>
+  );
+}
+
+// ─── SPINNER ─────────────────────────────────────────────────
+function Spinner() {
+  return (
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: 40 }}>
+      <div style={{ width: 24, height: 24, border: "2px solid var(--border)", borderTopColor: "var(--accent)", borderRadius: "50%", animation: "spin 0.7s linear infinite" }} />
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   );
 }
 
 // ─── DASHBOARD PAGE ──────────────────────────────────────────
 function DashboardPage({ onViewCall, liveCalls }) {
-  const [data,    setData]    = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [callList, setCallList] = useState([]);
+  const [ptList,   setPtList]   = useState([]);
+  const [teamList, setTeamList] = useState([]);
+  const [loading,  setLoading]  = useState(true);
 
   useEffect(() => {
-    callsApi.list({ limit: 10, sort: 'desc' })
-      .then(res => setData(res))
-      .catch(console.error)
-      .finally(() => setLoading(false));
+    Promise.all([
+      callsApi.list({ limit: 20, sort: "desc" }),
+      patternsApi.list(),
+      usersApi.list(),
+    ]).then(([callRes, ptRes, teamRes]) => {
+      setCallList(callRes?.calls || callRes || []);
+      setPtList(ptRes?.patterns || ptRes || []);
+      setTeamList(teamRes?.users || teamRes || []);
+    }).catch(console.error).finally(() => setLoading(false));
   }, []);
 
   const allCalls = liveCalls.length > 0
-    ? [...liveCalls, ...(data?.calls || [])].slice(0, 10)
-    : (data?.calls || []);
+    ? [...liveCalls, ...callList].slice(0, 20)
+    : callList;
 
-  const total     = data?.total || 0;
-  const blocked   = allCalls.filter(c => c.outcome === 'blocked').length;
-  const forwarded = allCalls.filter(c => c.outcome === 'forwarded').length;
-  const blockRate = total > 0 ? Math.round((blocked / total) * 100) : 0;
+  const normalized = allCalls.map(normalizeCall);
+  const blocked   = normalized.filter(c => c.status === "blocked").length;
+  const forwarded = normalized.filter(c => c.status === "forwarded").length;
+  const screened  = normalized.filter(c => c.status === "screened").length;
+  const total     = normalized.length;
+  const recentCalls = normalized.slice(0, 5);
+  const availableTeam = teamList.filter(m => m.status === "available" || !m.status);
+
+  if (loading) return <Spinner />;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+    <>
       <div className="stats-grid">
-        <StatCard label="Total Calls Today" value={total} />
-        <StatCard label="Blocked" value={blocked} color="var(--red)" />
-        <StatCard label="Forwarded" value={forwarded} color="var(--green)" />
-        <StatCard label="Block Rate" value={`${blockRate}%`} color="var(--purple)" />
+        <StatCard label="Total Calls Today" value={total} icon={Icons.phone} iconBg="var(--accent-dim)" change={total > 0 ? `${total} calls` : "No calls yet"} changeDir="up" />
+        <StatCard label="Blocked / Spam" value={blocked} icon={Icons.ban} iconBg="var(--red-dim)" change={total > 0 ? `${Math.round(blocked/total*100)}% of calls` : "0% of calls"} changeDir="down" />
+        <StatCard label="Forwarded" value={forwarded} icon={Icons.forward} iconBg="var(--green-dim)" change={forwarded > 0 ? "Connected" : "None yet"} changeDir="up" />
+        <StatCard label="Flagged / Screened" value={screened} icon={Icons.eye} iconBg="var(--orange-dim)" change="Pending review" changeDir={null} />
       </div>
 
       <div className="section">
         <div className="section-header">
           <span className="section-title">Recent Activity</span>
-          {liveCalls.length > 0 && (
-            <span style={{ fontSize: 11, color: '#00d68f', display: 'flex', alignItems: 'center', gap: 4 }}>
-              {Icons.zap} Live
-            </span>
-          )}
+          <span className="live-indicator" style={{ fontSize: 11 }}><span className="live-dot" /> Listening</span>
         </div>
-        {loading ? <Spinner /> : allCalls.length === 0 ? (
-          <EmptyState icon="📞" message="No calls yet today" />
+        {recentCalls.length === 0 ? (
+          <div className="empty-state"><p>No calls yet — your Gate AI number is live and listening</p></div>
         ) : (
-          <div className="call-list">
-            {allCalls.map((call, i) => (
-              <div key={call.id || i} className="call-row" onClick={() => onViewCall(call)}>
-                <div className="call-avatar">{initials(call.caller_name)}</div>
-                <div className="call-info">
-                  <div className="call-name">{call.caller_name || 'Unknown'}</div>
-                  <div className="call-company">{call.caller_company || call.caller_number || '—'}</div>
+          <>
+            <div className="table-wrap desktop-table">
+              <table>
+                <thead>
+                  <tr><th>Caller</th><th>Phone</th><th>Time</th><th>Status</th><th>Intent</th><th>Routed To</th><th></th></tr>
+                </thead>
+                <tbody>
+                  {recentCalls.map((call, i) => (
+                    <tr key={call.id || i} onClick={() => onViewCall(allCalls[i])}>
+                      <td style={{ color: "var(--text-primary)", fontWeight: 500 }}>
+                        {call.caller}{call.company && <span style={{ color: "var(--text-tertiary)", fontWeight: 400 }}> · {call.company}</span>}
+                      </td>
+                      <td style={{ fontFamily: "var(--font-mono)", fontSize: 12 }}>{call.phone}</td>
+                      <td><span style={{ display: "flex", alignItems: "center", gap: 4, color: "var(--text-tertiary)" }}>{Icons.clock} {call.time}</span></td>
+                      <td><span className={`badge ${call.status === "forwarded" ? "badge-green" : call.status === "blocked" ? "badge-red" : "badge-orange"}`}>{call.status}</span></td>
+                      <td><span className="badge badge-ghost">{call.intent}</span></td>
+                      <td>{call.forwardedTo || <span style={{ color: "var(--text-tertiary)" }}>—</span>}</td>
+                      <td><button className="btn btn-sm" onClick={e => { e.stopPropagation(); onViewCall(allCalls[i]); }}>{Icons.eye} View</button></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div className="mobile-call-cards">
+              {recentCalls.map((call, i) => <MobileCallCard key={call.id || i} call={allCalls[i]} onView={onViewCall} />)}
+            </div>
+          </>
+        )}
+      </div>
+
+      <div className="dashboard-bottom-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+        <div className="section">
+          <div className="section-header"><span className="section-title">Top Blocked Patterns</span></div>
+          <div style={{ padding: 16 }}>
+            {ptList.length === 0 ? (
+              <div style={{ color: "var(--text-tertiary)", fontSize: 13, padding: "8px 0" }}>No blocked patterns configured yet</div>
+            ) : ptList.slice(0, 3).map((p, i) => (
+              <div key={p.id || i} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid var(--border)" }}>
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 500, color: "var(--text-primary)" }}>{p.pattern}</div>
+                  <div style={{ fontSize: 11, color: "var(--text-tertiary)", marginTop: 2 }}>{p.pattern_type || p.type}</div>
                 </div>
-                <div className="call-right">
-                  <span className={`badge ${outcomeBadgeClass(call.outcome)}`}>{outcomeLabel(call.outcome)}</span>
-                  <div className="call-time">{fmt(call.created_at)}</div>
-                </div>
+                <span className="badge badge-red">{p.hits || 0} blocked</span>
               </div>
             ))}
           </div>
-        )}
+        </div>
+        <div className="section">
+          <div className="section-header"><span className="section-title">Active Team Members</span></div>
+          <div style={{ padding: 16 }}>
+            {teamList.length === 0 ? (
+              <div style={{ color: "var(--text-tertiary)", fontSize: 13, padding: "8px 0" }}>No team members added yet</div>
+            ) : teamList.slice(0, 4).map((emp, i) => (
+              <div key={emp.id || i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 0", borderBottom: "1px solid var(--border)" }}>
+                <div className="emp-avatar" style={{ background: "linear-gradient(135deg, var(--accent), #a29bfe)", width: 30, height: 30, fontSize: 11 }}>
+                  {initials(`${emp.first_name || ""} ${emp.last_name || ""}`)}
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 13, fontWeight: 500 }}>{emp.first_name} {emp.last_name}</div>
+                  <div style={{ fontSize: 11, color: "var(--text-tertiary)" }}>{emp.role}</div>
+                </div>
+                <div className="emp-status" style={{ background: "var(--green)" }} />
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
-    </div>
+    </>
   );
 }
 
 // ─── CALL LOG PAGE ───────────────────────────────────────────
 function CallLogPage({ onViewCall }) {
-  const [callList, setCallList] = useState([]);
-  const [loading,  setLoading]  = useState(true);
-  const [search,   setSearch]   = useState('');
-  const [filter,   setFilter]   = useState('all');
-  const [exporting,setExporting]= useState(false);
+  const [callList,  setCallList]  = useState([]);
+  const [loading,   setLoading]   = useState(true);
+  const [filter,    setFilter]    = useState("all");
+  const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
-    callsApi.list({ limit: 100, sort: 'desc' })
+    callsApi.list({ limit: 100, sort: "desc" })
       .then(res => setCallList(res?.calls || res || []))
       .catch(console.error)
       .finally(() => setLoading(false));
   }, []);
 
-  const filtered = callList.filter(c => {
-    const matchFilter = filter === 'all' || c.outcome === filter;
-    const q = search.toLowerCase();
-    const matchSearch = !q || (c.caller_name || '').toLowerCase().includes(q)
-      || (c.caller_company || '').toLowerCase().includes(q)
-      || (c.caller_number || '').toLowerCase().includes(q);
-    return matchFilter && matchSearch;
-  });
+  const normalized = callList.map(normalizeCall);
+  const filtered = filter === "all" ? normalized : normalized.filter(c => c.status === filter);
 
   function handleExport() {
     setExporting(true);
-    try {
-      exportCallsCsv({ status: filter !== 'all' ? filter : undefined });
-    } finally {
-      setTimeout(() => setExporting(false), 1500);
-    }
+    try { exportCallsCsv({ status: filter !== "all" ? filter : undefined }); }
+    finally { setTimeout(() => setExporting(false), 1500); }
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      <div className="toolbar">
-        <div className="search-wrap">
-          <span className="search-icon">{Icons.search}</span>
-          <input
-            className="search-input"
-            placeholder="Search caller, company, number..."
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-          />
-        </div>
-        <div style={{ display: 'flex', gap: 8 }}>
-          {['all', 'forwarded', 'blocked'].map(f => (
-            <button
-              key={f}
-              className={`btn btn-sm ${filter === f ? 'btn-primary' : ''}`}
-              onClick={() => setFilter(f)}
-            >
-              {f.charAt(0).toUpperCase() + f.slice(1)}
-            </button>
-          ))}
-          <button className="btn btn-sm" onClick={handleExport} disabled={exporting} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-            {Icons.download} {exporting ? 'Exporting...' : 'Export CSV'}
+    <div className="section">
+      <div className="section-header">
+        <span className="section-title">Call Log — Today</span>
+        <div className="section-actions">
+          <button className="btn btn-sm btn-primary" onClick={handleExport} disabled={exporting}>
+            {Icons.download} {exporting ? "Exporting..." : "Export CSV"}
           </button>
         </div>
       </div>
-
-      <div className="section">
-        {loading ? <Spinner /> : filtered.length === 0 ? (
-          <EmptyState icon="🔍" message="No calls match your search" />
-        ) : (
-          <div className="call-table">
-            <div className="call-table-header">
-              <span>Caller</span>
-              <span>Status</span>
-              <span>Confidence</span>
-              <span>Duration</span>
-              <span>Time</span>
-            </div>
-            {filtered.map((call, i) => (
-              <div key={call.id || i} className="call-table-row" onClick={() => onViewCall(call)}>
-                <div className="call-info">
-                  <div className="call-name">{call.caller_name || 'Unknown'}</div>
-                  <div className="call-company">{call.caller_company || call.caller_number || '—'}</div>
-                </div>
-                <span className={`badge ${outcomeBadgeClass(call.outcome)}`}>{outcomeLabel(call.outcome)}</span>
-                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: '#00d68f' }}>{call.confidence_score || 0}%</span>
-                <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>{fmtDuration(call.duration_seconds)}</span>
-                <span style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>{fmt(call.created_at)}</span>
-              </div>
-            ))}
-          </div>
-        )}
+      <div className="filter-bar">
+        {["all", "forwarded", "blocked", "screened"].map(f => (
+          <button key={f} className={`filter-chip ${filter === f ? "active" : ""}`} onClick={() => setFilter(f)}>
+            {f === "all" ? "All Calls" : f.charAt(0).toUpperCase() + f.slice(1)}
+            <span style={{ marginLeft: 4, opacity: 0.6 }}>
+              ({f === "all" ? normalized.length : normalized.filter(c => c.status === f).length})
+            </span>
+          </button>
+        ))}
       </div>
+      {loading ? <Spinner /> : filtered.length === 0 ? (
+        <div className="empty-state"><p>No {filter !== "all" ? filter : ""} calls found</p></div>
+      ) : (
+        <>
+          <div className="table-wrap desktop-table">
+            <table>
+              <thead>
+                <tr><th>Caller</th><th>Company</th><th>Phone</th><th>Time</th><th>Duration</th><th>Status</th><th>Intent</th><th>Confidence</th><th>Routed To</th><th></th></tr>
+              </thead>
+              <tbody>
+                {filtered.map((call, i) => (
+                  <tr key={call.id || i} onClick={() => onViewCall(callList[i])}>
+                    <td style={{ color: "var(--text-primary)", fontWeight: 500 }}>{call.caller}</td>
+                    <td>{call.company || <span style={{ color: "var(--text-tertiary)" }}>—</span>}</td>
+                    <td style={{ fontFamily: "var(--font-mono)", fontSize: 12 }}>{call.phone}</td>
+                    <td>{call.time}</td>
+                    <td style={{ fontFamily: "var(--font-mono)", fontSize: 12 }}>{call.duration}</td>
+                    <td><span className={`badge ${call.status === "forwarded" ? "badge-green" : call.status === "blocked" ? "badge-red" : "badge-orange"}`}>{call.status}</span></td>
+                    <td><span className="badge badge-ghost">{call.intent}</span></td>
+                    <td>
+                      <div className="confidence-bar-wrap" style={{ minWidth: 80 }}>
+                        <div className="confidence-bar" style={{ flex: 1 }}>
+                          <div className="confidence-fill" style={{ width: `${call.confidence}%`, background: call.confidence >= 90 ? "var(--green)" : "var(--orange)" }} />
+                        </div>
+                        <span style={{ fontSize: 11, fontFamily: "var(--font-mono)", color: "var(--text-tertiary)" }}>{call.confidence}%</span>
+                      </div>
+                    </td>
+                    <td>{call.forwardedTo || <span style={{ color: "var(--text-tertiary)" }}>—</span>}</td>
+                    <td><button className="btn btn-sm btn-icon" onClick={e => { e.stopPropagation(); onViewCall(callList[i]); }} title="View summary">{Icons.eye}</button></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <div className="mobile-call-cards">
+            {filtered.map((call, i) => <MobileCallCard key={call.id || i} call={callList[i]} onView={onViewCall} />)}
+          </div>
+        </>
+      )}
     </div>
   );
 }
 
 // ─── SCREENING PAGE ──────────────────────────────────────────
 function ScreeningPage() {
-  const [wlList,    setWlList]    = useState([]);
-  const [ptList,    setPtList]    = useState([]);
-  const [loading,   setLoading]   = useState(true);
-  const [addingWl,  setAddingWl]  = useState(false);
-  const [addingPt,  setAddingPt]  = useState(false);
-  const [wlForm,    setWlForm]    = useState({ name: '', company_name: '', phone_number: '', tag: 'Client' });
-  const [ptForm,    setPtForm]    = useState({ pattern: '', pattern_type: 'Keyword' });
-  const [scrEmail,  setScrEmail]  = useState('');
+  const [ptList,   setPtList]   = useState([]);
+  const [wlList,   setWlList]   = useState([]);
+  const [tab,      setTab]      = useState("blocked");
+  const [loading,  setLoading]  = useState(true);
+  const [addingPt, setAddingPt] = useState(false);
+  const [addingWl, setAddingWl] = useState(false);
+  const [ptForm,   setPtForm]   = useState({ pattern: "", pattern_type: "Keyword" });
+  const [wlForm,   setWlForm]   = useState({ name: "", company_name: "", phone_number: "", tag: "Client" });
+  const [scrEmail, setScrEmail] = useState("");
   const [savingEmail, setSavingEmail] = useState(false);
+  const [notifSettings, setNotifSettings] = useState({});
 
   useEffect(() => {
     Promise.all([
-      whitelistApi.list(),
       patternsApi.list(),
+      whitelistApi.list(),
       settingsApi.get(),
-    ]).then(([wl, pt, sett]) => {
-      setWlList(wl?.contacts || wl || []);
+      notificationsApi.get(),
+    ]).then(([pt, wl, sett, notif]) => {
       setPtList(pt?.patterns || pt || []);
-      setScrEmail(sett?.screening_email || '');
+      setWlList(wl?.contacts || wl || []);
+      setScrEmail(sett?.screening_email || "");
+      setNotifSettings(notif?.settings || notif || {});
     }).catch(console.error).finally(() => setLoading(false));
   }, []);
-
-  async function addWhitelist() {
-    if (!wlForm.name) return;
-    try {
-      const entry = await whitelistApi.create(wlForm);
-      setWlList(prev => [entry, ...prev]);
-      setWlForm({ name: '', company_name: '', phone_number: '', tag: 'Client' });
-      setAddingWl(false);
-    } catch (err) { alert(err.message); }
-  }
-
-  async function removeWhitelist(id) {
-    if (!confirm('Remove from whitelist?')) return;
-    try {
-      await whitelistApi.remove(id);
-      setWlList(prev => prev.filter(w => w.id !== id));
-    } catch (err) { alert(err.message); }
-  }
 
   async function addPattern() {
     if (!ptForm.pattern) return;
     try {
       const entry = await patternsApi.create(ptForm);
       setPtList(prev => [entry, ...prev]);
-      setPtForm({ pattern: '', pattern_type: 'Keyword' });
+      setPtForm({ pattern: "", pattern_type: "Keyword" });
       setAddingPt(false);
     } catch (err) { alert(err.message); }
   }
 
   async function removePattern(id) {
-    if (!confirm('Remove this blocked pattern?')) return;
+    if (!confirm("Remove this pattern?")) return;
+    try { await patternsApi.remove(id); setPtList(prev => prev.filter(p => p.id !== id)); }
+    catch (err) { alert(err.message); }
+  }
+
+  async function addWhitelist() {
+    if (!wlForm.name) return;
     try {
-      await patternsApi.remove(id);
-      setPtList(prev => prev.filter(p => p.id !== id));
+      const entry = await whitelistApi.create(wlForm);
+      setWlList(prev => [entry, ...prev]);
+      setWlForm({ name: "", company_name: "", phone_number: "", tag: "Client" });
+      setAddingWl(false);
     } catch (err) { alert(err.message); }
+  }
+
+  async function removeWhitelist(id) {
+    if (!confirm("Remove from whitelist?")) return;
+    try { await whitelistApi.remove(id); setWlList(prev => prev.filter(w => w.id !== id)); }
+    catch (err) { alert(err.message); }
   }
 
   async function saveScreeningEmail() {
     setSavingEmail(true);
-    try {
-      await settingsApi.update({ screening_email: scrEmail });
-    } catch (err) { alert(err.message); }
+    try { await settingsApi.update({ screening_email: scrEmail }); }
+    catch (err) { alert(err.message); }
     finally { setSavingEmail(false); }
+  }
+
+  async function toggleNotif(key) {
+    const updated = { ...notifSettings, [key]: !notifSettings[key] };
+    try { await notificationsApi.update(updated); setNotifSettings(updated); }
+    catch (err) { alert(err.message); }
   }
 
   if (loading) return <Spinner />;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-
-      {/* Screening Email */}
-      <div className="section">
-        <div className="section-header">
-          <span className="section-title">Screening Email</span>
-        </div>
-        <div style={{ padding: 20 }}>
-          <div style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 12 }}>
-            Blocked callers are directed to email this address if they believe their call is a genuine business enquiry.
-          </div>
-          <div style={{ display: 'flex', gap: 8 }}>
-            <input
-              className="form-input"
-              style={{ flex: 1 }}
-              placeholder="screening@yourcompany.com"
-              value={scrEmail}
-              onChange={e => setScrEmail(e.target.value)}
-            />
-            <button className="btn btn-primary btn-sm" onClick={saveScreeningEmail} disabled={savingEmail}>
-              {savingEmail ? 'Saving...' : 'Save'}
-            </button>
-          </div>
-        </div>
+    <>
+      <div className="tabs">
+        <div className={`tab ${tab === "blocked" ? "active" : ""}`} onClick={() => setTab("blocked")}>Blocked Patterns</div>
+        <div className={`tab ${tab === "whitelist" ? "active" : ""}`} onClick={() => setTab("whitelist")}>Whitelist / VIP</div>
+        <div className={`tab ${tab === "ai" ? "active" : ""}`} onClick={() => setTab("ai")}>AI Behavior</div>
       </div>
 
-      {/* Whitelist */}
-      <div className="section">
-        <div className="section-header">
-          <span className="section-title">Whitelist</span>
-          <button className="btn btn-primary btn-sm" style={{ display: 'flex', alignItems: 'center', gap: 5 }} onClick={() => setAddingWl(!addingWl)}>
-            {Icons.plus} Add Contact
-          </button>
-        </div>
-
-        {addingWl && (
-          <div className="add-form">
-            <input className="form-input" placeholder="Full name *" value={wlForm.name} onChange={e => setWlForm(p => ({ ...p, name: e.target.value }))} />
-            <input className="form-input" placeholder="Company" value={wlForm.company_name} onChange={e => setWlForm(p => ({ ...p, company_name: e.target.value }))} />
-            <input className="form-input" placeholder="Phone number" value={wlForm.phone_number} onChange={e => setWlForm(p => ({ ...p, phone_number: e.target.value }))} />
-            <select className="form-input" value={wlForm.tag} onChange={e => setWlForm(p => ({ ...p, tag: e.target.value }))}>
-              {['Client', 'Vendor', 'VIP', 'Partner'].map(t => <option key={t}>{t}</option>)}
-            </select>
-            <div style={{ display: 'flex', gap: 8 }}>
-              <button className="btn btn-primary btn-sm" onClick={addWhitelist}>Add</button>
-              <button className="btn btn-sm" onClick={() => setAddingWl(false)}>Cancel</button>
-            </div>
+      {tab === "blocked" && (
+        <div className="section" style={{ border: "none", borderRadius: 0 }}>
+          <div className="section-header" style={{ borderTop: "none" }}>
+            <span className="section-title">Blocked Patterns & Keywords</span>
+            <button className="btn btn-sm btn-primary" onClick={() => setAddingPt(!addingPt)}>{Icons.plus} Add Pattern</button>
           </div>
-        )}
-
-        {wlList.length === 0 ? (
-          <EmptyState icon="⭐" message="No whitelisted contacts yet" />
-        ) : (
-          <div className="list-items">
-            {wlList.map(w => (
-              <div key={w.id} className="list-item">
-                <div className="list-avatar">{initials(w.name)}</div>
-                <div className="list-info">
-                  <div className="list-name">{w.name}</div>
-                  <div className="list-sub">{w.company_name} {w.phone_number ? `· ${w.phone_number}` : ''}</div>
-                </div>
-                <span className="badge badge-purple">{w.tag}</span>
-                <button className="icon-btn icon-btn-danger" onClick={() => removeWhitelist(w.id)}>{Icons.trash}</button>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Blocked Patterns */}
-      <div className="section">
-        <div className="section-header">
-          <span className="section-title">Blocked Patterns</span>
-          <button className="btn btn-primary btn-sm" style={{ display: 'flex', alignItems: 'center', gap: 5 }} onClick={() => setAddingPt(!addingPt)}>
-            {Icons.plus} Add Pattern
-          </button>
-        </div>
-
-        {addingPt && (
-          <div className="add-form">
-            <input className="form-input" placeholder="Pattern (e.g. Solar panel offers)" value={ptForm.pattern} onChange={e => setPtForm(p => ({ ...p, pattern: e.target.value }))} />
-            <select className="form-input" value={ptForm.pattern_type} onChange={e => setPtForm(p => ({ ...p, pattern_type: e.target.value }))}>
-              {['Keyword', 'Number Range', 'Caller ID'].map(t => <option key={t}>{t}</option>)}
-            </select>
-            <div style={{ display: 'flex', gap: 8 }}>
-              <button className="btn btn-primary btn-sm" onClick={addPattern}>Add</button>
+          {addingPt && (
+            <div className="add-form-row">
+              <input className="form-input" placeholder="Pattern (e.g. Solar panel offers)" value={ptForm.pattern} onChange={e => setPtForm(p => ({ ...p, pattern: e.target.value }))} />
+              <select className="form-input" value={ptForm.pattern_type} onChange={e => setPtForm(p => ({ ...p, pattern_type: e.target.value }))}>
+                {["Keyword", "Number Range", "Caller ID"].map(t => <option key={t}>{t}</option>)}
+              </select>
+              <button className="btn btn-sm btn-primary" onClick={addPattern}>Add</button>
               <button className="btn btn-sm" onClick={() => setAddingPt(false)}>Cancel</button>
             </div>
-          </div>
-        )}
+          )}
+          {ptList.length === 0 ? (
+            <div className="empty-state"><p>No blocked patterns configured yet</p></div>
+          ) : (
+            <div className="table-wrap">
+              <table>
+                <thead><tr><th>Pattern</th><th>Type</th><th>Hits</th><th>Actions</th></tr></thead>
+                <tbody>
+                  {ptList.map(p => (
+                    <tr key={p.id}>
+                      <td style={{ color: "var(--text-primary)", fontWeight: 500 }}>{p.pattern}</td>
+                      <td><span className="badge badge-ghost">{p.pattern_type || p.type}</span></td>
+                      <td style={{ fontFamily: "var(--font-mono)" }}>{p.hits || 0}</td>
+                      <td>
+                        <button className="btn btn-sm" style={{ color: "var(--red)" }} onClick={() => removePattern(p.id)}>Remove</button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
 
-        {ptList.length === 0 ? (
-          <EmptyState icon="🚫" message="No blocked patterns yet" />
-        ) : (
-          <div className="list-items">
-            {ptList.map(p => (
-              <div key={p.id} className="list-item">
-                <div className="list-info">
-                  <div className="list-name">{p.pattern}</div>
-                  <div className="list-sub">{p.pattern_type} · {p.hits || 0} hits</div>
-                </div>
-                <button className="icon-btn icon-btn-danger" onClick={() => removePattern(p.id)}>{Icons.trash}</button>
-              </div>
-            ))}
+      {tab === "whitelist" && (
+        <div className="section" style={{ border: "none", borderRadius: 0 }}>
+          <div className="section-header">
+            <span className="section-title">Whitelisted Contacts — Bypass Screening</span>
+            <button className="btn btn-sm btn-primary" onClick={() => setAddingWl(!addingWl)}>{Icons.plus} Add Contact</button>
           </div>
-        )}
-      </div>
-    </div>
+          {addingWl && (
+            <div className="add-form-row">
+              <input className="form-input" placeholder="Full name *" value={wlForm.name} onChange={e => setWlForm(p => ({ ...p, name: e.target.value }))} />
+              <input className="form-input" placeholder="Company" value={wlForm.company_name} onChange={e => setWlForm(p => ({ ...p, company_name: e.target.value }))} />
+              <input className="form-input" placeholder="Phone" value={wlForm.phone_number} onChange={e => setWlForm(p => ({ ...p, phone_number: e.target.value }))} />
+              <select className="form-input" value={wlForm.tag} onChange={e => setWlForm(p => ({ ...p, tag: e.target.value }))}>
+                {["Client", "Vendor", "VIP", "Partner"].map(t => <option key={t}>{t}</option>)}
+              </select>
+              <button className="btn btn-sm btn-primary" onClick={addWhitelist}>Add</button>
+              <button className="btn btn-sm" onClick={() => setAddingWl(false)}>Cancel</button>
+            </div>
+          )}
+          {wlList.length === 0 ? (
+            <div className="empty-state"><p>No whitelisted contacts yet</p></div>
+          ) : (
+            <div className="table-wrap">
+              <table>
+                <thead><tr><th>Name</th><th>Company</th><th>Phone</th><th>Tag</th><th>Actions</th></tr></thead>
+                <tbody>
+                  {wlList.map(c => (
+                    <tr key={c.id}>
+                      <td style={{ color: "var(--text-primary)", fontWeight: 500 }}>{c.name}</td>
+                      <td>{c.company_name || c.company}</td>
+                      <td style={{ fontFamily: "var(--font-mono)", fontSize: 12 }}>{c.phone_number || c.phone}</td>
+                      <td><span className={`badge ${c.tag === "VIP" ? "badge-purple" : c.tag === "Client" ? "badge-blue" : "badge-green"}`}>{c.tag}</span></td>
+                      <td>
+                        <button className="btn btn-sm" style={{ color: "var(--red)" }} onClick={() => removeWhitelist(c.id)}>Remove</button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
+
+      {tab === "ai" && (
+        <div style={{ padding: 24, display: "flex", flexDirection: "column", gap: 20 }}>
+          <div className="section" style={{ marginBottom: 0 }}>
+            <div className="section-header"><span className="section-title">Screening Email</span></div>
+            <div style={{ padding: 20 }}>
+              <div style={{ fontSize: 13, color: "var(--text-tertiary)", marginBottom: 12 }}>
+                Blocked callers are told to email this address for genuine business enquiries.
+              </div>
+              <div style={{ display: "flex", gap: 8 }}>
+                <input className="form-input" style={{ flex: 1 }} placeholder="screening@yourcompany.com" value={scrEmail} onChange={e => setScrEmail(e.target.value)} />
+                <button className="btn btn-sm btn-primary" onClick={saveScreeningEmail} disabled={savingEmail}>{savingEmail ? "Saving..." : "Save"}</button>
+              </div>
+            </div>
+          </div>
+          <div className="section" style={{ marginBottom: 0 }}>
+            <div className="section-header"><span className="section-title">Notification Settings</span></div>
+            <div style={{ padding: 20, display: "flex", flexDirection: "column", gap: 18 }}>
+              <ToggleSetting label="Whitelist suggestion emails" desc="Get notified when Gate AI suggests adding a forwarded caller to your whitelist" value={notifSettings?.whitelist_suggestion_email !== false} onChange={() => toggleNotif("whitelist_suggestion_email")} />
+              <ToggleSetting label="Blocked call email alerts" desc="Receive an email when a call is blocked. Off by default." value={!!notifSettings?.blocked_call_email_enabled} onChange={() => toggleNotif("blocked_call_email_enabled")} />
+              <ToggleSetting label="Real-time Slack alerts" desc="Get instant Slack notifications for blocked and forwarded calls" value={!!notifSettings?.slack_enabled} onChange={() => toggleNotif("slack_enabled")} />
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 
@@ -578,7 +921,7 @@ function TeamPage() {
   const [team,    setTeam]    = useState([]);
   const [loading, setLoading] = useState(true);
   const [adding,  setAdding]  = useState(false);
-  const [form,    setForm]    = useState({ first_name: '', last_name: '', email: '', phone: '', extension: '', department: '', role: 'member' });
+  const [form,    setForm]    = useState({ first_name: "", last_name: "", email: "", phone: "", extension: "", role: "member" });
 
   useEffect(() => {
     usersApi.list()
@@ -590,65 +933,96 @@ function TeamPage() {
   async function addMember() {
     if (!form.first_name || !form.email) return;
     try {
-      const member = await usersApi.create({ ...form, password: Math.random().toString(36).slice(-10) });
+      const member = await usersApi.create({ ...form, password: Math.random().toString(36).slice(-10) + "A1!" });
       setTeam(prev => [...prev, member]);
-      setForm({ first_name: '', last_name: '', email: '', phone: '', extension: '', department: '', role: 'member' });
+      setForm({ first_name: "", last_name: "", email: "", phone: "", extension: "", role: "member" });
       setAdding(false);
     } catch (err) { alert(err.message); }
   }
 
   async function removeMember(id) {
-    if (!confirm('Remove this team member?')) return;
-    try {
-      await usersApi.remove(id);
-      setTeam(prev => prev.filter(m => m.id !== id));
-    } catch (err) { alert(err.message); }
+    if (!confirm("Remove this team member?")) return;
+    try { await usersApi.remove(id); setTeam(prev => prev.filter(m => m.id !== id)); }
+    catch (err) { alert(err.message); }
   }
+
+  const COLORS = ["linear-gradient(135deg, var(--accent), #a29bfe)", "linear-gradient(135deg, var(--green), #0abf76)", "linear-gradient(135deg, var(--blue), #228be6)", "linear-gradient(135deg, var(--orange), #e67700)"];
 
   if (loading) return <Spinner />;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-      <div className="section">
-        <div className="section-header">
-          <span className="section-title">Team Members</span>
-          <button className="btn btn-primary btn-sm" style={{ display: 'flex', alignItems: 'center', gap: 5 }} onClick={() => setAdding(!adding)}>
-            {Icons.plus} Add Member
-          </button>
+    <div className="section">
+      <div className="section-header">
+        <span className="section-title">Team Members & Routing</span>
+        <button className="btn btn-sm btn-primary" onClick={() => setAdding(!adding)}>{Icons.plus} Add Employee</button>
+      </div>
+      {adding && (
+        <div className="add-form-row">
+          <input className="form-input" placeholder="First name *" value={form.first_name} onChange={e => setForm(p => ({ ...p, first_name: e.target.value }))} />
+          <input className="form-input" placeholder="Last name" value={form.last_name} onChange={e => setForm(p => ({ ...p, last_name: e.target.value }))} />
+          <input className="form-input" placeholder="Email *" value={form.email} onChange={e => setForm(p => ({ ...p, email: e.target.value }))} />
+          <input className="form-input" placeholder="Phone" value={form.phone} onChange={e => setForm(p => ({ ...p, phone: e.target.value }))} />
+          <input className="form-input" placeholder="Extension" value={form.extension} onChange={e => setForm(p => ({ ...p, extension: e.target.value }))} />
+          <button className="btn btn-sm btn-primary" onClick={addMember}>Add</button>
+          <button className="btn btn-sm" onClick={() => setAdding(false)}>Cancel</button>
         </div>
-
-        {adding && (
-          <div className="add-form">
-            <input className="form-input" placeholder="First name *" value={form.first_name} onChange={e => setForm(p => ({ ...p, first_name: e.target.value }))} />
-            <input className="form-input" placeholder="Last name" value={form.last_name} onChange={e => setForm(p => ({ ...p, last_name: e.target.value }))} />
-            <input className="form-input" placeholder="Email *" value={form.email} onChange={e => setForm(p => ({ ...p, email: e.target.value }))} />
-            <input className="form-input" placeholder="Phone" value={form.phone} onChange={e => setForm(p => ({ ...p, phone: e.target.value }))} />
-            <input className="form-input" placeholder="Extension" value={form.extension} onChange={e => setForm(p => ({ ...p, extension: e.target.value }))} />
-            <input className="form-input" placeholder="Department" value={form.department} onChange={e => setForm(p => ({ ...p, department: e.target.value }))} />
-            <div style={{ display: 'flex', gap: 8 }}>
-              <button className="btn btn-primary btn-sm" onClick={addMember}>Add</button>
-              <button className="btn btn-sm" onClick={() => setAdding(false)}>Cancel</button>
-            </div>
-          </div>
-        )}
-
-        {team.length === 0 ? (
-          <EmptyState icon="👥" message="No team members yet" />
-        ) : (
-          <div className="list-items">
-            {team.map(m => (
-              <div key={m.id} className="list-item">
-                <div className="list-avatar">{initials(`${m.first_name} ${m.last_name}`)}</div>
-                <div className="list-info">
-                  <div className="list-name">{m.first_name} {m.last_name}</div>
-                  <div className="list-sub">{m.email} {m.extension ? `· Ext. ${m.extension}` : ''}</div>
-                </div>
-                <span className="badge badge-ghost">{m.role}</span>
-                <button className="icon-btn icon-btn-danger" onClick={() => removeMember(m.id)}>{Icons.trash}</button>
+      )}
+      {team.length === 0 ? (
+        <div className="empty-state"><p>No team members yet — add your first employee above</p></div>
+      ) : (
+        <div className="employee-grid">
+          {team.map((emp, i) => (
+            <div key={emp.id} className="employee-card">
+              <div className="emp-avatar" style={{ background: COLORS[i % COLORS.length] }}>
+                {initials(`${emp.first_name || ""} ${emp.last_name || ""}`)}
               </div>
-            ))}
+              <div className="emp-info">
+                <div className="emp-name">{emp.first_name} {emp.last_name}</div>
+                <div className="emp-role">{emp.role || emp.department}</div>
+                {emp.extension && <div className="emp-ext">Ext. {emp.extension}</div>}
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 6 }}>
+                <div className="emp-status" style={{ background: "var(--green)" }} />
+                <button className="btn btn-sm" style={{ color: "var(--red)", fontSize: 10, padding: "2px 7px" }} onClick={() => removeMember(emp.id)}>Remove</button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── INTEGRATIONS PAGE ───────────────────────────────────────
+function IntegrationsPage() {
+  const integrations = [
+    { name: "Twilio", desc: "VoIP telephony, SIP trunking, programmable voice — the backbone of your phone system.", color: "#f22f46", letter: "T", connected: true },
+    { name: "OpenPhone", desc: "Business phone system with shared numbers, team inboxes, and CRM integration.", color: "#5865f2", letter: "O", connected: false },
+    { name: "Talkroute", desc: "Virtual phone system with call forwarding, voicemail, and auto-attendant.", color: "#00b894", letter: "T", connected: false },
+    { name: "Avaya", desc: "Enterprise communications platform with advanced call center capabilities.", color: "#cc0000", letter: "A", connected: false },
+    { name: "Slack", desc: "Deliver call summaries, blocked-call alerts, and screening reports to channels.", color: "#e01e5a", letter: "S", connected: true },
+    { name: "Microsoft Teams", desc: "Push call notifications and summaries directly into Teams channels.", color: "#5059c9", letter: "M", connected: false },
+    { name: "Email (SMTP)", desc: "Send call summaries and daily digests via email to employees and admins.", color: "#ffa94d", letter: "@", connected: true },
+    { name: "Zapier", desc: "Connect Gate AI to 5000+ apps with custom automation workflows.", color: "#ff4a00", letter: "Z", connected: false },
+  ];
+  return (
+    <div className="section">
+      <div className="section-header">
+        <span className="section-title">Integrations & Plugins</span>
+        <span style={{ fontSize: 12, color: "var(--text-tertiary)" }}>{integrations.filter(i => i.connected).length} connected</span>
+      </div>
+      <div className="integrations-grid">
+        {integrations.map((int, i) => (
+          <div key={i} className="integration-card">
+            <div className="integration-top">
+              <div className="integration-icon" style={{ background: int.color + "20", color: int.color, fontSize: 16 }}>{int.letter}</div>
+              <span className={`badge ${int.connected ? "badge-green" : "badge-ghost"}`}>{int.connected ? "Connected" : "Available"}</span>
+            </div>
+            <div className="integration-name">{int.name}</div>
+            <div className="integration-desc">{int.desc}</div>
+            <button className={`btn btn-sm ${int.connected ? "" : "btn-primary"}`} style={{ alignSelf: "flex-start", marginTop: 4 }}>{int.connected ? "Configure" : "Connect"}</button>
           </div>
-        )}
+        ))}
       </div>
     </div>
   );
@@ -657,9 +1031,8 @@ function TeamPage() {
 // ─── SETTINGS PAGE ───────────────────────────────────────────
 function SettingsPage() {
   const { company } = useAuth();
-  const [notifs,   setNotifs]   = useState(null);
-  const [loading,  setLoading]  = useState(true);
-  const [saving,   setSaving]   = useState(false);
+  const [notifs,  setNotifs]  = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     notificationsApi.get()
@@ -668,96 +1041,68 @@ function SettingsPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  async function saveNotifs(updated) {
-    setSaving(true);
-    try {
-      await notificationsApi.update(updated);
-      setNotifs(updated);
-    } catch (err) { alert(err.message); }
-    finally { setSaving(false); }
-  }
-
-  function toggle(key) {
+  async function toggle(key) {
     const updated = { ...notifs, [key]: !notifs[key] };
-    saveNotifs(updated);
+    try { await notificationsApi.update(updated); setNotifs(updated); }
+    catch (err) { alert(err.message); }
   }
 
   if (loading) return <Spinner />;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
       <div className="section">
         <div className="section-header"><span className="section-title">Company Profile</span></div>
-        <div className="settings-grid" style={{ padding: 20 }}>
+        <div className="settings-grid-2col" style={{ padding: 20, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
           {[
-            { label: 'Company Name',  value: company?.name     || '—' },
-            { label: 'Plan',          value: company?.plan     || '—' },
-            { label: 'Industry',      value: company?.industry || '—' },
-            { label: 'Timezone',      value: company?.timezone || '—' },
-          ].map((f, i) => (
+            { label: "Company Name", value: company?.name || "—" },
+            { label: "Plan", value: company?.plan || "—" },
+            { label: "Industry", value: company?.industry || "—" },
+            { label: "Timezone", value: company?.timezone || "—" },
+          ].map((field, i) => (
             <div key={i}>
-              <div className="field-label">{f.label}</div>
-              <div className="field-value">{f.value}</div>
+              <div style={{ fontSize: 11, fontWeight: 600, color: "var(--text-tertiary)", textTransform: "uppercase", letterSpacing: 0.6, marginBottom: 6 }}>{field.label}</div>
+              <div style={{ padding: "9px 14px", background: "var(--bg-tertiary)", border: "1px solid var(--border)", borderRadius: "var(--radius-md)", fontSize: 13.5, color: "var(--text-primary)" }}>{field.value}</div>
             </div>
           ))}
         </div>
       </div>
-
       <div className="section">
         <div className="section-header"><span className="section-title">Notification Preferences</span></div>
-        <div style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 16 }}>
-          <ToggleSetting
-            label="Real-time Slack alerts"
-            desc="Get instant Slack notifications for blocked and forwarded calls"
-            value={!!notifs?.slack_enabled}
-            onChange={() => toggle('slack_enabled')}
-          />
-          <ToggleSetting
-            label="Blocked call email alerts"
-            desc="Receive an email when a call is blocked. Off by default."
-            value={!!notifs?.blocked_call_email_enabled}
-            onChange={() => toggle('blocked_call_email_enabled')}
-          />
-          <ToggleSetting
-            label="Whitelist suggestion emails"
-            desc="Get notified when Gate AI suggests adding a forwarded caller to your whitelist"
-            value={notifs?.whitelist_suggestion_email !== false}
-            onChange={() => toggle('whitelist_suggestion_email')}
-          />
-          <ToggleSetting
-            label="Weekly analytics report"
-            desc="Auto-generate and email a weekly call analytics summary"
-            value={!!notifs?.weekly_report_enabled}
-            onChange={() => toggle('weekly_report_enabled')}
-          />
+        <div style={{ padding: 20, display: "flex", flexDirection: "column", gap: 16 }}>
+          <ToggleSetting label="Whitelist suggestion emails" desc="Get notified when Gate AI recommends adding a forwarded caller to your whitelist" value={notifs?.whitelist_suggestion_email !== false} onChange={() => toggle("whitelist_suggestion_email")} />
+          <ToggleSetting label="Blocked call email alerts" desc="Receive an email when a call is blocked. Off by default." value={!!notifs?.blocked_call_email_enabled} onChange={() => toggle("blocked_call_email_enabled")} />
+          <ToggleSetting label="Real-time Slack alerts" desc="Get instant Slack notifications for blocked and forwarded calls" value={!!notifs?.slack_enabled} onChange={() => toggle("slack_enabled")} />
+          <ToggleSetting label="Weekly analytics report" desc="Auto-generate and email a weekly call analytics summary" value={!!notifs?.weekly_report_enabled} onChange={() => toggle("weekly_report_enabled")} />
         </div>
       </div>
     </div>
   );
 }
 
-// ─── MAIN DASHBOARD ──────────────────────────────────────────
+// ─── MAIN APP ────────────────────────────────────────────────
 const PAGE_TITLES = {
-  dashboard: 'Dashboard',
-  calls:     'Call Log',
-  screening: 'Screening Rules',
-  team:      'Team & Routing',
-  settings:  'Settings',
+  dashboard:    "Dashboard",
+  calls:        "Call Log",
+  screening:    "Screening Rules",
+  team:         "Team & Routing",
+  integrations: "Integrations",
+  settings:     "Settings",
 };
 
 export default function Dashboard() {
-  const [activePage,   setActivePage]   = useState('dashboard');
+  const [activePage,   setActivePage]   = useState("dashboard");
   const [selectedCall, setSelectedCall] = useState(null);
   const [sidebarOpen,  setSidebarOpen]  = useState(false);
   const [liveCalls,    setLiveCalls]    = useState([]);
 
   const handleWsMessage = useCallback((msg) => {
-    if (msg.type === 'new_call') {
+    if (msg.type === "new_call") {
       setLiveCalls(prev => [msg.call, ...prev].slice(0, 20));
     }
   }, []);
 
-  const { connected } = useWebSocket(handleWsMessage);
+  useWebSocket(handleWsMessage);
 
   return (
     <>
@@ -765,13 +1110,14 @@ export default function Dashboard() {
       <div className="app">
         <Sidebar active={activePage} setActive={setActivePage} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
         <div className="main">
-          <Topbar title={PAGE_TITLES[activePage]} onMenuToggle={() => setSidebarOpen(!sidebarOpen)} wsConnected={connected} />
+          <Topbar title={PAGE_TITLES[activePage]} onMenuToggle={() => setSidebarOpen(!sidebarOpen)} />
           <div className="content">
-            {activePage === 'dashboard'  && <DashboardPage onViewCall={setSelectedCall} liveCalls={liveCalls} />}
-            {activePage === 'calls'      && <CallLogPage   onViewCall={setSelectedCall} />}
-            {activePage === 'screening'  && <ScreeningPage />}
-            {activePage === 'team'       && <TeamPage />}
-            {activePage === 'settings'   && <SettingsPage />}
+            {activePage === "dashboard"    && <DashboardPage onViewCall={setSelectedCall} liveCalls={liveCalls} />}
+            {activePage === "calls"        && <CallLogPage   onViewCall={setSelectedCall} />}
+            {activePage === "screening"    && <ScreeningPage />}
+            {activePage === "team"         && <TeamPage />}
+            {activePage === "integrations" && <IntegrationsPage />}
+            {activePage === "settings"     && <SettingsPage />}
           </div>
         </div>
         {selectedCall && <CallDetailModal call={selectedCall} onClose={() => setSelectedCall(null)} />}
@@ -779,449 +1125,3 @@ export default function Dashboard() {
     </>
   );
 }
-
-// ─── CSS ─────────────────────────────────────────────────────
-const CSS = `
-  @keyframes spin { to { transform: rotate(360deg); } }
-
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-  :root {
-    --bg-primary:    #0a0b0f;
-    --bg-secondary:  #111218;
-    --bg-tertiary:   #13141b;
-    --border:        #252736;
-    --border-subtle: #1a1c26;
-    --text-primary:  #e8e9ed;
-    --text-secondary:#a0a3b1;
-    --text-tertiary: #8b8fa3;
-    --purple:        #6c5ce7;
-    --purple-light:  #a29bfe;
-    --green:         #00d68f;
-    --red:           #ff6b6b;
-    --yellow:        #ffd93d;
-    --radius-sm:     6px;
-    --radius-md:     10px;
-    --radius-lg:     14px;
-    --font-mono:     'JetBrains Mono', monospace;
-  }
-
-  body {
-    background: var(--bg-primary);
-    color: var(--text-primary);
-    font-family: 'DM Sans', -apple-system, sans-serif;
-    -webkit-font-smoothing: antialiased;
-    overflow: hidden;
-  }
-
-  .app { display: flex; height: 100vh; overflow: hidden; }
-
-  /* ── Sidebar ── */
-  .sidebar {
-    width: 220px; min-width: 220px;
-    background: var(--bg-secondary);
-    border-right: 1px solid var(--border);
-    display: flex; flex-direction: column;
-    height: 100vh; z-index: 100;
-    transition: transform 250ms ease;
-  }
-
-  .sidebar-overlay {
-    display: none;
-    position: fixed; inset: 0;
-    background: rgba(0,0,0,0.5);
-    z-index: 99;
-  }
-
-  .sidebar-logo {
-    display: flex; align-items: center; gap: 10px;
-    padding: 20px 16px 16px;
-    border-bottom: 1px solid var(--border);
-  }
-
-  .logo-icon {
-    width: 34px; height: 34px; flex-shrink: 0;
-    background: linear-gradient(135deg, var(--purple), var(--purple-light));
-    border-radius: 8px;
-    display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 2px 10px rgba(108,92,231,0.3);
-  }
-
-  .logo-text { font-size: 15px; font-weight: 700; letter-spacing: -0.2px; }
-  .logo-sub  { font-size: 11px; color: var(--text-tertiary); margin-top: 1px; }
-
-  .sidebar-nav { flex: 1; padding: 12px 10px; display: flex; flex-direction: column; gap: 2px; overflow-y: auto; }
-
-  .nav-item {
-    display: flex; align-items: center; gap: 10px;
-    width: 100%; padding: 9px 10px; border: none; background: none;
-    color: var(--text-tertiary); font-family: 'DM Sans', sans-serif;
-    font-size: 13.5px; font-weight: 500; border-radius: var(--radius-md);
-    cursor: pointer; transition: all 150ms ease; text-align: left;
-  }
-
-  .nav-item:hover { background: var(--bg-tertiary); color: var(--text-primary); }
-
-  .nav-item-active {
-    background: rgba(108,92,231,0.12);
-    color: var(--purple-light);
-  }
-
-  .nav-icon { display: flex; align-items: center; opacity: 0.8; }
-
-  .sidebar-footer {
-    padding: 12px;
-    border-top: 1px solid var(--border);
-  }
-
-  .user-row { display: flex; align-items: center; gap: 10px; }
-
-  .user-avatar {
-    width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
-    background: linear-gradient(135deg, var(--purple), var(--purple-light));
-    display: flex; align-items: center; justify-content: center;
-    font-size: 11px; font-weight: 700; color: #fff;
-  }
-
-  .user-info { flex: 1; min-width: 0; }
-  .user-name { font-size: 12px; font-weight: 600; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .user-role { font-size: 11px; color: var(--text-tertiary); text-transform: capitalize; }
-
-  /* ── Main ── */
-  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 0; }
-
-  .topbar {
-    height: 56px; min-height: 56px;
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 0 20px;
-    background: var(--bg-secondary);
-    border-bottom: 1px solid var(--border);
-  }
-
-  .page-title { font-size: 16px; font-weight: 700; letter-spacing: -0.2px; }
-  .menu-btn   { display: none; }
-
-  .content { flex: 1; overflow-y: auto; padding: 20px; }
-
-  /* ── Buttons ── */
-  .btn {
-    padding: 8px 14px; border-radius: var(--radius-md);
-    font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600;
-    cursor: pointer; border: 1px solid var(--border);
-    background: var(--bg-tertiary); color: var(--text-secondary);
-    transition: all 150ms ease;
-  }
-
-  .btn:hover:not(:disabled) { border-color: var(--purple); color: var(--text-primary); }
-  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
-
-  .btn-sm { padding: 6px 12px; font-size: 12px; }
-
-  .btn-primary {
-    background: linear-gradient(135deg, var(--purple), var(--purple-light));
-    border-color: transparent; color: #fff;
-  }
-
-  .btn-primary:hover:not(:disabled) { opacity: 0.88; }
-
-  .icon-btn {
-    width: 30px; height: 30px; border-radius: var(--radius-sm);
-    display: flex; align-items: center; justify-content: center;
-    border: none; background: none; color: var(--text-tertiary);
-    cursor: pointer; transition: all 150ms ease; flex-shrink: 0;
-  }
-
-  .icon-btn:hover { background: var(--bg-tertiary); color: var(--text-primary); }
-  .icon-btn-danger:hover { color: var(--red); }
-
-  /* ── Badges ── */
-  .badge {
-    display: inline-flex; align-items: center;
-    padding: 3px 9px; border-radius: 20px;
-    font-size: 11px; font-weight: 600; white-space: nowrap;
-  }
-
-  .badge-green  { background: rgba(0,214,143,0.12);  color: #00d68f; }
-  .badge-red    { background: rgba(255,107,107,0.12); color: #ff6b6b; }
-  .badge-yellow { background: rgba(255,217,61,0.12);  color: #ffd93d; }
-  .badge-purple { background: rgba(162,155,254,0.12); color: var(--purple-light); }
-  .badge-ghost  { background: var(--bg-tertiary); color: var(--text-tertiary); border: 1px solid var(--border); }
-
-  /* ── Section ── */
-  .section {
-    background: var(--bg-secondary);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    overflow: hidden;
-  }
-
-  .section-header {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 14px 18px;
-    border-bottom: 1px solid var(--border-subtle);
-  }
-
-  .section-title { font-size: 13.5px; font-weight: 600; }
-
-  /* ── Stats ── */
-  .stats-grid {
-    display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;
-  }
-
-  .stat-card {
-    background: var(--bg-secondary);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    padding: 18px 20px;
-  }
-
-  .stat-label { font-size: 11px; font-weight: 600; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
-  .stat-value { font-size: 28px; font-weight: 700; font-family: var(--font-mono); letter-spacing: -1px; }
-  .stat-sub   { font-size: 12px; color: var(--text-tertiary); margin-top: 4px; }
-
-  /* ── Call List ── */
-  .call-list { display: flex; flex-direction: column; }
-
-  .call-row {
-    display: flex; align-items: center; gap: 12px;
-    padding: 12px 18px; cursor: pointer;
-    border-bottom: 1px solid var(--border-subtle);
-    transition: background 100ms ease;
-  }
-
-  .call-row:last-child { border-bottom: none; }
-  .call-row:hover { background: var(--bg-tertiary); }
-
-  .call-avatar {
-    width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0;
-    background: var(--bg-tertiary); border: 1px solid var(--border);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 11px; font-weight: 700; color: var(--text-tertiary);
-  }
-
-  .call-info { flex: 1; min-width: 0; }
-  .call-name    { font-size: 13.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .call-company { font-size: 12px; color: var(--text-tertiary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
-  .call-right { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
-  .call-time  { font-size: 11px; color: var(--text-tertiary); font-family: var(--font-mono); }
-
-  /* ── Call Table ── */
-  .call-table { width: 100%; }
-
-  .call-table-header {
-    display: grid; grid-template-columns: 1fr 100px 90px 80px 90px;
-    padding: 10px 18px; gap: 12px;
-    font-size: 11px; font-weight: 600; color: var(--text-tertiary);
-    text-transform: uppercase; letter-spacing: 0.5px;
-    border-bottom: 1px solid var(--border-subtle);
-  }
-
-  .call-table-row {
-    display: grid; grid-template-columns: 1fr 100px 90px 80px 90px;
-    padding: 12px 18px; gap: 12px; align-items: center;
-    border-bottom: 1px solid var(--border-subtle);
-    cursor: pointer; transition: background 100ms ease;
-  }
-
-  .call-table-row:last-child { border-bottom: none; }
-  .call-table-row:hover { background: var(--bg-tertiary); }
-
-  /* ── Toolbar ── */
-  .toolbar {
-    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
-  }
-
-  .search-wrap {
-    flex: 1; min-width: 200px;
-    display: flex; align-items: center; gap: 8px;
-    padding: 8px 12px;
-    background: var(--bg-secondary);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-md);
-  }
-
-  .search-icon { color: var(--text-tertiary); display: flex; flex-shrink: 0; }
-
-  .search-input {
-    flex: 1; border: none; background: none;
-    font-family: 'DM Sans', sans-serif; font-size: 13px;
-    color: var(--text-primary); outline: none;
-  }
-
-  .search-input::placeholder { color: var(--text-tertiary); }
-
-  /* ── List Items ── */
-  .list-items { display: flex; flex-direction: column; }
-
-  .list-item {
-    display: flex; align-items: center; gap: 12px;
-    padding: 12px 18px;
-    border-bottom: 1px solid var(--border-subtle);
-  }
-
-  .list-item:last-child { border-bottom: none; }
-
-  .list-avatar {
-    width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
-    background: rgba(108,92,231,0.15);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 11px; font-weight: 700; color: var(--purple-light);
-  }
-
-  .list-info { flex: 1; min-width: 0; }
-  .list-name  { font-size: 13.5px; font-weight: 600; }
-  .list-sub   { font-size: 12px; color: var(--text-tertiary); margin-top: 2px; }
-
-  /* ── Add Form ── */
-  .add-form {
-    display: flex; flex-wrap: wrap; gap: 8px;
-    padding: 14px 18px;
-    background: var(--bg-tertiary);
-    border-bottom: 1px solid var(--border-subtle);
-  }
-
-  .form-input {
-    padding: 8px 12px;
-    background: var(--bg-secondary);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-md);
-    font-family: 'DM Sans', sans-serif;
-    font-size: 13px; color: var(--text-primary);
-    outline: none; min-width: 150px;
-    transition: border-color 150ms ease;
-  }
-
-  .form-input:focus { border-color: var(--purple); }
-  .form-input::placeholder { color: var(--text-tertiary); }
-
-  /* ── Settings ── */
-  .settings-grid {
-    display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
-  }
-
-  .field-label {
-    font-size: 11px; font-weight: 600;
-    color: var(--text-tertiary);
-    text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;
-  }
-
-  .field-value {
-    padding: 9px 14px;
-    background: var(--bg-tertiary); border: 1px solid var(--border);
-    border-radius: var(--radius-md); font-size: 13.5px;
-    color: var(--text-primary);
-  }
-
-  /* ── Toggle ── */
-  .toggle-row {
-    display: flex; align-items: center; justify-content: space-between; gap: 16px;
-  }
-
-  .toggle-info { flex: 1; }
-  .toggle-label { font-size: 13.5px; font-weight: 600; margin-bottom: 3px; }
-  .toggle-desc  { font-size: 12px; color: var(--text-tertiary); line-height: 1.5; }
-
-  .toggle {
-    width: 40px; height: 22px; border-radius: 11px; flex-shrink: 0;
-    background: var(--bg-tertiary); border: 1px solid var(--border);
-    cursor: pointer; position: relative; transition: all 200ms ease;
-  }
-
-  .toggle-on { background: var(--purple); border-color: var(--purple); }
-
-  .toggle-thumb {
-    position: absolute; top: 2px; left: 2px;
-    width: 16px; height: 16px; border-radius: 50%;
-    background: #fff; transition: transform 200ms ease;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
-  }
-
-  .toggle-on .toggle-thumb { transform: translateX(18px); }
-
-  /* ── Modal ── */
-  .modal-overlay {
-    position: fixed; inset: 0; z-index: 200;
-    background: rgba(0,0,0,0.6);
-    display: flex; align-items: center; justify-content: center;
-    padding: 20px;
-  }
-
-  .modal {
-    width: 100%; max-width: 560px; max-height: 80vh;
-    background: var(--bg-secondary);
-    border: 1px solid var(--border); border-radius: var(--radius-lg);
-    display: flex; flex-direction: column; overflow: hidden;
-  }
-
-  .modal-header {
-    display: flex; align-items: flex-start; justify-content: space-between;
-    padding: 18px 20px; border-bottom: 1px solid var(--border-subtle);
-  }
-
-  .modal-caller  { font-size: 16px; font-weight: 700; }
-  .modal-company { font-size: 13px; color: var(--text-tertiary); margin-top: 2px; }
-
-  .modal-body { flex: 1; overflow-y: auto; padding: 18px 20px; display: flex; flex-direction: column; gap: 16px; }
-
-  .modal-meta {
-    display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
-    padding: 14px; background: var(--bg-tertiary);
-    border: 1px solid var(--border); border-radius: var(--radius-md);
-  }
-
-  .meta-item { display: flex; flex-direction: column; gap: 3px; }
-  .meta-label { font-size: 10px; font-weight: 700; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.5px; }
-
-  .modal-section-title {
-    font-size: 11px; font-weight: 700;
-    color: var(--text-tertiary); text-transform: uppercase;
-    letter-spacing: 0.5px; margin-bottom: 8px;
-  }
-
-  .modal-summary {
-    font-size: 13.5px; line-height: 1.65; color: var(--text-secondary);
-    padding: 12px 14px; background: var(--bg-tertiary);
-    border: 1px solid var(--border); border-radius: var(--radius-md);
-  }
-
-  .modal-transcript {
-    font-size: 12.5px; line-height: 1.7; color: var(--text-tertiary);
-    font-family: var(--font-mono);
-    padding: 12px 14px; background: var(--bg-tertiary);
-    border: 1px solid var(--border); border-radius: var(--radius-md);
-    white-space: pre-wrap; max-height: 200px; overflow-y: auto;
-  }
-
-  /* ── Mobile ── */
-  @media (max-width: 768px) {
-    .sidebar {
-      position: fixed; top: 0; left: 0; height: 100vh;
-      transform: translateX(-100%);
-    }
-
-    .sidebar-open { transform: translateX(0); }
-    .sidebar-overlay { display: block; }
-    .menu-btn { display: flex !important; }
-
-    .stats-grid { grid-template-columns: 1fr 1fr; }
-
-    .call-table-header,
-    .call-table-row { grid-template-columns: 1fr 90px; }
-
-    .call-table-header span:nth-child(n+3),
-    .call-table-row  span:nth-child(n+3),
-    .call-table-row  div:nth-child(n+3) { display: none; }
-
-    .settings-grid { grid-template-columns: 1fr; }
-    .toolbar { flex-direction: column; align-items: stretch; }
-    .search-wrap { min-width: unset; }
-
-    .content { padding: 14px; }
-  }
-
-  @media (max-width: 480px) {
-    .stats-grid { grid-template-columns: 1fr 1fr; }
-    .stat-value { font-size: 22px; }
-  }
-`;
