@@ -42,7 +42,9 @@ export default function Landing() {
     };
   }, []);
 
-  const goLogin = (e) => { e.preventDefault(); navigate('/login'); };
+  const goAuth   = (e, plan) => { e.preventDefault(); navigate(plan ? `/auth?plan=${plan}` : '/auth'); };
+  const goDemo   = (e) => { e.preventDefault(); navigate('/book-demo'); };
+  const goPage   = (e, path) => { e.preventDefault(); navigate(path); };
 
   return (
     <>
@@ -58,14 +60,15 @@ export default function Landing() {
             </span>
           </a>
           <ul className="nav-links">
-            <li><a href="#capabilities">Capabilities</a></li>
-            <li><a href="#integrations">Integrations</a></li>
-            <li><a href="#pricing">Pricing</a></li>
-            <li><a href="#faq">FAQ</a></li>
+            <li><a href="/capabilities" onClick={e => goPage(e, '/capabilities')}>Capabilities</a></li>
+            <li><a href="/pricing" onClick={e => goPage(e, '/pricing')}>Pricing</a></li>
+            <li><a href="/integrations" onClick={e => goPage(e, '/integrations')}>Integrations</a></li>
+            <li><a href="/faq" onClick={e => goPage(e, '/faq')}>FAQ</a></li>
+            <li><a href="/contact" onClick={e => goPage(e, '/contact')}>Contact</a></li>
           </ul>
           <div className="nav-cta">
-            <a href="/login" onClick={goLogin} className="btn btn-ghost nav-btn">Sign in</a>
-            <a href="/login" onClick={goLogin} className="btn btn-primary nav-btn">Start free trial</a>
+            <a href="/auth" onClick={e => goAuth(e)} className="btn btn-ghost nav-btn">Sign Up / Sign In</a>
+            <a href="/book-demo" onClick={goDemo} className="btn btn-primary nav-btn">Book Demo</a>
           </div>
         </div>
       </nav>
@@ -84,7 +87,7 @@ export default function Landing() {
               Gate AI answers every incoming call, detects cold sales pitches in seconds, and routes legitimate calls to the right person — with a full AI briefing before the phone even rings.
             </p>
             <div className="hero-ctas">
-              <a href="/login" onClick={goLogin} className="btn btn-primary">Start free trial →</a>
+              <a href="/book-demo" onClick={goDemo} className="btn btn-primary">Book a Demo →</a>
               <a href="#capabilities" className="btn btn-ghost">See how it works</a>
             </div>
           </div>
@@ -150,7 +153,6 @@ export default function Landing() {
                         <div className="shield-big" id="shield-big"></div>
                         <div className="result-title" id="result-title"></div>
                         <div className="result-sub" id="result-sub"></div>
-
                       </div>
                     </div>
                   </div>
@@ -192,7 +194,7 @@ export default function Landing() {
             <div className="stat"><div className="stat-num" data-target="94">0%</div><div className="stat-label">of cold calls<br/>blocked automatically</div></div>
             <div className="stat"><div className="stat-num" data-target="12">0<span style={{fontSize:'0.5em',color:'var(--text-3)'}}>hrs/wk</span></div><div className="stat-label">saved per team<br/>on unwanted calls</div></div>
             <div className="stat"><div className="stat-num" data-target="24">24<span style={{fontSize:'0.5em',color:'var(--text-3)'}}>/7</span></div><div className="stat-label">coverage,<br/>no shifts, no sick days</div></div>
-            <div className="stat"><div className="stat-num">$0</div><div className="stat-label">upfront cost —<br/>7 day free trial</div></div>
+            <div className="stat"><div className="stat-num">$0</div><div className="stat-label">upfront cost —<br/>14 day free trial</div></div>
           </div>
         </div>
       </section>
@@ -227,6 +229,11 @@ export default function Landing() {
             <div className="cap reveal"><span className="cap-num">03 · ROUTE</span><h3>Smart routing by intent</h3><p>Legit callers get matched to the right person based on what they're calling about — logistics goes to ops, vendors go to purchasing, IT goes to IT.</p><div className="cap-demo"><span className="prompt">intent:</span> Logistics Coordination<br/><span className="ok">route →</span> Dave M. (Ops Manager, ext. 201)</div></div>
             <div className="cap reveal"><span className="cap-num">04 · SUMMARIZE</span><h3>Pre-call AI briefings</h3><p>Before the phone rings, the employee already sees a one-line summary: who's calling, what company, and why. No more "who was that?"</p><div className="cap-demo"><span className="prompt">summary:</span> Daniel at AB Logistics re:<br/>Tuesday pickup — needs dock #3 confirmation.</div></div>
           </div>
+          {/* Book Demo CTA at bottom of capabilities */}
+          <div className="caps-cta reveal">
+            <a href="/capabilities" onClick={e => goPage(e, '/capabilities')} className="btn btn-ghost" style={{marginRight: 12}}>See all capabilities</a>
+            <a href="/book-demo" onClick={goDemo} className="btn btn-primary">Book a Demo →</a>
+          </div>
         </div>
       </section>
 
@@ -235,9 +242,30 @@ export default function Landing() {
         <div className="container">
           <div className="integrations-label">Works with the stack you already have</div>
           <div className="integrations-grid">
-            {['Twilio','Vapi','OpenPhone','RingCentral','Avaya','Talkroute','Slack','Microsoft Teams','Email / SMTP','Zapier'].map(n => (
-              <div key={n} className="int-card"><span className="int-dot"/>{n}</div>
+            {[
+              { name: 'Twilio', slug: 'twilio' },
+              { name: 'Vapi', slug: 'vapi' },
+              { name: 'OpenPhone', slug: 'openphone' },
+              { name: 'RingCentral', slug: 'ringcentral' },
+              { name: 'Avaya', slug: 'avaya' },
+              { name: 'Talkroute', slug: 'talkroute' },
+              { name: 'Slack', slug: 'slack' },
+              { name: 'Microsoft Teams', slug: 'teams' },
+              { name: 'Email / SMTP', slug: 'email' },
+              { name: 'Zapier', slug: 'zapier' },
+            ].map(({ name, slug }) => (
+              <div
+                key={name}
+                className="int-card"
+                style={{ cursor: 'pointer' }}
+                onClick={() => navigate(`/integrations#${slug}`)}
+              >
+                <span className="int-dot"/>{name}
+              </div>
             ))}
+          </div>
+          <div className="integrations-more">
+            <a href="/integrations" onClick={e => goPage(e, '/integrations')}>View all integrations →</a>
           </div>
         </div>
       </section>
@@ -248,12 +276,33 @@ export default function Landing() {
           <div className="pricing-head reveal">
             <div className="eyebrow"><span className="eyebrow-dot"></span>Pricing</div>
             <h2 className="h-section">One flat price.<br/>No per-minute surprises.</h2>
-            <p className="lede" style={{margin:'0 auto'}}>Start with a 7-day free trial. No credit card. Cancel anytime.</p>
+            <p className="lede" style={{margin:'0 auto'}}>Start with a 14-day free trial. No credit card required. Cancel anytime.</p>
           </div>
           <div className="pricing-grid">
-            <div className="tier reveal"><div className="tier-name">Starter</div><div className="tier-price"><span className="num">$79</span><span className="per">/ month</span></div><div className="tier-desc">For small teams getting 5–20 calls a day. Everything you need to silence cold callers.</div><ul className="tier-features"><li>1 phone number</li><li>Up to 3 team members</li><li>AI cold-call blocking</li><li>Call summaries by email</li><li>Slack notifications</li></ul><a href="/login" onClick={goLogin} className="btn btn-ghost">Start free trial</a></div>
-            <div className="tier featured reveal"><div className="tier-name">Pro</div><div className="tier-price"><span className="num">$149</span><span className="per">/ month</span></div><div className="tier-desc">Built for logistics and manufacturing SMBs with real inbound call volume.</div><ul className="tier-features"><li>3 phone numbers</li><li>Unlimited team members</li><li>SMS + Slack + Email alerts</li><li>Custom AI screening scripts</li><li>Intent-based smart routing</li><li>Analytics dashboard</li></ul><a href="/login" onClick={goLogin} className="btn btn-primary">Start free trial</a></div>
-            <div className="tier reveal"><div className="tier-name">Business</div><div className="tier-price"><span className="num">$249</span><span className="per">/ month</span></div><div className="tier-desc">For multi-location operations that need custom integrations and priority support.</div><ul className="tier-features"><li>Unlimited phone numbers</li><li>Priority support (4h SLA)</li><li>CRM integrations</li><li>Advanced analytics</li><li>Dedicated account manager</li><li>Custom voice cloning</li></ul><a href="/login" onClick={goLogin} className="btn btn-ghost">Contact sales</a></div>
+            <div className="tier reveal">
+              <div className="tier-name">Starter</div>
+              <div className="tier-price"><span className="num">$79</span><span className="per">/ month</span></div>
+              <div className="tier-desc">For small teams getting 5–20 calls a day. Everything you need to silence cold callers.</div>
+              <ul className="tier-features"><li>1 phone number</li><li>Up to 3 team members</li><li>AI cold-call blocking</li><li>Call summaries by email</li><li>Slack notifications</li></ul>
+              <a href="/auth?plan=starter" onClick={e => goAuth(e, 'starter')} className="btn btn-ghost">Get started</a>
+            </div>
+            <div className="tier featured reveal">
+              <div className="tier-name">Pro</div>
+              <div className="tier-price"><span className="num">$149</span><span className="per">/ month</span></div>
+              <div className="tier-desc">Built for logistics and manufacturing SMBs with real inbound call volume.</div>
+              <ul className="tier-features"><li>3 phone numbers</li><li>Unlimited team members</li><li>SMS + Slack + Email alerts</li><li>Custom AI screening scripts</li><li>Intent-based smart routing</li><li>Analytics dashboard</li></ul>
+              <a href="/auth?plan=pro" onClick={e => goAuth(e, 'pro')} className="btn btn-primary">Get started</a>
+            </div>
+            <div className="tier reveal">
+              <div className="tier-name">Business</div>
+              <div className="tier-price"><span className="num">$249</span><span className="per">/ month</span></div>
+              <div className="tier-desc">For multi-location operations that need custom integrations and priority support.</div>
+              <ul className="tier-features"><li>Unlimited phone numbers</li><li>Priority support (4h SLA)</li><li>CRM integrations</li><li>Advanced analytics</li><li>Dedicated account manager</li><li>Custom voice cloning</li></ul>
+              <a href="/contact" onClick={e => goPage(e, '/contact')} className="btn btn-ghost">Contact sales</a>
+            </div>
+          </div>
+          <div style={{textAlign:'center',marginTop:28}}>
+            <a href="/pricing" onClick={e => goPage(e, '/pricing')} style={{fontSize:13,color:'var(--accent-2)',fontWeight:500}}>View full pricing details →</a>
           </div>
         </div>
       </section>
@@ -261,12 +310,15 @@ export default function Landing() {
       {/* FAQ */}
       <section id="faq">
         <div className="container">
-          <div className="faq-head reveal"><div className="eyebrow"><span className="eyebrow-dot"></span>FAQ</div><h2 className="h-section">Questions? We've got answers.</h2></div>
+          <div className="faq-head reveal">
+            <div className="eyebrow"><span className="eyebrow-dot"></span>FAQ</div>
+            <h2 className="h-section">Questions? We've got answers.</h2>
+          </div>
           <div className="faq-list">
             {[
-              {q:'How long does setup take?',a:"Under 10 minutes. You sign up, we provision a Twilio number (or port your existing one), you configure your team and routing rules, and you're live. Most customers handle their first real call within an hour."},
+              {q:'How long does setup take?',a:"Under 10 minutes. You sign up, we provision a phone number automatically, you configure your team and routing rules, and you're live. Most customers handle their first real call within an hour."},
               {q:'Will Gate AI replace my receptionist?',a:"It depends. Gate AI handles every inbound call before it gets to a human — for many SMBs that removes the need for a part-time receptionist entirely. For larger teams, it works as a force multiplier: your receptionist only sees the 10–20% of calls that actually matter."},
-              {q:'What happens if the AI misclassifies a call?',a:"You get the transcript, the recording, and the confidence score for every call. You can whitelist numbers instantly, adjust screening rules, and Gate AI learns from corrections. In practice, our cold-call detection is 94%+ accurate out of the box."},
+              {q:'What happens if the AI misclassifies a call?',a:"You get the transcript, the recording, and the confidence score for every call. You can whitelist numbers instantly, adjust screening rules, and Gate AI learns from corrections. In practice, cold-call detection is 94%+ accurate out of the box."},
               {q:'Does it work with my existing phone system?',a:"Yes. Gate AI plugs into Twilio, OpenPhone, RingCentral, Talkroute, and Avaya. If you have a SIP-capable system, we can route calls through Gate AI as a screening layer without replacing your main phone system."},
               {q:'What about VIP callers — clients who should never be screened?',a:"Add them to your whitelist. VIP callers skip the AI entirely and ring through directly. You can whitelist by number, company domain, or individual name."},
               {q:'How much does it actually cost per call?',a:"Less than you think. The average blocked cold call costs us about 3 cents in AI and telephony fees. Your flat monthly subscription covers typical SMB call volume with plenty of headroom."},
@@ -277,6 +329,9 @@ export default function Landing() {
               </details>
             ))}
           </div>
+          <div className="faq-more reveal">
+            <a href="/faq" onClick={e => goPage(e, '/faq')}>See all frequently asked questions →</a>
+          </div>
         </div>
       </section>
 
@@ -285,23 +340,29 @@ export default function Landing() {
         <div className="container cta-inner reveal">
           <h2>Stop answering<br/>calls that waste your time.</h2>
           <p>Gate AI takes 10 minutes to set up and starts saving your team time on day one.</p>
-          <a href="/login" onClick={goLogin} className="btn btn-primary" style={{padding:'16px 32px',fontSize:15}}>Start your free trial →</a>
+          <a href="/book-demo" onClick={goDemo} className="btn btn-primary" style={{padding:'16px 32px',fontSize:15}}>Book a Demo →</a>
         </div>
       </section>
 
       {/* FOOTER */}
       <footer>
         <div className="container footer-inner">
-          <a href="/" className="logo" style={{gap:12}}><FootLogo /><span style={{fontFamily:"Inter,'DM Sans',sans-serif",fontWeight:600,letterSpacing:'-0.3px'}}>Gate<span style={{color:'var(--accent-2)',fontWeight:500}}> AI</span></span></a>
+          <a href="/" className="logo" style={{gap:12}}>
+            <FootLogo />
+            <span style={{fontFamily:"Inter,'DM Sans',sans-serif",fontWeight:600,letterSpacing:'-0.3px'}}>
+              Gate<span style={{color:'var(--accent-2)',fontWeight:500}}> AI</span>
+            </span>
+          </a>
           <ul className="footer-links">
-            <li><a href="#capabilities">Capabilities</a></li>
-            <li><a href="#pricing">Pricing</a></li>
-            <li><a href="#faq">FAQ</a></li>
-            <li><a href="mailto:hello@gate-ai.io">Contact</a></li>
-            <li><a href="#">Privacy</a></li>
-            <li><a href="#">Terms</a></li>
+            <li><a href="/capabilities" onClick={e => goPage(e, '/capabilities')}>Capabilities</a></li>
+            <li><a href="/pricing" onClick={e => goPage(e, '/pricing')}>Pricing</a></li>
+            <li><a href="/integrations" onClick={e => goPage(e, '/integrations')}>Integrations</a></li>
+            <li><a href="/faq" onClick={e => goPage(e, '/faq')}>FAQ</a></li>
+            <li><a href="/contact" onClick={e => goPage(e, '/contact')}>Contact</a></li>
+            <li><a href="/privacy" onClick={e => goPage(e, '/privacy')}>Privacy</a></li>
+            <li><a href="/terms" onClick={e => goPage(e, '/terms')}>Terms</a></li>
           </ul>
-          <div className="footer-copy">© 2026 Gate AI, Inc.</div>
+          <div className="footer-copy">© 2026 Gate AI, Inc. All rights reserved.</div>
         </div>
       </footer>
     </>
@@ -350,7 +411,7 @@ function NavLogo() {
 
 function FootLogo() {
   return (
-    <svg width="30" height="30" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+    <svg width="28" height="28" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
       <defs>
         <linearGradient id="footG" x1="0%" y1="0%" x2="100%" y2="100%">
           <stop offset="0%" stopColor="#b8b1ff"/><stop offset="100%" stopColor="#6c5ce7"/>
@@ -367,33 +428,31 @@ function FootLogo() {
   );
 }
 
-// ─── CHAT ANIMATION ENGINE ───────────────────────────────────
-const SHIELD_SVG = {
-  blocked: `<svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#ff6b6b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>`,
-  forwarded: `<svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#00d68f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>`,
-};
+// ─── CHAT SCENARIOS ───────────────────────────────────────────
+const GATE_AV = `<div class="chat-gate-av"><svg width="10" height="10" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M30 4L47 10.5V27C47 38 30 50 30 50C30 50 13 38 13 27V10.5L30 4Z" fill="white"/></svg></div>`;
+const CALLER_AV = `<div class="chat-caller-av"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#5c6078" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>`;
 
-const GATE_AV = `<div class="chat-gate-av"><svg width="10" height="10" viewBox="0 0 60 60"><defs><linearGradient id="cavg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#b8b1ff"/><stop offset="100%" stop-color="#6c5ce7"/></linearGradient><mask id="cavm"><rect width="60" height="60" fill="white"/><rect x="22" y="30" width="2.2" height="6" rx="1.1" fill="black"/><rect x="28.9" y="26" width="2.2" height="10" rx="1.1" fill="black"/><rect x="35.8" y="22" width="2.2" height="14" rx="1.1" fill="black"/></mask></defs><path d="M30 6 L48.5 12.5 Q49.5 12.85 49.5 13.9 L49.5 28 Q49.5 41 30.6 53.4 Q30 53.8 29.4 53.4 Q10.5 41 10.5 28 L10.5 13.9 Q10.5 12.85 11.5 12.5 Z" fill="url(#cavg)" mask="url(#cavm)"/></svg></div>`;
-const CALLER_AV = `<div class="chat-caller-av"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#5c6078" stroke-width="1.5"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></div>`;
+const SHIELD_SVG = {
+  blocked: `<svg width="36" height="36" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M30 4L47 10.5V27C47 38 30 50 30 50C30 50 13 38 13 27V10.5L30 4Z" fill="#ff6b6b" opacity="0.9"/><line x1="22" y1="22" x2="38" y2="38" stroke="white" stroke-width="3" stroke-linecap="round"/><line x1="38" y1="22" x2="22" y2="38" stroke="white" stroke-width="3" stroke-linecap="round"/></svg>`,
+  forwarded: `<svg width="36" height="36" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M30 4L47 10.5V27C47 38 30 50 30 50C30 50 13 38 13 27V10.5L30 4Z" fill="#00d68f" opacity="0.9"/><polyline points="20,30 27,37 40,23" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>`,
+};
 
 const SCENARIOS = {
   blocked: [
-    {r:'gate', t:'Thank you for calling. How can I help you today?', d:0},
-    {r:'caller', t:"Hi — Jake Walsh from Atlas Freight Solutions. I'm calling manufacturing companies about moving outbound freight. We specialise in flatbed and LTL and have very competitive rates right now.", d:2800},
-    {r:'gate', t:'Who specifically are you trying to reach today?', d:5200},
-    {r:'caller', t:"I don't have a contact name — I was hoping to speak with whoever handles freight procurement or shipping decisions.", d:7600},
-    {r:'gate', t:'Do you have an existing order number or prior arrangement with us you can reference?', d:10200},
-    {r:'caller', t:"No, this would be a new relationship. We work with a lot of manufacturers in the Midwest and our rates on—", d:12600},
-    {r:'gate', t:"We don't accept unsolicited calls. You're welcome to email our screening team with your details and someone will follow up if there's a fit. Have a good day.", d:15200},
-    {r:'result', type:'blocked', title:'Blocked', sub:'97% confidence · unsolicited sales call', d:17500},
+    { r: 'gate',   d: 400,  t: 'Thank you for calling. This is Gate AI, an automated screening assistant. How can I direct your call today?' },
+    { r: 'caller', d: 2200, t: "Hi there, I'm calling about your business energy rates — we're offering a free audit that could save you up to 30%..." },
+    { r: 'gate',   d: 4200, t: "Thanks for sharing that. Could I ask who specifically you're trying to reach at the company?" },
+    { r: 'caller', d: 5800, t: "Oh, I'm looking to speak with whoever handles your energy or utilities budget." },
+    { r: 'gate',   d: 7600, t: "Understood. One moment while I check our screening rules." },
+    { r: 'result', d: 9200, type: 'blocked', title: '🚫 Call Blocked', sub: 'Cold call detected · 96% confidence · Logged' },
   ],
   forwarded: [
-    {r:'gate', t:'Thank you for calling. How can I help you today?', d:0},
-    {r:'caller', t:"Hi — Marcus Webb from Consolidated Freight Group. I'm calling for your logistics director Sarah Chen. Sarah and I spoke last Tuesday about your Q3 outbound on the Chicago to Memphis lane.", d:2800},
-    {r:'gate', t:'Got it. Can you confirm the date and what was discussed so I can connect you?', d:5400},
-    {r:'caller', t:"Sure — Tuesday the 8th. Sarah asked us to come back with a flat rate for 40 loads a month on that lane. I've got the quote ready for her.", d:8000},
-    {r:'gate', t:'Perfect — connecting you to Sarah now. Please hold briefly.', d:10800},
-    {r:'result', type:'forwarded', title:'Forwarded to Sarah Chen', sub:'95% confidence · verified existing business', d:13000},
+    { r: 'gate',   d: 400,  t: 'Thank you for calling Acme Logistics. This is Gate AI. How can I direct your call?' },
+    { r: 'caller', d: 2100, t: "Hi, it's Daniel calling from AB Logistics. I'm calling about a pickup scheduled for Tuesday — need to confirm the dock time." },
+    { r: 'gate',   d: 3900, t: "Thanks Daniel. And are you calling about an existing shipment or coordinating a new pickup?" },
+    { r: 'caller', d: 5400, t: "Existing — order number 4821, Tuesday morning at dock 3." },
+    { r: 'gate',   d: 7000, t: "Got it. I'm going to connect you with our operations team. Dave Miller handles logistics coordination — one moment." },
+    { r: 'result', d: 8600, type: 'forwarded', title: '✓ Forwarded to Dave M.', sub: 'AI summary sent · Call logged' },
   ],
 };
 
@@ -408,7 +467,6 @@ function showChatResult(type, title, sub) {
   const sb = document.getElementById('shield-big');
   const rtitle = document.getElementById('result-title');
   const rsub = document.getElementById('result-sub');
-  const rbtn = document.getElementById('replay-btn');
   if (!msgs || !rt) return;
   msgs.style.opacity = '0';
   setTimeout(() => {
@@ -420,15 +478,14 @@ function showChatResult(type, title, sub) {
     rt.style.pointerEvents = 'auto';
     rt.classList.add('show');
     setTimeout(() => { sb.classList.add('pop'); rtitle.classList.add('show'); rsub.classList.add('show'); }, 100);
-    // Auto-switch tab and replay after 4 second pause
     setTimeout(() => {
       _curTab = _curTab === 'blocked' ? 'forwarded' : 'blocked';
       const tb = document.getElementById('tab-b');
       const tf = document.getElementById('tab-f');
       if (tb) tb.className = 'c-tab' + (_curTab === 'blocked' ? ' active' : '');
       if (tf) tf.className = 'c-tab' + (_curTab === 'forwarded' ? ' active' : '');
-      const msgs = document.getElementById('chat-msgs');
-      if (msgs) msgs.style.opacity = '1';
+      const m = document.getElementById('chat-msgs');
+      if (m) m.style.opacity = '1';
       rt.classList.remove('show'); rt.style.pointerEvents = 'none';
       sb.classList.remove('pop'); rtitle.classList.remove('show'); rsub.classList.remove('show');
       runChatScenario();
@@ -492,7 +549,6 @@ function startChatSequence(timers) {
   }, 3900));
 }
 
-// Expose to window for React onClick handlers
 window.switchChatTab = (tab) => {
   _curTab = tab;
   const tb = document.getElementById('tab-b');
@@ -548,27 +604,23 @@ h1,h2,h3{font-weight:700;letter-spacing:-0.03em;line-height:1.05;}
 .nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:20px 32px;backdrop-filter:blur(16px);background:rgba(8,9,13,0.72);border-bottom:1px solid rgba(31,33,48,0.6);}
 .nav-inner{max-width:1240px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;}
 .logo{display:flex;align-items:center;gap:10px;font-size:17px;font-weight:700;letter-spacing:-0.3px;}
-.nav-links{display:flex;gap:36px;list-style:none;}
+.nav-links{display:flex;gap:28px;list-style:none;}
 .nav-links a{font-size:14px;color:var(--text-2);font-weight:500;transition:color 180ms ease;}
 .nav-links a:hover{color:var(--text);}
 .nav-cta{display:flex;gap:10px;align-items:center;}
 .nav-btn{padding:10px 20px;font-size:13px;}
 @media(max-width:820px){.nav-links{display:none;}.nav{padding:16px 20px;}}
 
-/* ── HERO two-column ── */
 .hero{padding:140px 0 80px;position:relative;overflow:hidden;}
 .hero::before{content:'';position:absolute;top:-30%;left:30%;transform:translateX(-50%);width:900px;height:900px;background:radial-gradient(circle,rgba(108,92,231,0.12) 0%,transparent 55%);pointer-events:none;z-index:0;}
 .hero::after{content:'';position:absolute;inset:0;background-image:linear-gradient(rgba(108,92,231,0.05) 1px,transparent 1px),linear-gradient(90deg,rgba(108,92,231,0.05) 1px,transparent 1px);background-size:60px 60px;mask-image:radial-gradient(ellipse 80% 60% at 40% 30%,black,transparent);pointer-events:none;z-index:0;}
 .hero-inner{position:relative;z-index:1;display:grid;grid-template-columns:1fr 400px;align-items:center;gap:60px;}
 @media(max-width:1000px){.hero-inner{grid-template-columns:1fr;gap:48px;}.hero-right{max-width:480px;margin:0 auto;}}
-.hero-left{}
 .hero-left .h-display{margin-bottom:24px;}
 .hero-left .accent{background:linear-gradient(180deg,var(--accent-2) 0%,var(--accent) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-style:italic;font-weight:700;}
 .hero-lede{font-size:clamp(16px,1.3vw,18px);color:var(--text-2);max-width:520px;margin:0 0 36px;line-height:1.6;}
 .hero-ctas{display:flex;gap:12px;flex-wrap:wrap;}
 
-/* ── Phone shell ── */
-.hero-right{}
 .phone-shell{padding:3px;border-radius:24px;background:linear-gradient(145deg,rgba(108,92,231,0.45),rgba(162,155,254,0.1),rgba(25,25,45,0.5));box-shadow:0 0 0 1px rgba(108,92,231,0.12),0 32px 64px -16px rgba(0,0,0,0.8),0 0 80px -20px rgba(108,92,231,0.2);}
 .phone-frame{background:rgba(13,14,20,0.96);border-radius:21px;overflow:hidden;border:1px solid rgba(255,255,255,0.05);}
 .pf-top{display:flex;align-items:center;gap:6px;padding:10px 14px;background:rgba(19,20,27,0.95);border-bottom:1px solid rgba(255,255,255,0.04);}
@@ -578,14 +630,9 @@ h1,h2,h3{font-weight:700;letter-spacing:-0.03em;line-height:1.05;}
 .pf-label{font-size:10px;font-family:var(--mono);color:#5c6078;}
 .pf-label b{color:var(--accent-2);font-weight:500;}
 .pf-body{height:400px;position:relative;overflow:hidden;}
-
-/* phases */
 .ph{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;transition:opacity 400ms ease;}
-.ph-ring{opacity:1;}
-.ph-done{opacity:0;}
+.ph-ring{opacity:1;}.ph-done{opacity:0;}
 .ph-chat{opacity:0;display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;}
-
-/* ring */
 .ring-bg{position:absolute;inset:0;background:radial-gradient(ellipse at center,rgba(108,92,231,0.08) 0%,transparent 70%);}
 .ring-content{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:14px;}
 .ring-wrap{position:relative;width:76px;height:76px;display:flex;align-items:center;justify-content:center;}
@@ -595,12 +642,8 @@ h1,h2,h3{font-weight:700;letter-spacing:-0.03em;line-height:1.05;}
 .ring-icon{width:48px;height:48px;border-radius:50%;background:#f0f1f5;display:flex;align-items:center;justify-content:center;z-index:2;animation:rbob .45s ease infinite alternate;}
 @keyframes rbob{0%{transform:rotate(-10deg);}100%{transform:rotate(10deg);}}
 .ring-lbl{font-size:11px;color:rgba(240,241,245,0.45);font-weight:500;}
-
-/* done */
 .done-circle{width:56px;height:56px;border-radius:50%;background:#00d68f;display:flex;align-items:center;justify-content:center;transform:scale(0);transition:transform 450ms cubic-bezier(0.34,1.56,0.64,1);}
 .done-lbl{font-size:14px;color:var(--text-2);font-weight:500;opacity:0;transition:opacity 300ms ease 200ms;margin-top:14px;}
-
-/* chat phase */
 .chat-tabs{display:flex;gap:6px;padding:9px 10px 0;}
 .c-tab{flex:1;padding:7px 8px;border-radius:9px;font-size:11.5px;font-weight:600;cursor:pointer;border:1px solid rgba(255,255,255,0.07);background:transparent;color:#5c6078;font-family:var(--font);transition:all 180ms ease;text-align:center;}
 .c-tab.active{background:rgba(108,92,231,0.14);border-color:rgba(108,92,231,0.4);color:var(--accent-2);}
@@ -611,8 +654,6 @@ h1,h2,h3{font-weight:700;letter-spacing:-0.03em;line-height:1.05;}
 .msgs-wrap{flex:1;position:relative;overflow:hidden;}
 .msgs{padding:10px 12px;display:flex;flex-direction:column;gap:8px;position:absolute;inset:0;overflow-y:auto;transition:opacity 500ms ease;}
 .msgs::-webkit-scrollbar{display:none;}
-
-/* messages */
 .chat-msg{display:flex;flex-direction:column;gap:3px;opacity:0;transform:translateY(7px);transition:opacity 350ms ease,transform 350ms ease;}
 .chat-msg.show{opacity:1;transform:translateY(0);}
 .chat-msg.gate{align-self:flex-start;max-width:86%;}
@@ -631,8 +672,6 @@ h1,h2,h3{font-weight:700;letter-spacing:-0.03em;line-height:1.05;}
 .chat-typing span{width:4px;height:4px;border-radius:50%;background:#5c6078;animation:td 1.2s ease infinite;}
 .chat-typing span:nth-child(2){animation-delay:.15s;}.chat-typing span:nth-child(3){animation-delay:.3s;}
 @keyframes td{0%,60%,100%{transform:translateY(0);}30%{transform:translateY(-5px);background:var(--accent-2);}}
-
-/* result takeover */
 .result-takeover{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;opacity:0;pointer-events:none;z-index:10;transition:opacity 500ms ease;padding:20px;}
 .result-takeover.show{opacity:1;}
 .shield-big{width:80px;height:80px;border-radius:50%;display:flex;align-items:center;justify-content:center;transform:scale(0);transition:transform 500ms cubic-bezier(0.34,1.56,0.64,1);}
@@ -649,8 +688,6 @@ h1,h2,h3{font-weight:700;letter-spacing:-0.03em;line-height:1.05;}
 .result-sub{font-size:11.5px;color:#5c6078;opacity:0;transition:opacity 350ms ease 400ms;text-align:center;}
 .result-sub.show{opacity:1;}
 
-
-/* rest of landing CSS */
 .industries{padding:60px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);}
 .industries-label{text-align:center;font-size:12px;color:var(--text-3);text-transform:uppercase;letter-spacing:2px;margin-bottom:32px;font-weight:500;}
 .industries-grid{display:flex;justify-content:center;flex-wrap:wrap;gap:14px 18px;}
@@ -687,12 +724,16 @@ h1,h2,h3{font-weight:700;letter-spacing:-0.03em;line-height:1.05;}
 .cap p{font-size:14.5px;color:var(--text-2);line-height:1.6;margin-bottom:24px;}
 .cap-demo{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:14px 16px;font-family:var(--mono);font-size:12px;color:var(--text-2);line-height:1.6;}
 .cap-demo .prompt{color:var(--accent-2);}.cap-demo .ok{color:var(--green);}.cap-demo .err{color:var(--red);}
+.caps-cta{display:flex;align-items:center;gap:12px;margin-top:40px;flex-wrap:wrap;}
 .integrations{padding:80px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);background:var(--bg-2);}
 .integrations-label{text-align:center;font-size:12px;color:var(--text-3);text-transform:uppercase;letter-spacing:2px;margin-bottom:32px;}
 .integrations-grid{display:flex;justify-content:center;flex-wrap:wrap;gap:16px;}
 .int-card{display:flex;align-items:center;gap:10px;padding:14px 22px;background:var(--bg-3);border:1px solid var(--border);border-radius:12px;font-size:14px;font-weight:600;color:var(--text);transition:all 200ms ease;}
-.int-card:hover{border-color:var(--accent);box-shadow:0 0 30px -10px var(--accent-glow);}
+.int-card:hover{border-color:var(--accent);box-shadow:0 0 30px -10px var(--accent-glow);transform:translateY(-2px);}
 .int-dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);}
+.integrations-more{text-align:center;margin-top:24px;}
+.integrations-more a{font-size:13px;color:var(--accent-2);font-weight:500;transition:color 180ms;}
+.integrations-more a:hover{color:var(--text);}
 .pricing-head{text-align:center;margin-bottom:64px;}
 .pricing-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;max-width:1100px;margin:0 auto;}
 @media(max-width:900px){.pricing-grid{grid-template-columns:1fr;max-width:440px;}}
@@ -718,6 +759,9 @@ h1,h2,h3{font-weight:700;letter-spacing:-0.03em;line-height:1.05;}
 .faq-item summary::after{content:'+';font-size:26px;color:var(--text-3);font-weight:300;transition:transform 200ms ease;line-height:1;}
 .faq-item[open] summary::after{transform:rotate(45deg);color:var(--accent-2);}
 .faq-item p{padding:0 28px 24px;color:var(--text-2);font-size:14.5px;line-height:1.65;}
+.faq-more{text-align:center;margin-top:28px;}
+.faq-more a{font-size:14px;color:var(--accent-2);font-weight:500;transition:color 180ms;}
+.faq-more a:hover{color:var(--text);}
 .cta{padding:140px 0;text-align:center;position:relative;overflow:hidden;background:var(--bg-2);border-top:1px solid var(--border);}
 .cta::before{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:800px;height:800px;background:radial-gradient(circle,var(--accent-glow) 0%,transparent 60%);pointer-events:none;}
 .cta-inner{position:relative;z-index:1;max-width:720px;margin:0 auto;}
@@ -725,7 +769,7 @@ h1,h2,h3{font-weight:700;letter-spacing:-0.03em;line-height:1.05;}
 .cta p{font-size:17px;color:var(--text-2);margin-bottom:36px;}
 footer{padding:48px 0 40px;border-top:1px solid var(--border);}
 .footer-inner{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:20px;}
-.footer-links{display:flex;gap:28px;list-style:none;}
+.footer-links{display:flex;gap:24px;list-style:none;flex-wrap:wrap;}
 .footer-links a{font-size:13px;color:var(--text-3);transition:color 180ms ease;}
 .footer-links a:hover{color:var(--text);}
 .footer-copy{font-size:13px;color:var(--text-3);}
