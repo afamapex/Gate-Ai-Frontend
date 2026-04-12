@@ -72,7 +72,10 @@ export default function Landing() {
 
       scene = new THREE.Scene();
       camera = new THREE.PerspectiveCamera(52, W / H, 0.1, 500);
-      camera.position.set(-2.2, 0, 6.3);
+      const isMobile = W < 720;
+      const camZ = isMobile ? 10.5 : 6.3;
+      const camX = isMobile ? 0 : -2.2;
+      camera.position.set(camX, 0, camZ);
 
       const handleResize = () => {
         const w = cv.parentElement.offsetWidth;
@@ -386,9 +389,9 @@ export default function Landing() {
           b.pa.needsUpdate=true;if(b.life<=0){scene.remove(b.pts);bursts.splice(i,1);}
         }
 
-        camera.position.x = -2.2 + Math.sin(t*0.07)*0.35;
+        camera.position.x = camX + Math.sin(t*0.07)*0.35;
         camera.position.y = Math.cos(t*0.045)*0.2;
-        camera.position.z = 6.3;
+        camera.position.z = camZ;
         camera.lookAt(0, 0, 0);
         renderer.render(scene,camera);
       }
@@ -989,11 +992,27 @@ h1,h2,h3{font-weight:700;letter-spacing:-0.03em;line-height:1.05;}
 .nav-cta{display:flex;gap:10px;align-items:center;}
 .nav-btn{padding:10px 20px;font-size:13px;}
 @media(max-width:820px){.nav-links{display:none;}.nav{padding:16px 20px;}}
+/* Mobile nav fix — keep logo on one line */
+@media(max-width:480px){
+  .nav{padding:12px 16px;}
+  .logo{font-size:15px;gap:7px;white-space:nowrap;}
+  .nav-cta{gap:6px;}
+  .nav-btn{padding:8px 12px;font-size:12px;}
+}
 
 .hero{padding:140px 0 80px;position:relative;overflow:hidden;}
 .hero-globe-canvas{position:absolute;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;}
 .hero-inner{position:relative;z-index:1;display:grid;grid-template-columns:1fr 400px;align-items:center;gap:60px;}
 @media(max-width:1000px){.hero-inner{grid-template-columns:1fr;gap:48px;}.hero-right{max-width:480px;margin:0 auto;}}
+/* Mobile hero — stack properly, globe smaller and centred */
+@media(max-width:720px){
+  .hero{padding:100px 0 60px;}
+  .hero-globe-canvas{opacity:0.45;}
+  .hero-inner{gap:32px;}
+  .hero-left .h-display{margin-bottom:18px;}
+  .hero-lede{font-size:15px;margin-bottom:28px;}
+  .hero-globe-counter{bottom:16px;padding:8px 18px;gap:20px;font-size:11px;}
+}
 .hero-left .h-display{margin-bottom:24px;}
 .hero-left .accent{background:linear-gradient(180deg,var(--accent-2) 0%,var(--accent) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-style:italic;font-weight:700;}
 .hero-lede{font-size:clamp(16px,1.3vw,18px);color:var(--text-2);max-width:520px;margin:0 0 36px;line-height:1.6;}
