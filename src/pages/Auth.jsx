@@ -1,0 +1,327 @@
+import { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext.jsx';
+
+const API = import.meta.env.VITE_API_URL || 'https://gate-ai-backend-production.up.railway.app';
+
+export default function Auth() {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const { token, login } = useAuth();
+  const [tab, setTab] = useState(searchParams.get('tab') === 'signin' ? 'signin' : 'signup');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+
+  const plan = searchParams.get('plan');
+
+  // Already logged in → go to dashboard
+  useEffect(() => {
+    if (token) navigate('/dashboard', { replace: true });
+  }, [token]);
+
+  // Sign up state
+  const [signup, setSignup] = useState({
+    first_name: '', last_name: '', email: '',
+    company_name: '', industry: '', password: '',
+  });
+
+  // Sign in state
+  const [signin, setSignin] = useState({ email: '', password: '' });
+
+  async function handleSignup(e) {
+    e.preventDefault();
+    setError(''); setSuccess('');
+    const { first_name, last_name, email, company_name, password } = signup;
+    if (!first_name || !last_name || !email || !company_name || !password) {
+      setError('Please fill in all required fields.'); return;
+    }
+    if (password.length < 8) {
+      setError('Password must be at least 8 characters.'); return;
+    }
+    setLoading(true);
+    try {
+      const res = await fetch(`${API}/api/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(signup),
+      });
+      const data = await res.json();
+      if (!res.ok) { setError(data.error || 'Registration failed.'); return; }
+      login(data.token, data.user, data.company);
+      setSuccess('Account created! Provisioning your phone number...');
+      setTimeout(() => {
+        if (plan) navigate(`/dashboard?checkout=${plan}`);
+        else navigate('/dashboard');
+      }, 1200);
+    } catch {
+      setError('Connection error. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleSignin(e) {
+    e.preventDefault();
+    setError('');
+    const { email, password } = signin;
+    if (!email || !password) { setError('Please enter your email and password.'); return; }
+    setLoading(true);
+    try {
+      const res = await fetch(`${API}/api/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+      const data = await res.json();
+      if (!res.ok) { setError(data.error || 'Invalid email or password.'); return; }
+      login(data.token, data.user, data.company);
+      navigate('/dashboard');
+    } catch {
+      setError('Connection error. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <>
+      <style>{CSS}</style>
+      <div className="auth-layout">
+
+        {/* LEFT: Form */}
+        <div className="auth-left">
+          <a href="/" onClick={e => { e.preventDefault(); navigate('/'); }} className="auth-logo">
+            <NavLogo />
+            <span>Gate <span style={{ color: 'var(--accent-2)', fontWeight: 500 }}>AI</span></span>
+          </a>
+
+          <div className="auth-form-wrap">
+            {/* Tabs */}
+            <div className="auth-tabs">
+              <button className={`auth-tab${tab === 'signup' ? ' active' : ''}`} onClick={() => { setTab('signup'); setError(''); }}>Sign Up</button>
+              <button className={`auth-tab${tab === 'signin' ? ' active' : ''}`} onClick={() => { setTab('signin'); setError(''); }}>Sign In</button>
+            </div>
+
+            {error && <div className="auth-error">{error}</div>}
+            {success && <div className="auth-success">{success}</div>}
+
+            {/* SIGN UP */}
+            {tab === 'signup' && (
+              <form onSubmit={handleSignup} className="auth-form">
+                <h2 className="auth-heading">Create your account</h2>
+                <p className="auth-sub">14-day free trial. No credit card required.</p>
+                {plan && (
+                  <div className="plan-badge">
+                    <span className="plan-dot" />
+                    {plan.charAt(0).toUpperCase() + plan.slice(1)} plan selected
+                  </div>
+                )}
+                <div className="field-row">
+                  <div className="field">
+                    <label>First name</label>
+                    <input type="text" placeholder="John" value={signup.first_name}
+                      onChange={e => setSignup(s => ({ ...s, first_name: e.target.value }))} />
+                  </div>
+                  <div className="field">
+                    <label>Last name</label>
+                    <input type="text" placeholder="Smith" value={signup.last_name}
+                      onChange={e => setSignup(s => ({ ...s, last_name: e.target.value }))} />
+                  </div>
+                </div>
+                <div className="field">
+                  <label>Work email</label>
+                  <input type="email" placeholder="john@company.com" value={signup.email}
+                    onChange={e => setSignup(s => ({ ...s, email: e.target.value }))} />
+                </div>
+                <div className="field">
+                  <label>Company name</label>
+                  <input type="text" placeholder="Acme Logistics LLC" value={signup.company_name}
+                    onChange={e => setSignup(s => ({ ...s, company_name: e.target.value }))} />
+                </div>
+                <div className="field">
+                  <label>Industry</label>
+                  <select value={signup.industry} onChange={e => setSignup(s => ({ ...s, industry: e.target.value }))}>
+                    <option value="">Select your industry</option>
+                    <option value="logistics">Logistics & Freight</option>
+                    <option value="manufacturing">Manufacturing</option>
+                    <option value="distribution">Distribution & Warehousing</option>
+                    <option value="construction">Construction</option>
+                    <option value="transport">Transport & Haulage</option>
+                    <option value="other">Other</option>
+                  </select>
+                </div>
+                <div className="field">
+                  <label>Password</label>
+                  <input type="password" placeholder="Min. 8 characters" value={signup.password}
+                    onChange={e => setSignup(s => ({ ...s, password: e.target.value }))} />
+                </div>
+                <button type="submit" className="btn-submit" disabled={loading}>
+                  {loading ? 'Creating account...' : 'Create account →'}
+                </button>
+                <p className="auth-switch">Already have an account? <button type="button" onClick={() => setTab('signin')}>Sign in</button></p>
+                <p className="auth-legal">
+                  By creating an account you agree to our{' '}
+                  <a onClick={() => navigate('/terms')}>Terms</a> and{' '}
+                  <a onClick={() => navigate('/privacy')}>Privacy Policy</a>.
+                </p>
+              </form>
+            )}
+
+            {/* SIGN IN */}
+            {tab === 'signin' && (
+              <form onSubmit={handleSignin} className="auth-form">
+                <h2 className="auth-heading">Welcome back</h2>
+                <p className="auth-sub">Sign in to your Gate AI dashboard.</p>
+                <div className="field">
+                  <label>Email</label>
+                  <input type="email" placeholder="john@company.com" value={signin.email}
+                    onChange={e => setSignin(s => ({ ...s, email: e.target.value }))} />
+                </div>
+                <div className="field">
+                  <label>Password</label>
+                  <input type="password" placeholder="Your password" value={signin.password}
+                    onChange={e => setSignin(s => ({ ...s, password: e.target.value }))} />
+                </div>
+                <button type="submit" className="btn-submit" disabled={loading}>
+                  {loading ? 'Signing in...' : 'Sign in →'}
+                </button>
+                <p className="auth-switch">Don't have an account? <button type="button" onClick={() => setTab('signup')}>Sign up free</button></p>
+              </form>
+            )}
+          </div>
+        </div>
+
+        {/* RIGHT: Showcase */}
+        <div className="auth-right">
+          <div className="auth-showcase">
+            <div className="showcase-card">
+              <div className="sc-header">
+                <span className="dot dot-r" /><span className="dot dot-y" /><span className="dot dot-g" />
+                <span className="sc-title">gate-ai · live dashboard</span>
+              </div>
+              <div className="sc-body">
+                {[
+                  { type: 'blocked', name: 'Unknown — "Calling about your energy rates..."', detail: '+1 (555) 234-8821 · 0:09 · Cold call' },
+                  { type: 'forwarded', name: 'Daniel @ AB Logistics — re: Tuesday pickup', detail: '+1 (214) 882-3301 · Routed → Dave M.' },
+                  { type: 'blocked', name: 'Unknown — "We help businesses with SEO..."', detail: '+1 (888) 102-4421 · 0:06 · Cold call' },
+                  { type: 'live', name: 'Caller being screened now...', detail: '+1 (972) 441-0092 · AI active' },
+                ].map((row, i) => (
+                  <div key={i} className="sc-row">
+                    <span className={`sc-dot sc-dot-${row.type}`} />
+                    <div className="sc-text">
+                      <div className="sc-name">{row.name}</div>
+                      <div className="sc-detail">{row.detail}</div>
+                    </div>
+                    <span className={`sc-badge sc-badge-${row.type}`}>
+                      {row.type === 'blocked' ? 'Blocked' : row.type === 'forwarded' ? 'Forwarded' : 'Live'}
+                    </span>
+                  </div>
+                ))}
+              </div>
+              <div className="sc-stats">
+                <div className="sc-stat"><div className="sc-stat-num" style={{ color: 'var(--red)' }}>47</div><div className="sc-stat-label">Blocked today</div></div>
+                <div className="sc-stat"><div className="sc-stat-num" style={{ color: 'var(--green)' }}>12</div><div className="sc-stat-label">Forwarded</div></div>
+                <div className="sc-stat"><div className="sc-stat-num" style={{ color: 'var(--accent-2)' }}>94%</div><div className="sc-stat-label">Accuracy</div></div>
+              </div>
+            </div>
+            <div className="auth-taglines">
+              {['Phone number provisioned automatically in seconds', 'AI trained for logistics & manufacturing from day one', '14-day trial — no credit card, cancel anytime'].map((t, i) => (
+                <div key={i} className="auth-tagline">{t}</div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
+function NavLogo() {
+  return (
+    <svg width="30" height="30" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="aG" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#b8b1ff"/><stop offset="100%" stopColor="#6c5ce7"/>
+        </linearGradient>
+        <mask id="aM">
+          <rect width="60" height="60" fill="white"/>
+          <rect x="22" y="30" width="2.2" height="6" rx="1.1" fill="black"/>
+          <rect x="28.9" y="26" width="2.2" height="10" rx="1.1" fill="black"/>
+          <rect x="35.8" y="22" width="2.2" height="14" rx="1.1" fill="black"/>
+        </mask>
+      </defs>
+      <path d="M30 6 L48.5 12.5 Q49.5 12.85 49.5 13.9 L49.5 28 Q49.5 41 30.6 53.4 Q30 53.8 29.4 53.4 Q10.5 41 10.5 28 L10.5 13.9 Q10.5 12.85 11.5 12.5 Z" fill="url(#aG)" mask="url(#aM)"/>
+    </svg>
+  );
+}
+
+const CSS = `
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=JetBrains+Mono:wght@400;500&display=swap');
+:root{--bg:#08090d;--bg-2:#0d0e14;--bg-3:#13141b;--bg-4:#1a1c26;--border:#1f2130;--border-2:#2a2d40;--text:#f0f1f5;--text-2:#9da1b5;--text-3:#5c6078;--accent:#6c5ce7;--accent-2:#a29bfe;--accent-glow:rgba(108,92,231,0.35);--green:#00d68f;--red:#ff6b6b;--font:'DM Sans',system-ui,sans-serif;--mono:'JetBrains Mono',monospace;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:var(--font);background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;}
+a{color:inherit;text-decoration:none;cursor:pointer;}
+.auth-layout{display:flex;min-height:100vh;}
+.auth-left{flex:0 0 480px;padding:48px;display:flex;flex-direction:column;border-right:1px solid var(--border);position:relative;overflow:hidden;}
+.auth-left::before{content:'';position:absolute;top:-200px;left:-200px;width:600px;height:600px;background:radial-gradient(circle,rgba(108,92,231,0.12) 0%,transparent 60%);pointer-events:none;}
+.auth-left::after{content:'';position:absolute;inset:0;background-image:linear-gradient(rgba(108,92,231,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(108,92,231,0.04) 1px,transparent 1px);background-size:40px 40px;mask-image:radial-gradient(ellipse 80% 60% at 20% 30%,black,transparent);pointer-events:none;}
+.auth-logo{display:flex;align-items:center;gap:10px;font-size:16px;font-weight:700;letter-spacing:-0.3px;position:relative;z-index:1;}
+.auth-form-wrap{flex:1;display:flex;flex-direction:column;justify-content:center;position:relative;z-index:1;max-width:360px;}
+.auth-tabs{display:flex;background:var(--bg-3);border:1px solid var(--border);border-radius:12px;padding:4px;margin-bottom:28px;}
+.auth-tab{flex:1;padding:10px;text-align:center;font-size:13.5px;font-weight:600;border-radius:9px;cursor:pointer;transition:all 200ms;color:var(--text-3);border:none;background:transparent;font-family:var(--font);}
+.auth-tab.active{background:var(--bg-4);color:var(--text);box-shadow:0 1px 4px rgba(0,0,0,0.4);}
+.auth-form{display:flex;flex-direction:column;}
+.auth-heading{font-size:26px;font-weight:700;letter-spacing:-0.03em;margin-bottom:6px;}
+.auth-sub{font-size:14px;color:var(--text-2);margin-bottom:24px;line-height:1.5;}
+.plan-badge{display:inline-flex;align-items:center;gap:7px;background:rgba(108,92,231,0.1);border:1px solid rgba(108,92,231,0.25);border-radius:100px;padding:6px 14px;font-size:12px;font-weight:600;color:var(--accent-2);margin-bottom:20px;width:fit-content;}
+.plan-dot{width:6px;height:6px;border-radius:50%;background:var(--accent-2);box-shadow:0 0 8px var(--accent-2);}
+.field{margin-bottom:14px;}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:0;}
+label{display:block;font-size:11.5px;font-weight:600;color:var(--text-2);margin-bottom:7px;letter-spacing:0.3px;text-transform:uppercase;}
+input,select{width:100%;background:var(--bg-3);border:1px solid var(--border-2);border-radius:10px;padding:12px 14px;font-size:14px;color:var(--text);font-family:var(--font);transition:border-color 200ms,box-shadow 200ms;outline:none;}
+input:focus,select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(108,92,231,0.15);}
+input::placeholder{color:var(--text-3);}
+select option{background:var(--bg-3);}
+.btn-submit{width:100%;padding:14px;background:var(--accent);color:white;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;transition:all 200ms;margin-top:8px;font-family:var(--font);}
+.btn-submit:hover:not(:disabled){background:#7c6ef0;transform:translateY(-1px);box-shadow:0 8px 24px var(--accent-glow);}
+.btn-submit:disabled{opacity:0.6;cursor:not-allowed;}
+.auth-error{background:rgba(255,107,107,0.1);border:1px solid rgba(255,107,107,0.25);border-radius:10px;padding:12px 14px;font-size:13px;color:var(--red);margin-bottom:16px;}
+.auth-success{background:rgba(0,214,143,0.1);border:1px solid rgba(0,214,143,0.25);border-radius:10px;padding:12px 14px;font-size:13px;color:var(--green);margin-bottom:16px;}
+.auth-switch{text-align:center;font-size:13px;color:var(--text-3);margin-top:16px;}
+.auth-switch button{background:none;border:none;color:var(--accent-2);font-weight:500;cursor:pointer;font-family:var(--font);font-size:13px;}
+.auth-legal{font-size:11.5px;color:var(--text-3);text-align:center;margin-top:12px;line-height:1.6;}
+.auth-legal a{color:var(--text-3);text-decoration:underline;cursor:pointer;}
+.auth-right{flex:1;display:flex;align-items:center;justify-content:center;padding:60px;position:relative;overflow:hidden;}
+.auth-right::before{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:800px;height:800px;background:radial-gradient(circle,rgba(108,92,231,0.1) 0%,transparent 60%);pointer-events:none;}
+.auth-showcase{position:relative;z-index:1;width:100%;max-width:480px;}
+.showcase-card{background:var(--bg-3);border:1px solid var(--border);border-radius:20px;overflow:hidden;box-shadow:0 40px 80px rgba(0,0,0,0.4);}
+.showcase-card::before{content:'';display:block;height:1px;background:linear-gradient(90deg,transparent,var(--accent),transparent);}
+.sc-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:7px;}
+.dot{width:10px;height:10px;border-radius:50%;}
+.dot-r{background:#ff5f57;}.dot-y{background:#febc2e;}.dot-g{background:#28c840;}
+.sc-title{font-size:11.5px;color:var(--text-3);font-family:var(--mono);margin-left:4px;}
+.sc-body{padding:16px;display:flex;flex-direction:column;gap:10px;}
+.sc-row{display:flex;align-items:center;gap:10px;padding:12px 14px;background:var(--bg-4);border-radius:10px;border:1px solid var(--border);}
+.sc-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.sc-dot-blocked{background:var(--red);box-shadow:0 0 6px rgba(255,107,107,0.5);}
+.sc-dot-forwarded{background:var(--green);box-shadow:0 0 6px rgba(0,214,143,0.5);}
+.sc-dot-live{background:#ffa94d;box-shadow:0 0 6px rgba(255,169,77,0.5);animation:pulse 1.5s ease-in-out infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+.sc-text{flex:1;min-width:0;}
+.sc-name{font-size:12.5px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.sc-detail{font-size:11px;color:var(--text-3);margin-top:2px;font-family:var(--mono);}
+.sc-badge{font-size:10px;font-weight:700;padding:3px 9px;border-radius:100px;text-transform:uppercase;flex-shrink:0;}
+.sc-badge-blocked{background:rgba(255,107,107,0.12);color:var(--red);}
+.sc-badge-forwarded{background:rgba(0,214,143,0.12);color:var(--green);}
+.sc-badge-live{background:rgba(255,169,77,0.12);color:#ffa94d;}
+.sc-stats{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--border);}
+.sc-stat{padding:16px;text-align:center;}
+.sc-stat-num{font-size:22px;font-weight:700;font-family:var(--mono);letter-spacing:-0.03em;}
+.sc-stat-label{font-size:10px;color:var(--text-3);margin-top:2px;text-transform:uppercase;letter-spacing:0.5px;}
+.auth-taglines{margin-top:28px;display:flex;flex-direction:column;gap:12px;}
+.auth-tagline{display:flex;align-items:center;gap:12px;font-size:13.5px;color:var(--text-2);}
+.auth-tagline::before{content:'';width:20px;height:20px;border-radius:50%;background:rgba(0,214,143,0.15);border:1px solid rgba(0,214,143,0.3);flex-shrink:0;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M4 10l4 4L16 6' stroke='%2300d68f' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:center;}
+@media(max-width:900px){.auth-right{display:none;}.auth-left{flex:1;border-right:none;}}
+@media(max-width:480px){.auth-left{padding:32px 24px;}.field-row{grid-template-columns:1fr;}}
+`;
