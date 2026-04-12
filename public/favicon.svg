@@ -1,15 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 60" width="512" height="512">
   <defs>
     <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#b8b1ff"/>
-      <stop offset="100%" stop-color="#6c5ce7"/>
+      <stop offset="0%" stop-color="#9d96ff"/>
+      <stop offset="100%" stop-color="#5540e0"/>
     </linearGradient>
-    <mask id="m">
-      <rect width="60" height="60" fill="white"/>
-      <rect x="22" y="30" width="2.2" height="6" rx="1.1" fill="black"/>
-      <rect x="28.9" y="26" width="2.2" height="10" rx="1.1" fill="black"/>
-      <rect x="35.8" y="22" width="2.2" height="14" rx="1.1" fill="black"/>
-    </mask>
   </defs>
-  <path d="M30 6 L48.5 12.5 Q49.5 12.85 49.5 13.9 L49.5 28 Q49.5 41 30.6 53.4 Q30 53.8 29.4 53.4 Q10.5 41 10.5 28 L10.5 13.9 Q10.5 12.85 11.5 12.5 Z" fill="url(#g)" mask="url(#m)"/>
+  <!-- Shield -->
+  <path d="M30 6 L48.5 12.5 Q49.5 12.85 49.5 13.9 L49.5 28 Q49.5 41 30.6 53.4 Q30 53.8 29.4 53.4 Q10.5 41 10.5 28 L10.5 13.9 Q10.5 12.85 11.5 12.5 Z" fill="url(#g)"/>
+  <!-- Black bars drawn on top -->
+  <rect x="21" y="31" width="4" height="7" rx="2" fill="#0a0a0a"/>
+  <rect x="28" y="26" width="4" height="12" rx="2" fill="#0a0a0a"/>
+  <rect x="35" y="21" width="4" height="17" rx="2" fill="#0a0a0a"/>
 </svg>
