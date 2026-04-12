@@ -971,10 +971,8 @@ section{position:relative;padding:120px 0;}
 h1,h2,h3{font-weight:700;letter-spacing:-0.03em;line-height:1.05;}
 .h-display{font-size:clamp(34px,4.2vw,62px);font-weight:800;letter-spacing:-0.04em;line-height:0.97;}
 .hero-ctas{display:flex;gap:12px;flex-wrap:wrap;align-items:center;}
-/* Counter sits centred under the globe — globe is in right half so we use right:0 + margin */
-.hero-globe-counter{position:absolute;bottom:80px;left:calc(50% + 170px);transform:translateX(-50%);display:flex;gap:28px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:100px;padding:10px 24px;backdrop-filter:blur(12px);z-index:2;white-space:nowrap;}
-@media(max-width:1000px){.hero-globe-counter{left:50%;transform:translateX(-50%);}}
-@media(max-width:720px){.hero-globe-counter{bottom:16px;left:50%;transform:translateX(-50%);padding:8px 18px;gap:20px;font-size:11px;}}.hgc-item{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:500;color:rgba(255,255,255,0.7);}
+.hero-globe-counter{position:absolute;bottom:72px;left:50%;transform:translateX(-50%);display:flex;gap:28px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:100px;padding:10px 24px;backdrop-filter:blur(12px);z-index:2;white-space:nowrap;}
+@media(max-width:720px){.hero-globe-counter{bottom:16px;padding:8px 18px;gap:20px;font-size:11px;}}.hgc-item{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:500;color:rgba(255,255,255,0.7);}
 .hgc-item strong{color:#fff;font-weight:700;min-width:20px;}
 .hgc-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
 .hgc-red{background:#ff4d6d;box-shadow:0 0 6px #ff4d6d;}
