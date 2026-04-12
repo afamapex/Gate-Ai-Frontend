@@ -68,7 +68,7 @@ export default function Landing() {
 
       scene = new THREE.Scene();
       camera = new THREE.PerspectiveCamera(52, W / H, 0.1, 500);
-      camera.position.set(0, 0, 5.8);
+      camera.position.set(0, 0, 8.5); // further back = smaller globe
 
       const handleResize = () => {
         const w = cv.parentElement.offsetWidth;
@@ -108,6 +108,7 @@ export default function Landing() {
       const GLOBE_R = 1.6, FF_R = GLOBE_R + 0.52, BLOCK_DIST = FF_R + 0.12;
       const globeGroup = new THREE.Group();
       globeGroup.rotation.z = THREE.MathUtils.degToRad(23);
+      globeGroup.position.set(1.8, -0.2, 0); // shift right, behind phone widget
       scene.add(globeGroup);
       const globe = new THREE.Mesh(
         new THREE.SphereGeometry(GLOBE_R, 64, 64),
@@ -309,6 +310,7 @@ export default function Landing() {
         animId = requestAnimationFrame(animate); frame++;
         const t = frame * 0.01;
         ffU.time.value=t; ffU.breath.value=Math.sin(t*1.4)*0.5+0.5;
+        ffU.camPos.value.copy(camera.position); // keep fresnel accurate as camera drifts
         sMat.uniforms.time.value=t; ambMat.uniforms.time.value=t;
         globe.rotation.y+=0.003;
 
@@ -377,9 +379,9 @@ export default function Landing() {
           b.pa.needsUpdate=true;if(b.life<=0){scene.remove(b.pts);bursts.splice(i,1);}
         }
 
-        camera.position.x=Math.sin(t*0.07)*0.35;
-        camera.position.y=Math.cos(t*0.045)*0.2;
-        camera.lookAt(0,0,0);
+        camera.position.x = Math.sin(t*0.07)*0.35;
+        camera.position.y = Math.cos(t*0.045)*0.2;
+        camera.lookAt(globeGroup.position); // look at globe centre not origin
         renderer.render(scene,camera);
       }
 
@@ -965,7 +967,7 @@ h1,h2,h3{font-weight:700;letter-spacing:-0.03em;line-height:1.05;}
 @media(max-width:820px){.nav-links{display:none;}.nav{padding:16px 20px;}}
 
 .hero{padding:140px 0 80px;position:relative;overflow:hidden;}
-.hero-globe-canvas{position:absolute;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;opacity:0.85;}
+.hero-globe-canvas{position:absolute;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;}
 .hero-inner{position:relative;z-index:1;display:grid;grid-template-columns:1fr 400px;align-items:center;gap:60px;}
 @media(max-width:1000px){.hero-inner{grid-template-columns:1fr;gap:48px;}.hero-right{max-width:480px;margin:0 auto;}}
 .hero-left .h-display{margin-bottom:24px;}
