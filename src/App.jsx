@@ -1,17 +1,9 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext.jsx';
-import Landing      from './pages/Landing.jsx';
-import Login        from './pages/Login.jsx';
-import Auth         from './pages/Auth.jsx';
-import Dashboard    from './pages/Dashboard.jsx';
-import BookDemo     from './pages/BookDemo.jsx';
-import Pricing      from './pages/Pricing.jsx';
-import Capabilities from './pages/Capabilities.jsx';
-import Integrations from './pages/Integrations.jsx';
-import FAQ          from './pages/FAQ.jsx';
-import Contact      from './pages/Contact.jsx';
-import Privacy      from './pages/Privacy.jsx';
-import Terms        from './pages/Terms.jsx';
+import Landing   from './pages/Landing.jsx';
+import Contact   from './pages/Contact.jsx';
+import Login     from './pages/Login.jsx';
+import Dashboard from './pages/Dashboard.jsx';
 
 function ProtectedRoute({ children }) {
   const { token, loading } = useAuth();
@@ -28,7 +20,7 @@ function ProtectedRoute({ children }) {
     );
   }
 
-  return token ? children : <Navigate to="/auth" replace />;
+  return token ? children : <Navigate to="/login" replace />;
 }
 
 export default function App() {
@@ -36,35 +28,22 @@ export default function App() {
     <AuthProvider>
       <BrowserRouter>
         <Routes>
-          {/* Public — landing */}
-          <Route path="/"             element={<Landing />} />
+          {/* Public */}
+          <Route path="/"        element={<Landing />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/login"   element={<Login />} />
 
-          {/* Auth */}
-          <Route path="/auth"         element={<Auth />} />
-          <Route path="/login"        element={<Login />} />
-
-          {/* Public pages */}
-          <Route path="/book-demo"    element={<BookDemo />} />
-          <Route path="/pricing"      element={<Pricing />} />
-          <Route path="/capabilities" element={<Capabilities />} />
-          <Route path="/integrations" element={<Integrations />} />
-          <Route path="/faq"          element={<FAQ />} />
-          <Route path="/contact"      element={<Contact />} />
-          <Route path="/privacy"      element={<Privacy />} />
-          <Route path="/terms"        element={<Terms />} />
-
-          {/* Protected — dashboard */}
+          {/* Protected — dashboard lives at /dashboard */}
           <Route path="/dashboard/*" element={
             <ProtectedRoute>
               <Dashboard />
             </ProtectedRoute>
           } />
 
-          {/* Redirects */}
+          {/* Redirect /app → /dashboard for old links */}
           <Route path="/app/*" element={<Navigate to="/dashboard" replace />} />
-          <Route path="/signup" element={<Navigate to="/auth" replace />} />
 
-          {/* Catch-all */}
+          {/* Catch-all — redirect unknown routes to home */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>
