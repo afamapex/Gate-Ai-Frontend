@@ -716,11 +716,16 @@ function CallActionMenu({ call, onWhitelist, onBlock }) {
         <button className="btn btn-sm" onClick={() => setOpen(v => !v)}>Actions {Icons.chevDown}</button>
         {open && (
           <div className="action-menu">
-  <div className="action-menu-item success" onClick={() => { setOpen(false); setConfirm("whitelist"); }}>
-    ✓ {c.status === "blocked" ? "Unblock / Whitelist" : "Whitelist number"}
-  </div>
-  {c.status !== "blocked" && (
-    <div className="action-menu-item danger" onClick={() => { setOpen(false); setConfirm("block"); }}>✕ Block number</div>
+  {c.status === "blocked" ? (
+    <>
+      <div className="action-menu-item" onClick={() => { setOpen(false); setConfirm("unblock"); }}>↩ Unblock number</div>
+      <div className="action-menu-item success" onClick={() => { setOpen(false); setConfirm("whitelist"); }}>✓ Whitelist number</div>
+    </>
+  ) : (
+    <>
+      <div className="action-menu-item success" onClick={() => { setOpen(false); setConfirm("whitelist"); }}>✓ Whitelist number</div>
+      <div className="action-menu-item danger" onClick={() => { setOpen(false); setConfirm("block"); }}>✕ Block number</div>
+    </>
   )}
 </div>
         )}
@@ -744,6 +749,15 @@ function CallActionMenu({ call, onWhitelist, onBlock }) {
           onClose={() => setConfirm(null)}
         />
       )}
+      {confirm === "unblock" && (
+  <ConfirmModal
+    title="Unblock this number?"
+    message={`${c.phone} will be removed from your blocked patterns and go through normal screening on future calls.`}
+    confirmLabel="Unblock"
+    onConfirm={() => onUnblock(call)}
+    onClose={() => setConfirm(null)}
+  />
+)}
     </>
   );
 }
