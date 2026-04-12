@@ -1,6 +1,5 @@
 import { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import * as THREE from 'three';
 
 export default function Landing() {
   const navigate = useNavigate();
@@ -55,9 +54,14 @@ export default function Landing() {
     let gateAiPulse = 0, gateAiMesh;
     let ambPos, ambVel = [], ambGeo;
 
-    initGlobe();
+    // Load Three.js from CDN then init
+    const script = document.createElement('script');
+    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';
+    script.onload = () => initGlobe();
+    document.head.appendChild(script);
 
     function initGlobe() {
+      const THREE = window.THREE;
       const W = cv.parentElement.offsetWidth;
       const H = cv.parentElement.offsetHeight;
 
@@ -392,6 +396,7 @@ export default function Landing() {
     return () => {
       cancelAnimationFrame(animId);
       if (renderer) renderer.dispose();
+      if (script.parentNode) script.parentNode.removeChild(script);
     };
   }, []);
 
