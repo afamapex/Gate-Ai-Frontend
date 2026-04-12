@@ -72,7 +72,7 @@ export default function Landing() {
 
       scene = new THREE.Scene();
       camera = new THREE.PerspectiveCamera(52, W / H, 0.1, 500);
-      camera.position.set(0, 0, 8.5); // further back = smaller globe
+      camera.position.set(0, 0, 11); // much further back = properly sized globe
 
       const handleResize = () => {
         const w = cv.parentElement.offsetWidth;
@@ -109,10 +109,10 @@ export default function Landing() {
       scene.add(new THREE.Points(sGeo, sMat));
 
       // Globe
-      const GLOBE_R = 1.6, FF_R = GLOBE_R + 0.52, BLOCK_DIST = FF_R + 0.12;
+      const GLOBE_R = 1.2, FF_R = GLOBE_R + 0.45, BLOCK_DIST = FF_R + 0.12;
       const globeGroup = new THREE.Group();
       globeGroup.rotation.z = THREE.MathUtils.degToRad(23);
-      globeGroup.position.set(1.8, -0.2, 0); // shift right, behind phone widget
+      globeGroup.position.set(2.8, 0, 0); // right side, behind phone widget
       scene.add(globeGroup);
       const globe = new THREE.Mesh(
         new THREE.SphereGeometry(GLOBE_R, 64, 64),
@@ -355,7 +355,9 @@ export default function Landing() {
             const burstAt=m.sprite.position.clone();
             addPulse(hit,0xff4d6d);createBurst(burstAt,0xff4d6d);
             scene.remove(m.sprite);scene.remove(m.tLine);
-            m.alive=false;blockedCount++;continue;
+            m.alive=false;blockedCount++;
+            const bc=document.getElementById('globe-bc'); if(bc) bc.textContent=blockedCount;
+            continue;
           }
           if(m.phase==='flying'&&!m.isCold&&dist<=FF_R+0.05){
             const hit=m.sprite.position.clone().normalize().multiplyScalar(FF_R);
@@ -366,6 +368,7 @@ export default function Landing() {
             const fade=Math.min(1,dist/GLOBE_R);m.sprite.material.opacity=fade*0.9;
             if(dist<0.22){
               scene.remove(m.sprite);scene.remove(m.tLine);m.alive=false;forwardedCount++;
+              const fc=document.getElementById('globe-fc'); if(fc) fc.textContent=forwardedCount;
               triggerReceivedPulse();gateAiPulse=1.0;continue;
             }
           }
@@ -435,13 +438,19 @@ export default function Landing() {
       <section className="hero">
         {/* Globe background canvas */}
         <canvas ref={globeCanvasRef} className="hero-globe-canvas" />
+        {/* Globe counter */}
+        <div className="hero-globe-counter">
+          <div className="hgc-item"><span className="hgc-dot hgc-red"></span>Blocked <strong id="globe-bc">0</strong></div>
+          <div className="hgc-item"><span className="hgc-dot hgc-green"></span>Forwarded <strong id="globe-fc">0</strong></div>
+        </div>
         <div className="container hero-inner">
           {/* Left */}
           <div className="hero-left">
             <div className="eyebrow"><span className="eyebrow-dot"></span>AI Call Screening · Built for SMBs</div>
             <h1 className="h-display">
               Block the noise.<br />
-              Forward what <span className="accent">matters.</span>
+              Forward what<br />
+              <span className="accent">matters.</span>
             </h1>
             <p className="hero-lede">
               Gate AI answers every incoming call, detects cold sales pitches in seconds, and routes legitimate calls to the right person — with a full AI briefing before the phone even rings.
@@ -953,7 +962,13 @@ section{position:relative;padding:120px 0;}
 .eyebrow-dot{width:5px;height:5px;min-width:5px;border-radius:50%;background:var(--accent-2);box-shadow:0 0 10px var(--accent-2);animation:edot 2s ease infinite;}
 @keyframes edot{0%,100%{box-shadow:0 0 6px var(--accent-2);}50%{box-shadow:0 0 14px var(--accent-2),0 0 22px rgba(162,155,254,0.4);}}
 h1,h2,h3{font-weight:700;letter-spacing:-0.03em;line-height:1.05;}
-.h-display{font-size:clamp(40px,5.5vw,80px);font-weight:800;letter-spacing:-0.04em;line-height:0.97;}
+.h-display{font-size:clamp(34px,4.2vw,62px);font-weight:800;letter-spacing:-0.04em;line-height:0.97;}
+.hero-globe-counter{position:absolute;bottom:28px;left:50%;transform:translateX(-50%);display:flex;gap:28px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:100px;padding:10px 24px;backdrop-filter:blur(12px);z-index:2;white-space:nowrap;}
+.hgc-item{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:500;color:rgba(255,255,255,0.7);}
+.hgc-item strong{color:#fff;font-weight:700;min-width:20px;}
+.hgc-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.hgc-red{background:#ff4d6d;box-shadow:0 0 6px #ff4d6d;}
+.hgc-green{background:#00f5a0;box-shadow:0 0 6px #00f5a0;}
 .h-section{font-size:clamp(36px,5vw,60px);font-weight:700;letter-spacing:-0.035em;line-height:1.02;margin-bottom:20px;}
 .lede{font-size:clamp(16px,1.4vw,19px);color:var(--text-2);max-width:620px;line-height:1.6;}
 .btn{display:inline-flex;align-items:center;gap:8px;padding:14px 26px;border-radius:100px;font-size:14px;font-weight:600;transition:all 200ms ease;white-space:nowrap;cursor:pointer;}
