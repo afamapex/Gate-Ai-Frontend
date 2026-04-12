@@ -72,7 +72,7 @@ export default function Landing() {
 
       scene = new THREE.Scene();
       camera = new THREE.PerspectiveCamera(52, W / H, 0.1, 500);
-      camera.position.set(-2.2, 0, 11); // shifted left so globe appears right-of-centre
+      camera.position.set(-2.2, 0, 7.5); // closer = bigger globe
 
       const handleResize = () => {
         const w = cv.parentElement.offsetWidth;
@@ -388,6 +388,7 @@ export default function Landing() {
 
         camera.position.x = -2.2 + Math.sin(t*0.07)*0.35;
         camera.position.y = Math.cos(t*0.045)*0.2;
+        camera.position.z = 7.5;
         camera.lookAt(0, 0, 0);
         renderer.render(scene,camera);
       }
