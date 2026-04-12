@@ -72,9 +72,9 @@ export default function Landing() {
       scene = new THREE.Scene();
       camera = new THREE.PerspectiveCamera(52, W / H, 0.1, 500);
       const isMobile = W < 720;
-      const isLandscapeMobile = isMobile && H < 500;
-      const camZ = isLandscapeMobile ? 18 : isMobile ? 10.5 : 6.3;
-      const camX = isMobile ? 0 : -2.2;
+      const isLandscapeMobile = H < 500 && W > H;
+      const camZ = isLandscapeMobile ? 8.5 : isMobile ? 10.5 : 6.3;
+      const camX = isLandscapeMobile ? -2.0 : isMobile ? 0 : -2.2;
       camera.position.set(camX, 0, camZ);
 
       const handleResize = () => {
@@ -83,11 +83,10 @@ export default function Landing() {
         camera.aspect = w / h;
         camera.updateProjectionMatrix();
         renderer.setSize(w, h);
-        // Recalculate camera position on orientation change
         const mob = w < 720;
-        const land = mob && h < 500;
-        camera.position.z = land ? 18 : mob ? 10.5 : 6.3;
-        camera.position.x = mob ? 0 : -2.2;
+        const land = h < 500 && w > h;
+        camera.position.z = land ? 8.5 : mob ? 10.5 : 6.3;
+        camera.position.x = land ? -2.0 : mob ? 0 : -2.2;
       };
       window.addEventListener('resize', handleResize);
 
@@ -1031,17 +1030,18 @@ h1,h2,h3{font-weight:700;letter-spacing:-0.03em;line-height:1.05;}
   .hero-left .h-display{margin-bottom:18px;}
   .hero-lede{font-size:15px;margin-bottom:28px;}
 }
-/* Landscape mobile — globe pushed way back, content compact, phone widget hidden */
+/* Landscape mobile — two column layout, globe on right, text on left */
 @media(max-height:500px) and (orientation:landscape){
-  .hero{padding:80px 0 40px;}
-  .hero-globe-canvas{opacity:0.25;}
-  .hero-inner{grid-template-columns:1fr;gap:16px;}
+  .hero{padding:70px 0 30px;}
+  .hero-globe-canvas{opacity:0.9;}
+  .hero-inner{grid-template-columns:1fr 1fr;gap:24px;align-items:center;}
   .hero-right{display:none;}
-  .h-display{font-size:clamp(26px,5vw,40px)!important;}
-  .hero-lede{font-size:13px;margin-bottom:16px;}
+  .h-display{font-size:clamp(24px,4.5vw,38px)!important;margin-bottom:10px!important;}
+  .hero-lede{font-size:13px;margin-bottom:14px;line-height:1.5;}
   .hero-ctas{gap:8px;}
-  .btn{padding:10px 18px;font-size:13px;}
-  .hgc-inline{padding:7px 14px;gap:14px;}
+  .btn{padding:10px 18px;font-size:12px;}
+  .hgc-inline{padding:7px 14px;gap:14px;font-size:11px;}
+  .hero-globe-counter{bottom:12px;right:5%;left:auto;transform:none;}
 }
 .hero-left .h-display{margin-bottom:24px;}
 .hero-left .accent{background:linear-gradient(180deg,var(--accent-2) 0%,var(--accent) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-style:italic;font-weight:700;}
