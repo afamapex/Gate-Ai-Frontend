@@ -72,7 +72,7 @@ export default function Landing() {
 
       scene = new THREE.Scene();
       camera = new THREE.PerspectiveCamera(52, W / H, 0.1, 500);
-      camera.position.set(0, 0, 11); // much further back = properly sized globe
+      camera.position.set(-2.2, 0, 11); // shifted left so globe appears right-of-centre
 
       const handleResize = () => {
         const w = cv.parentElement.offsetWidth;
@@ -112,7 +112,7 @@ export default function Landing() {
       const GLOBE_R = 1.2, FF_R = GLOBE_R + 0.45, BLOCK_DIST = FF_R + 0.12;
       const globeGroup = new THREE.Group();
       globeGroup.rotation.z = THREE.MathUtils.degToRad(23);
-      globeGroup.position.set(2.8, 0, 0); // right side, behind phone widget
+      globeGroup.position.set(0, 0, 0); // origin — force field and globe stay aligned
       scene.add(globeGroup);
       const globe = new THREE.Mesh(
         new THREE.SphereGeometry(GLOBE_R, 64, 64),
@@ -386,9 +386,9 @@ export default function Landing() {
           b.pa.needsUpdate=true;if(b.life<=0){scene.remove(b.pts);bursts.splice(i,1);}
         }
 
-        camera.position.x = Math.sin(t*0.07)*0.35;
+        camera.position.x = -2.2 + Math.sin(t*0.07)*0.35;
         camera.position.y = Math.cos(t*0.045)*0.2;
-        camera.lookAt(globeGroup.position); // look at globe centre not origin
+        camera.lookAt(0, 0, 0);
         renderer.render(scene,camera);
       }
 
@@ -453,7 +453,10 @@ export default function Landing() {
               <span className="accent">matters.</span>
             </h1>
             <p className="hero-lede">
-              Gate AI answers every incoming call, detects cold sales pitches in seconds, and routes legitimate calls to the right person — with a full AI briefing before the phone even rings.
+              Gate AI answers every incoming call,<br />
+              detects cold sales pitches in seconds,<br />
+              and routes legitimate calls to the right person —<br />
+              with a full AI briefing before the phone even rings.
             </p>
             <div className="hero-ctas">
               <a href="/book-demo" onClick={goDemo} className="btn btn-primary">Book a Demo →</a>
