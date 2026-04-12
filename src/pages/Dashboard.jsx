@@ -697,7 +697,7 @@ function CallDetailModal({ call, onClose, onWhitelist, onBlock }) {
 }
 
 // ─── CALL ACTION MENU ────────────────────────────────────────
-function CallActionMenu({ call, onWhitelist, onBlock }) {
+function CallActionMenu({ call, onWhitelist, onBlock, onUnblock }) {
   const [open, setOpen] = useState(false);
   const [confirm, setConfirm] = useState(null);
   const ref = useRef(null);
@@ -833,6 +833,17 @@ async function blockCaller(call) {
   } catch (err) { alert("Failed to block: " + err.message); }
 }
 
+async function unblockCaller(call) {
+  const c = normalizeCall(call);
+  try {
+    const res = await patternsApi.list();
+    const all = res?.patterns || res || [];
+    const match = all.find(p => p.pattern === c.phone);
+    if (match) await patternsApi.remove(match.id);
+    else alert("No blocked pattern found for this number.");
+  } catch (err) { alert("Failed to unblock: " + err.message); }
+}
+
 // ─── DASHBOARD PAGE ──────────────────────────────────────────
 function DashboardPage({ onViewCall, liveCalls }) {
   const [callList, setCallList] = useState([]);
@@ -894,7 +905,7 @@ function DashboardPage({ onViewCall, liveCalls }) {
                       <td><span className="badge badge-ghost">{call.intent}</span></td>
                       <td>{call.forwardedTo || <span style={{ color: "var(--text-tertiary)" }}>—</span>}</td>
                       <td onClick={e => e.stopPropagation()}>
-                        <CallActionMenu call={allCalls[i]} onWhitelist={whitelistCaller} onBlock={blockCaller} />
+                        <CallActionMenu call={allCalls[i]} onWhitelist={whitelistCaller} onBlock={blockCaller} onUnblock={unblockCaller} />
                       </td>
                     </tr>
                   ))}
@@ -1013,7 +1024,7 @@ function CallLogPage({ onViewCall }) {
                     </td>
                     <td>{call.forwardedTo || <span style={{ color: "var(--text-tertiary)" }}>—</span>}</td>
                     <td onClick={e => e.stopPropagation()}>
-                      <CallActionMenu call={callList[i]} onWhitelist={whitelistCaller} onBlock={blockCaller} />
+                      <CallActionMenu call={callList[i]} onWhitelist={whitelistCaller} onBlock={blockCaller} onUnblock={unblockCaller} />
                     </td>
                   </tr>
                 ))}
