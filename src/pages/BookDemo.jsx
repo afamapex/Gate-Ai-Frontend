@@ -17,9 +17,21 @@ export default function BookDemo() {
       setError('Please fill in your name, email, and company.'); return;
     }
     setLoading(true);
-    await new Promise(r => setTimeout(r, 900));
-    setLoading(false);
-    setDone(true);
+    try {
+      const API = import.meta.env.VITE_API_URL || 'https://gate-ai-backend-production.up.railway.app';
+      const res = await fetch(`${API}/api/demo`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form),
+      });
+      const data = await res.json();
+      if (!res.ok) { setError(data.error || 'Something went wrong. Please try again.'); return; }
+      setDone(true);
+    } catch {
+      setError('Connection error. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
