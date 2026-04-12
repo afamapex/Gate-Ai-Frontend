@@ -467,7 +467,7 @@ export default function Landing() {
         <div className="container hero-inner">
           {/* Left */}
           <div className="hero-left">
-            <div className="eyebrow"><span className="eyebrow-dot"></span>AI Call Screening · Built for SMBs</div>
+            <div className="eyebrow"><span className="eyebrow-dot"></span>AI Call Screening · Built for Business</div>
             <h1 className="h-display">
               Block the noise.<br />
               Forward what<br />
@@ -477,7 +477,7 @@ export default function Landing() {
               Gate AI answers every incoming call,<br />
               detects cold sales pitches in seconds,<br />
               and routes legitimate calls to the right person —<br />
-              with a full AI briefing before the phone even rings.
+              with a brief AI summary sent as the call is forwarded.
             </p>
             <div className="hero-ctas">
               <a href="/book-demo" onClick={goDemo} className="btn btn-primary">Book a Demo →</a>
@@ -562,12 +562,12 @@ export default function Landing() {
           <div className="industries-label">Built for the industries that pick up every call</div>
           <div className="industries-grid">
             {[
-              { label: 'Logistics & Freight', icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg> },
               { label: 'Manufacturing', icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M2 20h20"/><path d="M4 20V8l8-5 8 5v12"/><path d="M10 20v-6h4v6"/></svg> },
               { label: 'Warehousing', icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 7h-7L10 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/></svg> },
+              { label: 'Logistics & Freight', icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg> },
               { label: 'Construction', icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg> },
-              { label: 'Distribution', icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15 15 0 0 1 4 10 15 15 0 0 1-4 10 15 15 0 0 1-4-10 15 15 0 0 1 4-10z"/></svg> },
               { label: 'Fleet Services', icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2v20M2 12h20"/></svg> },
+              { label: 'Distribution', icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15 15 0 0 1 4 10 15 15 0 0 1-4 10 15 15 0 0 1-4-10 15 15 0 0 1 4-10z"/></svg> },
               { label: 'Industrial Services', icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33"/></svg> },
             ].map((item, i) => (
               <div key={i} className="industry-chip">{item.icon}{item.label}</div>
@@ -598,10 +598,10 @@ export default function Landing() {
           <div className="problem-head reveal">
             <div className="eyebrow"><span className="eyebrow-dot"></span>The Problem</div>
             <h2 className="h-section">Cold calls are eating your day.</h2>
-            <p className="lede">The average logistics SMB fields 15–40 cold sales calls every single day. Every one interrupts a dispatcher, a driver, or a manager who should be moving freight.</p>
+            <p className="lede">The average SMB fields 15–40 cold sales calls every single day. Every one interrupts an operations manager, a finance team member, or a receptionist who should be focused on real work.</p>
           </div>
           <div className="problem-grid">
-            <div className="problem-card reveal"><div className="big">25<span className="unit">calls/day</span></div><div className="head">Unwanted sales calls</div><div className="sub">The median logistics SMB logs 25 cold pitches per day — solar, insurance, SEO, warranties, the works.</div></div>
+            <div className="problem-card reveal"><div className="big">25<span className="unit">calls/day</span></div><div className="head">Unwanted sales calls</div><div className="sub">The median SMB logs 25 cold pitches per day — solar, insurance, SEO, warranties, the works.</div></div>
             <div className="problem-card reveal"><div className="big">3<span className="unit">min each</span></div><div className="head">Stolen from real work</div><div className="sub">Every cold call costs 2–5 minutes between answering, declining, and refocusing. That's over an hour a day, per employee.</div></div>
             <div className="problem-card reveal"><div className="big">$14k<span className="unit">/year</span></div><div className="head">Wasted payroll</div><div className="sub">At $25/hour loaded cost, a 5-person ops team loses roughly $14,000 a year to calls that should never have been picked up.</div></div>
           </div>
@@ -614,13 +614,13 @@ export default function Landing() {
           <div className="caps-head reveal">
             <div className="eyebrow"><span className="eyebrow-dot"></span>Capabilities</div>
             <h2 className="h-section">Four things. All at once.<br/>Every single call.</h2>
-            <p className="lede">Gate AI is not a voicemail menu. It's a real conversational agent that screens, classifies, routes, and summarizes in real time — powered by Vapi, Twilio, and Claude.</p>
+            <p className="lede">Gate AI is not a voicemail menu. It's a real conversational agent that screens, classifies, routes, and summarizes in real time — powered by our Gate AI.</p>
           </div>
           <div className="caps-grid">
             <div className="cap reveal"><span className="cap-num">01 · DETECT</span><h3>Cold-call detection in under 10 seconds</h3><p>Our AI listens to the opening line and classifies intent before the caller finishes their pitch. Solar, SEO, warranties, robocalls — gone.</p><div className="cap-demo"><span className="prompt">caller:</span> "Hi, I'm calling about your commercial solar..."<br/><span className="ok">gate-ai:</span> <span className="err">→ blocked (98% confidence)</span></div></div>
             <div className="cap reveal"><span className="cap-num">02 · SCREEN</span><h3>Polite rejection in your voice</h3><p>Cold callers hear a professional, branded decline message — not dead air. Your brand stays intact, your team stays focused.</p><div className="cap-demo"><span className="prompt">gate-ai:</span> "Thanks for calling. We're not taking<br/>unsolicited calls right now. Have a good day."</div></div>
-            <div className="cap reveal"><span className="cap-num">03 · ROUTE</span><h3>Smart routing by intent</h3><p>Legit callers get matched to the right person based on what they're calling about — logistics goes to ops, vendors go to purchasing, IT goes to IT.</p><div className="cap-demo"><span className="prompt">intent:</span> Logistics Coordination<br/><span className="ok">route →</span> Dave M. (Ops Manager, ext. 201)</div></div>
-            <div className="cap reveal"><span className="cap-num">04 · SUMMARIZE</span><h3>Pre-call AI briefings</h3><p>Before the phone rings, the employee already sees a one-line summary: who's calling, what company, and why. No more "who was that?"</p><div className="cap-demo"><span className="prompt">summary:</span> Daniel at AB Logistics re:<br/>Tuesday pickup — needs dock #3 confirmation.</div></div>
+            <div className="cap reveal"><span className="cap-num">03 · ROUTE</span><h3>Smart routing by intent</h3><p>Legitimate callers get matched to the right person based on what they're calling about — ops queries go to the operations manager, vendor calls go to purchasing, finance queries go to the finance team.</p><div className="cap-demo"><span className="prompt">intent:</span> Logistics Coordination<br/><span className="ok">route →</span> Dave M. (Ops Manager, ext. 201)</div></div>
+            <div className="cap reveal"><span className="cap-num">04 · SUMMARIZE</span><h3>Brief AI summary on every forward</h3><p>The moment a call is forwarded, the employee receives a concise AI summary — who's calling, which company, and exactly why. No more scrambling to catch up mid-conversation.</p><div className="cap-demo"><span className="prompt">summary:</span> Daniel at AB Logistics re:<br/>Tuesday pickup — needs dock #3 confirmation.</div></div>
           </div>
           {/* Book Demo CTA at bottom of capabilities */}
           <div className="caps-cta reveal">
@@ -669,7 +669,7 @@ export default function Landing() {
           <div className="pricing-head reveal">
             <div className="eyebrow"><span className="eyebrow-dot"></span>Pricing</div>
             <h2 className="h-section">One flat price.<br/>No per-minute surprises.</h2>
-            <p className="lede" style={{margin:'0 auto'}}>Start with a 14-day free trial. No credit card required. Cancel anytime.</p>
+            <p className="lede" style={{margin:'0 auto'}}>Start with a 14-day free trial. Cancel anytime.</p>
           </div>
           <div className="pricing-grid">
             <div className="tier reveal">
@@ -710,11 +710,11 @@ export default function Landing() {
           <div className="faq-list">
             {[
               {q:'How long does setup take?',a:"Under 10 minutes. You sign up, we provision a phone number automatically, you configure your team and routing rules, and you're live. Most customers handle their first real call within an hour."},
-              {q:'Will Gate AI replace my receptionist?',a:"It depends. Gate AI handles every inbound call before it gets to a human — for many SMBs that removes the need for a part-time receptionist entirely. For larger teams, it works as a force multiplier: your receptionist only sees the 10–20% of calls that actually matter."},
+              {q:'Will Gate AI replace my receptionist?',a:"Not at all — Gate AI works alongside your team, not instead of them. Think of it as a first filter: it handles the noise so your receptionist, office manager, or team only ever picks up calls that are actually worth their time. The 80% of calls that are cold pitches or misdials get handled automatically. The 20% that matter go straight through to the right person."},
               {q:'What happens if the AI misclassifies a call?',a:"You get the transcript, the recording, and the confidence score for every call. You can whitelist numbers instantly, adjust screening rules, and Gate AI learns from corrections. In practice, cold-call detection is 94%+ accurate out of the box."},
               {q:'Does it work with my existing phone system?',a:"Yes. Gate AI plugs into Twilio, OpenPhone, RingCentral, Talkroute, and Avaya. If you have a SIP-capable system, we can route calls through Gate AI as a screening layer without replacing your main phone system."},
               {q:'What about VIP callers — clients who should never be screened?',a:"Add them to your whitelist. VIP callers skip the AI entirely and ring through directly. You can whitelist by number, company domain, or individual name."},
-              {q:'How much does it actually cost per call?',a:"Less than you think. The average blocked cold call costs us about 3 cents in AI and telephony fees. Your flat monthly subscription covers typical SMB call volume with plenty of headroom."},
+              {q:'How much does it actually cost per call?',a:"There's no per-call charge. Gate AI runs on a flat monthly subscription — Starter, Pro, or Business — and that covers your full call volume within your plan. You know exactly what you're paying each month with no surprises, no per-minute fees, and no usage spikes to worry about."},
             ].map((item,i) => (
               <details key={i} className="faq-item">
                 <summary>{item.q}</summary>
