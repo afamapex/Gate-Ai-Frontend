@@ -48,10 +48,9 @@ export default function Landing() {
     const cv = globeCanvasRef.current;
     if (!cv) return;
     let animId, renderer, scene, camera;
-    let meteors = [], bursts = [], activePulses = [], receivedPulses = [], flashes = [];
+    let meteors = [], bursts = [], activePulses = [], flashes = [];
     let blockedCount = 0, forwardedCount = 0;
     let frame = 0, spawnTimer = 0;
-    let gateAiPulse = 0, gateAiMesh;
     let ambPos, ambVel = [], ambGeo;
 
     // Load Three.js from CDN then init
@@ -117,10 +116,52 @@ export default function Landing() {
       globeGroup.rotation.z = THREE.MathUtils.degToRad(23);
       globeGroup.position.set(0, 0, 0); // origin — force field and globe stay aligned
       scene.add(globeGroup);
-      const globe = new THREE.Mesh(
-        new THREE.SphereGeometry(GLOBE_R, 64, 64),
-        new THREE.MeshBasicMaterial({ color: 0x2a2468 })
-      );
+      // Globe — cell glow shader material
+      const MAX_HITS = 5;
+      const globeHits = [];
+      const globeGlowMat = new THREE.ShaderMaterial({
+        uniforms:{
+          hitPos:   { value: Array.from({length:5}, ()=>new THREE.Vector3()) },
+          hitTimes: { value: new Array(5).fill(0.0) },
+          hitCount: { value: 0 },
+        },
+        vertexShader:`varying vec3 vPos;void main(){vPos=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}`,
+        fragmentShader:`
+          #define MAX_HITS 5
+          #define PI 3.14159265
+          uniform vec3  hitPos[MAX_HITS];
+          uniform float hitTimes[MAX_HITS];
+          uniform float hitCount;
+          varying vec3 vPos;
+          void main(){
+            vec3 n=normalize(vPos);
+            float phi=acos(clamp(n.y,-1.0,1.0));
+            float theta=atan(n.z,n.x);
+            float cPhi=PI/10.0; float cTheta=2.0*PI/12.0;
+            float ci=floor(phi/cPhi)+0.5; float cj=floor((theta+PI)/cTheta)+0.5;
+            float cphi=ci*cPhi; float ctheta=cj*cTheta-PI;
+            vec3 cell=vec3(sin(cphi)*cos(ctheta),cos(cphi),sin(cphi)*sin(ctheta));
+            float rim=1.0-abs(dot(n,vec3(0,0,1)));
+            vec3 base=vec3(0.047,0.043,0.148)+vec3(0.12,0.10,0.45)*pow(rim,2.5)*0.35;
+            float glow=0.0;
+            for(int i=0;i<MAX_HITS;i++){
+              if(float(i)>=hitCount) break;
+              float ht=hitTimes[i]; if(ht<=0.0||ht>=1.0) continue;
+              float ang=acos(clamp(dot(cell,normalize(hitPos[i])),-1.0,1.0));
+              float radius=ht*1.2; float width=0.22;
+              float ring=smoothstep(radius+width,radius,ang)*smoothstep(radius-width,radius,ang);
+              float core=smoothstep(0.35,0.0,ang)*(1.0-ht)*1.5;
+              glow+=max(ring,core)*pow(1.0-ht,1.2);
+            }
+            glow=clamp(glow,0.0,1.0);
+            float eu=fract(phi/cPhi); float ev=fract((theta+PI)/cTheta);
+            float edgeDist=min(min(eu,1.0-eu),min(ev,1.0-ev))*2.0;
+            float cellEdge=smoothstep(0.0,0.22,edgeDist);
+            vec3 col=mix(base,vec3(0.0,0.95,0.42)*1.2,glow*cellEdge*0.85);
+            gl_FragColor=vec4(col,1.0);
+          }`
+      });
+      const globe = new THREE.Mesh(new THREE.SphereGeometry(GLOBE_R, 64, 64), globeGlowMat);
       globeGroup.add(globe);
 
       // Grid lines
@@ -146,37 +187,6 @@ export default function Landing() {
         dot.position.set(0,y,0); globe.add(dot);
       });
 
-      // Gate AI scattered text texture
-      (() => {
-        const w=2048,h=1024,tc=document.createElement('canvas'); tc.width=w; tc.height=h;
-        const ctx=tc.getContext('2d'); ctx.clearRect(0,0,w,h);
-        const fontSize=17, colStep=115, rowStep=52;
-        const cols=Math.floor(w/colStep), rows=Math.floor(h/rowStep);
-        for(let row=0;row<rows;row++){
-          const offset=(row%2===0)?0:colStep*0.5;
-          for(let col=0;col<cols;col++){
-            const x=col*colStep+offset, y=row*rowStep+(rowStep*0.5);
-            if(x>w-60) continue;
-            const angle=(((row*7+col*13)%11)-5)*0.04;
-            const opacity=0.16+((row*3+col*5)%7)*0.016;
-            ctx.save(); ctx.translate(x,y); ctx.rotate(angle);
-            ctx.font=`600 ${fontSize}px sans-serif`; ctx.textBaseline='middle'; ctx.textAlign='left';
-            ctx.fillStyle=`rgba(180,170,255,${opacity})`; ctx.fillText('Gate',0,0);
-            const gw=ctx.measureText('Gate').width;
-            ctx.fillStyle=`rgba(150,135,255,${opacity*0.85})`; ctx.fillText(' AI',gw,0);
-            ctx.restore();
-          }
-        }
-        const mat = new THREE.ShaderMaterial({
-          transparent:true, depthWrite:false,
-          uniforms:{map:{value:new THREE.CanvasTexture(tc)},pulse:{value:0.0}},
-          vertexShader:`varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,
-          fragmentShader:`uniform sampler2D map;uniform float pulse;varying vec2 vUv;void main(){vec4 t=texture2D(map,vUv);vec3 green=vec3(0.1,1.0,0.45);vec3 col=mix(t.rgb,green,pulse*0.85);gl_FragColor=vec4(col,t.a*(1.0+pulse*1.5));}`
-        });
-        gateAiMesh = new THREE.Mesh(new THREE.SphereGeometry(GLOBE_R+0.007,64,64), mat);
-        globe.add(gateAiMesh);
-      })();
-
       // Ambient particles
       const AMBIENT_COUNT = 180;
       ambPos = new Float32Array(AMBIENT_COUNT*3);
@@ -197,19 +207,6 @@ export default function Landing() {
         fragmentShader:`varying float vA;void main(){float d=length(gl_PointCoord-0.5);float a=smoothstep(0.5,0.1,d);gl_FragColor=vec4(0.55,0.50,1.0,a*vA*0.55);}`
       });
       scene.add(new THREE.Points(ambGeo, ambMat));
-
-      // Received pulse
-      function triggerReceivedPulse() {
-        const mat = new THREE.ShaderMaterial({
-          transparent:true,side:THREE.FrontSide,depthWrite:false,
-          uniforms:{life:{value:1.0}},
-          vertexShader:`varying vec3 vN;void main(){vN=normalize(normalMatrix*normal);gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,
-          fragmentShader:`uniform float life;varying vec3 vN;void main(){float rim=1.0-abs(dot(vN,vec3(0,0,1)));float core=1.0-rim;float glow=(rim*0.4+core*0.7)*life;gl_FragColor=vec4(0.0,0.95,0.55,glow*0.55);}`
-        });
-        const mesh = new THREE.Mesh(new THREE.SphereGeometry(GLOBE_R-0.01,48,48), mat);
-        scene.add(mesh);
-        receivedPulses.push({ mesh, mat, life: 1.0 });
-      }
 
       // Force field
       const MP = 10;
@@ -330,13 +327,18 @@ export default function Landing() {
         }
         ambGeo.attributes.position.needsUpdate=true;
 
-        // Gate AI pulse
-        if(gateAiPulse>0){gateAiPulse=Math.max(0,gateAiPulse-0.018);gateAiMesh.material.uniforms.pulse.value=gateAiPulse;}
-
-        // Received pulse decay
-        for(let i=receivedPulses.length-1;i>=0;i--){
-          const rp=receivedPulses[i];rp.life-=0.025;rp.mat.uniforms.life.value=rp.life;
-          if(rp.life<=0){scene.remove(rp.mesh);receivedPulses.splice(i,1);}
+        // Globe cell glow decay
+        for(let i=globeHits.length-1;i>=0;i--){
+          globeHits[i].t+=0.016;
+          globeGlowMat.uniforms.hitTimes.value[i]=globeHits[i].t;
+          if(globeHits[i].t>=1.0){
+            globeHits.splice(i,1);
+            for(let j=0;j<MAX_HITS;j++){
+              if(j<globeHits.length){globeGlowMat.uniforms.hitPos.value[j].copy(globeHits[j].pos);globeGlowMat.uniforms.hitTimes.value[j]=globeHits[j].t;}
+              else{globeGlowMat.uniforms.hitTimes.value[j]=0;}
+            }
+            globeGlowMat.uniforms.hitCount.value=globeHits.length;
+          }
         }
 
         // Force field pulse decay
@@ -369,10 +371,20 @@ export default function Landing() {
           }
           if(m.phase==='passing'){
             const fade=Math.min(1,dist/GLOBE_R);m.sprite.material.opacity=fade*0.9;
+            if(!m.hitRecorded && dist<=GLOBE_R+0.05){
+              m.hitRecorded=true;
+              const hitDir=m.sprite.position.clone().normalize().multiplyScalar(GLOBE_R);
+              if(globeHits.length<MAX_HITS) globeHits.push({pos:hitDir,t:0.001});
+              else{globeHits[MAX_HITS-1].pos.copy(hitDir);globeHits[MAX_HITS-1].t=0.001;}
+              for(let j=0;j<MAX_HITS;j++){
+                if(j<globeHits.length){globeGlowMat.uniforms.hitPos.value[j].copy(globeHits[j].pos);globeGlowMat.uniforms.hitTimes.value[j]=globeHits[j].t;}
+              }
+              globeGlowMat.uniforms.hitCount.value=globeHits.length;
+            }
             if(dist<0.22){
               scene.remove(m.sprite);scene.remove(m.tLine);m.alive=false;forwardedCount++;
               const fc=document.getElementById('globe-fc'); if(fc) fc.textContent=forwardedCount;
-              triggerReceivedPulse();gateAiPulse=1.0;continue;
+              continue;
             }
           }
           m.hist.unshift(m.sprite.position.clone());if(m.hist.length>12)m.hist.pop();
