@@ -16,7 +16,7 @@ export default function Contact() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!form.name || !form.email || !form.message) return;
+    if (!form.name || !form.email || !form.company || !form.phone || !form.message) return;
     setStatus('sending');
     try {
       const res = await fetch(`${BACKEND}/api/contact`, {
@@ -472,21 +472,21 @@ export default function Contact() {
                 <div className="form-row">
                   <div className="form-group">
                     <label>Full name <span className="required">*</span></label>
-                    <input name="name" value={form.name} onChange={handleChange} placeholder="Daniel Okafor" required />
+                    <input name="name" value={form.name} onChange={handleChange} placeholder="Your full name" required />
                   </div>
                   <div className="form-group">
                     <label>Email <span className="required">*</span></label>
-                    <input name="email" type="email" value={form.email} onChange={handleChange} placeholder="daniel@company.com" required />
+                    <input name="email" type="email" value={form.email} onChange={handleChange} placeholder="you@yourcompany.com" required />
                   </div>
                 </div>
                 <div className="form-row">
                   <div className="form-group">
-                    <label>Company</label>
-                    <input name="company" value={form.company} onChange={handleChange} placeholder="Acme Logistics" />
+                    <label>Company <span className="required">*</span></label>
+                    <input name="company" value={form.company} onChange={handleChange} placeholder="Your company name" required />
                   </div>
                   <div className="form-group">
-                    <label>Phone</label>
-                    <input name="phone" value={form.phone} onChange={handleChange} placeholder="+1 (555) 000-0000" />
+                    <label>Phone <span className="required">*</span></label>
+                    <input name="phone" value={form.phone} onChange={handleChange} placeholder="+1 (555) 000-0000" required />
                   </div>
                 </div>
                 <div className="form-group">
