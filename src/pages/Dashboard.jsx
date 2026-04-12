@@ -716,9 +716,13 @@ function CallActionMenu({ call, onWhitelist, onBlock }) {
         <button className="btn btn-sm" onClick={() => setOpen(v => !v)}>Actions {Icons.chevDown}</button>
         {open && (
           <div className="action-menu">
-            <div className="action-menu-item success" onClick={() => { setOpen(false); setConfirm("whitelist"); }}>✓ Whitelist number</div>
-            <div className="action-menu-item danger" onClick={() => { setOpen(false); setConfirm("block"); }}>✕ Block number</div>
-          </div>
+  <div className="action-menu-item success" onClick={() => { setOpen(false); setConfirm("whitelist"); }}>
+    ✓ {c.status === "blocked" ? "Unblock / Whitelist" : "Whitelist number"}
+  </div>
+  {c.status !== "blocked" && (
+    <div className="action-menu-item danger" onClick={() => { setOpen(false); setConfirm("block"); }}>✕ Block number</div>
+  )}
+</div>
         )}
       </div>
       {confirm === "whitelist" && (
