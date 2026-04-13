@@ -264,16 +264,16 @@ const CAPS_CSS = NAV_CSS + `
 // ═══════════════════════════════════════════════════════════════
 export function Integrations() {
   const integrations = [
-    { id: 'twilio', name: 'Twilio', category: 'Telephony', color: '#f22f46', desc: 'Gate AI is built on Twilio. Every inbound call is handled through Twilio\'s voice infrastructure — giving you carrier-grade reliability and a real phone number that works anywhere.' },
-    { id: 'vapi', name: 'Vapi', category: 'AI Voice', color: '#6c5ce7', desc: 'Vapi powers the real-time voice AI that screens every call. It handles speech-to-text, the Claude LLM reasoning engine, and text-to-speech in a single sub-500ms loop.' },
-    { id: 'openphone', name: 'OpenPhone', category: 'Business Phone', color: '#5865f2', desc: 'Connect Gate AI as a screening layer in front of your OpenPhone workspace. Cold calls never reach your team.' },
-    { id: 'ringcentral', name: 'RingCentral', category: 'Business Phone', color: '#ff8800', desc: 'Route inbound calls through Gate AI before they hit your RingCentral system. Works via SIP forwarding.' },
-    { id: 'avaya', name: 'Avaya', category: 'Enterprise', color: '#cc0000', desc: 'Enterprise SIP integration with Avaya communications platforms for large-scale manufacturing and logistics operations.' },
-    { id: 'talkroute', name: 'Talkroute', category: 'Business Phone', color: '#00b894', desc: 'Forward your Talkroute number to Gate AI for screening, then route approved calls back to your team.' },
-    { id: 'slack', name: 'Slack', category: 'Notifications', color: '#e01e5a', desc: 'Get instant Slack alerts when calls are blocked, forwarded, or flagged. Call summaries and daily digests delivered to any channel.' },
-    { id: 'teams', name: 'Microsoft Teams', category: 'Notifications', color: '#5059c9', desc: 'Push call notifications and AI summaries directly into Teams channels. Keep your team informed without leaving their workspace.' },
-    { id: 'email', name: 'Email / SMTP', category: 'Notifications', color: '#ffa94d', desc: 'Transactional email notifications for call summaries, blocked call reports, and daily digest emails sent to employees and admins.' },
-    { id: 'zapier', name: 'Zapier', category: 'Automation', color: '#ff4a00', desc: 'Connect Gate AI to 5,000+ apps with custom automation workflows. Trigger actions in your CRM, helpdesk, or any other tool when calls happen.' },
+    { id: 'twilio',    name: 'Twilio',          file: 'twilio.png',           category: 'Telephony',      color: '#f22f46', desc: 'Gate AI is built on Twilio. Every inbound call is handled through Twilio\'s voice infrastructure — giving you carrier-grade reliability and a real phone number that works anywhere.' },
+    { id: 'vapi',      name: 'Vapi',             file: 'vapi.svg',             category: 'AI Voice',       color: '#6c5ce7', desc: 'Vapi powers the real-time voice AI that screens every call. It handles speech-to-text, the Claude LLM reasoning engine, and text-to-speech in a single sub-500ms loop.' },
+    { id: 'openphone', name: 'OpenPhone',        file: 'openphone.png',        category: 'Business Phone', color: '#5865f2', desc: 'Connect Gate AI as a screening layer in front of your OpenPhone workspace. Cold calls never reach your team.' },
+    { id: 'ringcentral',name:'RingCentral',      file: 'RingCentral.webp',     category: 'Business Phone', color: '#ff8800', desc: 'Route inbound calls through Gate AI before they hit your RingCentral system. Works via SIP forwarding.' },
+    { id: 'avaya',     name: 'Avaya',            file: 'avaya.png',            category: 'Enterprise',     color: '#cc0000', desc: 'Enterprise SIP integration with Avaya communications platforms for large-scale manufacturing and logistics operations.' },
+    { id: 'talkroute', name: 'Talkroute',        file: 'talkroute.png',        category: 'Business Phone', color: '#00b894', desc: 'Forward your Talkroute number to Gate AI for screening, then route approved calls back to your team.' },
+    { id: 'slack',     name: 'Slack',            file: 'slack.png',            category: 'Notifications',  color: '#e01e5a', desc: 'Get instant Slack alerts when calls are blocked, forwarded, or flagged. Call summaries and daily digests delivered to any channel.' },
+    { id: 'teams',     name: 'Microsoft Teams',  file: 'microsoft-teams.png',  category: 'Notifications',  color: '#5059c9', desc: 'Push call notifications and AI summaries directly into Teams channels. Keep your team informed without leaving their workspace.' },
+    { id: 'email',     name: 'Email / SMTP',     file: 'email.webp',           category: 'Notifications',  color: '#ffa94d', desc: 'Transactional email notifications for call summaries, blocked call reports, and daily digest emails sent to employees and admins.' },
+    { id: 'zapier',    name: 'Zapier',           file: 'zapier.webp',          category: 'Automation',     color: '#ff4a00', desc: 'Connect Gate AI to 5,000+ apps with custom automation workflows. Trigger actions in your CRM, helpdesk, or any other tool when calls happen.' },
   ];
 
   return (
@@ -292,7 +292,9 @@ export function Integrations() {
           <div className="int-grid">
             {integrations.map(int => (
               <div key={int.id} id={int.id} className="int-card">
-                <div className="int-icon" style={{ background: int.color + '20', color: int.color }}>{int.name[0]}</div>
+                <div className="int-icon" style={{ background: int.color + '15' }}>
+                  <img src={`/images/integrations/${int.file}`} alt={int.name} style={{width:'30px',height:'30px',objectFit:'contain',borderRadius:'4px'}} />
+                </div>
                 <div className="int-body">
                   <div className="int-header">
                     <div className="int-name">{int.name}</div>
