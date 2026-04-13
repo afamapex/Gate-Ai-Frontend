@@ -523,18 +523,9 @@ export default function Landing() {
               <a href="#capabilities" className="btn btn-ghost">See how it works</a>
             </div>
           </div>
-        </div>
-      </section>
 
-      {/* PHONE WIDGET SECTION */}
-      <section className="phone-section">
-        <div className="container phone-section-inner">
-          <div className="phone-section-left">
-            <div className="eyebrow"><span className="eyebrow-dot"></span>See it in action</div>
-            <h2 className="h-section" style={{marginBottom:16}}>Every call, handled<br />in real time.</h2>
-            <p className="lede">Watch Gate AI answer, screen, and route a call — all within seconds. Cold callers get a polite decline. Legitimate callers get through with an AI summary already sent.</p>
-          </div>
-          <div className="phone-section-right">
+          {/* Right — animated chat widget (desktop only, hidden on mobile) */}
+          <div className="hero-right">
             <div className="phone-shell">
               <div className="phone-frame">
                 {/* Mac bar */}
@@ -564,7 +555,6 @@ export default function Landing() {
                       <span className="ring-lbl">Incoming call · screening...</span>
                     </div>
                   </div>
-
                   {/* Phase 2: answered */}
                   <div className="ph ph-done" id="ph-done">
                     <div className="done-circle" id="done-circle">
@@ -574,7 +564,6 @@ export default function Landing() {
                     </div>
                     <span className="done-lbl" id="done-lbl">Gate AI answered</span>
                   </div>
-
                   {/* Phase 3: chat */}
                   <div className="ph ph-chat" id="ph-chat">
                     <div className="chat-tabs">
@@ -595,6 +584,64 @@ export default function Landing() {
                         <div className="result-title" id="result-title"></div>
                         <div className="result-sub" id="result-sub"></div>
                       </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* PHONE WIDGET SECTION — mobile only, hidden on desktop */}
+      <section className="phone-section">
+        <div className="container">
+          <div className="phone-shell" style={{maxWidth:480,margin:'0 auto'}}>
+            <div className="phone-frame">
+              <div className="pf-top">
+                <div className="mac-dot mac-r"></div>
+                <div className="mac-dot mac-y"></div>
+                <div className="mac-dot mac-g"></div>
+                <div className="pf-bar-right">
+                  <ShieldLogo size={13} id="bar2" />
+                  <span className="pf-label"><b>Gate AI</b> · screening call</span>
+                </div>
+              </div>
+              <div className="pf-body">
+                <div className="ph ph-ring" id="ph-ring2">
+                  <div className="ring-bg"></div>
+                  <div className="ring-content">
+                    <div className="ring-wrap">
+                      <div className="rp"></div><div className="rp"></div><div className="rp"></div>
+                      <div className="ring-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#08090d" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/>
+                        </svg>
+                      </div>
+                    </div>
+                    <span className="ring-lbl">Incoming call · screening...</span>
+                  </div>
+                </div>
+                <div className="ph ph-done" id="ph-done2">
+                  <div className="done-circle" id="done-circle2">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                  </div>
+                  <span className="done-lbl" id="done-lbl2">Gate AI answered</span>
+                </div>
+                <div className="ph ph-chat" id="ph-chat2">
+                  <div className="chat-tabs">
+                    <button className="c-tab active" id="tab-b2">Blocked call</button>
+                    <button className="c-tab" id="tab-f2">Forwarded call</button>
+                  </div>
+                  <div className="chat-hdr">
+                    <div className="hdr-pill"><ShieldLogo size={12} id="hdr2" /><span className="hdr-live"></span>Call started</div>
+                  </div>
+                  <div className="msgs-wrap">
+                    <div className="msgs" id="chat-msgs2"></div>
+                    <div className="result-takeover" id="result-takeover2">
+                      <div className="shield-big" id="shield-big2"></div>
+                      <div className="result-title" id="result-title2"></div>
+                      <div className="result-sub" id="result-sub2"></div>
                     </div>
                   </div>
                 </div>
@@ -1092,33 +1139,31 @@ h1,h2,h3{font-weight:700;letter-spacing:-0.03em;line-height:1.05;}
 
 .hero{padding:140px 0 80px;position:relative;overflow:hidden;}
 .hero-globe-canvas{position:absolute;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;}
-.hero-inner{position:relative;z-index:1;display:grid;grid-template-columns:1fr;align-items:center;gap:60px;max-width:680px;}
-@media(max-width:1000px){.hero-inner{gap:48px;}}
-/* Mobile hero — portrait */
+.hero-inner{position:relative;z-index:1;display:grid;grid-template-columns:1fr 400px;align-items:center;gap:60px;}
+@media(max-width:1000px){.hero-inner{grid-template-columns:1fr;gap:48px;}.hero-right{max-width:480px;margin:0 auto;}}
+/* Mobile portrait — hide hero-right, show phone-section instead */
 @media(max-width:720px){
   .hero{padding:100px 0 60px;}
   .hero-globe-canvas{opacity:0.65;}
   .hero-inner{gap:32px;}
+  .hero-right{display:none;}
   .hero-left .h-display{margin-bottom:18px;}
   .hero-lede{font-size:15px;margin-bottom:28px;}
 }
-/* Landscape mobile — globe on right, text on left */
+/* phone-section: mobile only */
+.phone-section{display:none;padding:52px 0;border-top:1px solid var(--border);}
+@media(max-width:720px){.phone-section{display:block;}}
+/* Landscape mobile */
 @media(max-height:500px) and (orientation:landscape){
   .hero{padding:70px 0 30px;}
   .hero-globe-canvas{opacity:0.9;}
   .hero-inner{grid-template-columns:1fr;gap:16px;}
+  .hero-right{display:none;}
   .h-display{font-size:clamp(24px,4.5vw,38px)!important;margin-bottom:10px!important;}
   .hero-lede{font-size:13px;margin-bottom:14px;line-height:1.5;}
   .hero-ctas{gap:8px;}
   .btn{padding:10px 18px;font-size:12px;}
 }
-
-/* Phone widget section */
-.phone-section{padding:80px 0;border-top:1px solid var(--border);}
-.phone-section-inner{display:grid;grid-template-columns:1fr 440px;gap:80px;align-items:center;}
-.phone-section-left .lede{max-width:460px;}
-@media(max-width:1000px){.phone-section-inner{grid-template-columns:1fr;gap:48px;}.phone-section-right{max-width:480px;margin:0 auto;}}
-@media(max-width:720px){.phone-section{padding:52px 0;}}
 .hero-left .h-display{margin-bottom:24px;}
 .hero-left .accent{background:linear-gradient(180deg,var(--accent-2) 0%,var(--accent) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-style:italic;font-weight:700;}
 .hero-lede{font-size:clamp(16px,1.3vw,18px);color:var(--text-2);max-width:520px;margin:0 0 36px;line-height:1.6;}
