@@ -1270,14 +1270,14 @@ function TeamPage() {
 // ─── INTEGRATIONS PAGE ───────────────────────────────────────
 function IntegrationsPage() {
   const integrations = [
-    { name: "Twilio",          desc: "VoIP telephony, SIP trunking, programmable voice — the backbone of your phone system.",        color: "#f22f46", letter: "T", connected: true },
-    { name: "OpenPhone",       desc: "Business phone system with shared numbers, team inboxes, and CRM integration.",                color: "#5865f2", letter: "O", connected: false },
-    { name: "Talkroute",       desc: "Virtual phone system with call forwarding, voicemail, and auto-attendant.",                    color: "#00b894", letter: "T", connected: false },
-    { name: "Avaya",           desc: "Enterprise communications platform with advanced call center capabilities.",                   color: "#cc0000", letter: "A", connected: false },
-    { name: "Slack",           desc: "Deliver call summaries, blocked-call alerts, and screening reports to channels.",             color: "#e01e5a", letter: "S", connected: true },
-    { name: "Microsoft Teams", desc: "Push call notifications and summaries directly into Teams channels.",                         color: "#5059c9", letter: "M", connected: false },
-    { name: "Email (SMTP)",    desc: "Send call summaries and daily digests via email to employees and admins.",                    color: "#ffa94d", letter: "@", connected: true },
-    { name: "Zapier",          desc: "Connect Gate AI to 5000+ apps with custom automation workflows.",                             color: "#ff4a00", letter: "Z", connected: false },
+    { name: "Twilio",          file: "twilio.png",          desc: "VoIP telephony, SIP trunking, programmable voice — the backbone of your phone system.",        color: "#f22f46", connected: true },
+    { name: "OpenPhone",       file: "openphone.png",       desc: "Business phone system with shared numbers, team inboxes, and CRM integration.",                color: "#5865f2", connected: false },
+    { name: "Talkroute",       file: "talkroute.png",       desc: "Virtual phone system with call forwarding, voicemail, and auto-attendant.",                    color: "#00b894", connected: false },
+    { name: "Avaya",           file: "avaya.png",           desc: "Enterprise communications platform with advanced call center capabilities.",                   color: "#cc0000", connected: false },
+    { name: "Slack",           file: "slack.png",           desc: "Deliver call summaries, blocked-call alerts, and screening reports to channels.",             color: "#e01e5a", connected: true },
+    { name: "Microsoft Teams", file: "microsoft-teams.png", desc: "Push call notifications and summaries directly into Teams channels.",                         color: "#5059c9", connected: false },
+    { name: "Email (SMTP)",    file: "email.webp",          desc: "Send call summaries and daily digests via email to employees and admins.",                    color: "#ffa94d", connected: true },
+    { name: "Zapier",          file: "zapier.webp",         desc: "Connect Gate AI to 5000+ apps with custom automation workflows.",                             color: "#ff4a00", connected: false },
   ];
   return (
     <div className="section">
@@ -1289,7 +1289,9 @@ function IntegrationsPage() {
         {integrations.map((int, i) => (
           <div key={i} className="integration-card">
             <div className="integration-top">
-              <div className="integration-icon" style={{ background: int.color + "20", color: int.color, fontSize: 16 }}>{int.letter}</div>
+              <div className="integration-icon" style={{ background: int.color + "20" }}>
+                <img src={`/images/integrations/${int.file}`} alt={int.name} style={{width:"26px",height:"26px",objectFit:"contain",borderRadius:"4px"}} />
+              </div>
               <span className={`badge ${int.connected ? "badge-green" : "badge-ghost"}`}>{int.connected ? "Connected" : "Available"}</span>
             </div>
             <div className="integration-name">{int.name}</div>
