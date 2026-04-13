@@ -58,10 +58,10 @@ export default function Auth() {
   return (
     <>
       <style>{CSS}</style>
+      <button className="auth-back" onClick={() => navigate('/')}>← Back to home</button>
       <div className="auth-layout">
         <div className="auth-left">
           <a onClick={() => navigate('/')} className="auth-logo"><NavLogo /><span>Gate <span style={{color:'var(--accent-2)',fontWeight:500}}>AI</span></span></a>
-          <button className="auth-back" onClick={() => navigate('/')}>← Back to home</button>
           <div className="auth-form-wrap">
             <div className="auth-tabs">
               <button className={`auth-tab${tab==='signup'?' active':''}`} onClick={() => { setTab('signup'); setError(''); }}>Sign Up</button>
@@ -159,7 +159,7 @@ const CSS = `
 .auth-left::before{content:'';position:absolute;top:-200px;left:-200px;width:600px;height:600px;background:radial-gradient(circle,rgba(108,92,231,0.12) 0%,transparent 60%);pointer-events:none;}
 .auth-left::after{content:'';position:absolute;inset:0;background-image:linear-gradient(rgba(108,92,231,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(108,92,231,0.04) 1px,transparent 1px);background-size:40px 40px;mask-image:radial-gradient(ellipse 80% 60% at 20% 30%,black,transparent);pointer-events:none;}
 .auth-logo{display:flex;align-items:center;gap:10px;font-size:16px;font-weight:700;letter-spacing:-0.3px;position:relative;z-index:1;margin-bottom:auto;}
-.auth-back{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--text-3);position:relative;z-index:1;margin-bottom:32px;transition:color 180ms ease;background:none;border:none;font-family:var(--font);cursor:pointer;padding:0;}
+.auth-back{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--text-3);position:fixed;top:24px;right:32px;z-index:200;transition:color 180ms ease;background:none;border:none;font-family:var(--font);cursor:pointer;padding:0;}
 .auth-back:hover{color:var(--text);}
 .auth-footer-links{position:relative;z-index:1;margin-top:auto;padding-top:32px;display:flex;flex-wrap:wrap;gap:16px;}
 .auth-footer-links a{font-size:12px;color:var(--text-3);transition:color 180ms ease;}
