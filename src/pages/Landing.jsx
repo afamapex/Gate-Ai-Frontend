@@ -636,25 +636,26 @@ export default function Landing() {
           <div className="integrations-label">Works with the stack you already have</div>
           <div className="integrations-grid">
             {[
-              { name: 'Twilio', slug: 'twilio' },
-              { name: 'Vapi', slug: 'vapi' },
-              { name: 'OpenPhone', slug: 'openphone' },
-              { name: 'RingCentral', slug: 'ringcentral' },
-              { name: 'Avaya', slug: 'avaya' },
-              { name: 'Talkroute', slug: 'talkroute' },
-              { name: 'Slack', slug: 'slack' },
-              { name: 'Microsoft Teams', slug: 'teams' },
-              { name: 'Email / SMTP', slug: 'email' },
-              { name: 'Zapier', slug: 'zapier' },
-            ].map(({ name, slug }) => (
-              <div
+              { name: 'Twilio', file: 'twilio.png' },
+              { name: 'Vapi', file: 'vapi.svg' },
+              { name: 'OpenPhone', file: 'openphone.png' },
+              { name: 'RingCentral', file: 'RingCentral.webp' },
+              { name: 'Avaya', file: 'avaya.png' },
+              { name: 'Talkroute', file: 'talkroute.png' },
+              { name: 'Slack', file: 'slack.png' },
+              { name: 'Microsoft Teams', file: 'microsoft-teams.png' },
+              { name: 'Email / SMTP', file: 'email.webp' },
+              { name: 'Zapier', file: 'zapier.webp' },
+            ].map(({ name, file }) => (
+              <a
                 key={name}
                 className="int-card"
-                style={{ cursor: 'pointer' }}
-                onClick={() => navigate(`/integrations#${slug}`)}
+                href="/integrations"
+                onClick={e => goPage(e, '/integrations')}
               >
-                <span className="int-dot"/>{name}
-              </div>
+                <img src={`/images/integrations/${file}`} alt={name} className="int-logo" />
+                {name}
+              </a>
             ))}
           </div>
           <div className="integrations-more">
@@ -1155,9 +1156,9 @@ h1,h2,h3{font-weight:700;letter-spacing:-0.03em;line-height:1.05;}
 .integrations{padding:80px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);background:var(--bg-2);}
 .integrations-label{text-align:center;font-size:12px;color:var(--text-3);text-transform:uppercase;letter-spacing:2px;margin-bottom:32px;}
 .integrations-grid{display:flex;justify-content:center;flex-wrap:wrap;gap:16px;}
-.int-card{display:flex;align-items:center;gap:10px;padding:14px 22px;background:var(--bg-3);border:1px solid var(--border);border-radius:12px;font-size:14px;font-weight:600;color:var(--text);transition:all 200ms ease;}
+.int-card{display:flex;align-items:center;gap:10px;padding:12px 20px;background:var(--bg-3);border:1px solid var(--border);border-radius:12px;font-size:14px;font-weight:600;color:var(--text);transition:all 200ms ease;}
 .int-card:hover{border-color:var(--accent);box-shadow:0 0 30px -10px var(--accent-glow);transform:translateY(-2px);}
-.int-dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);}
+.int-logo{width:24px;height:24px;object-fit:contain;border-radius:4px;}
 .integrations-more{text-align:center;margin-top:24px;}
 .integrations-more a{font-size:13px;color:var(--accent-2);font-weight:500;transition:color 180ms;}
 .integrations-more a:hover{color:var(--text);}
