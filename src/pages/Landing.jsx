@@ -1085,7 +1085,7 @@ const CSS = `
 :root {
   --bg:#08090d;--bg-2:#0d0e14;--bg-3:#13141b;--bg-4:#1a1c26;
   --border:#1f2130;--border-2:#2a2d40;
-  --text:#f0f1f5;--text-2:#9da1b5;--text-3:#5c6078;
+  --text:#f0f1f5;--text-2:#b0b4c8;--text-3:#7b8099;
   --accent:#6c5ce7;--accent-2:#a29bfe;--accent-glow:rgba(108,92,231,0.35);
   --green:#00d68f;--red:#ff6b6b;--orange:#ffa94d;
   --radius:14px;--radius-lg:20px;
