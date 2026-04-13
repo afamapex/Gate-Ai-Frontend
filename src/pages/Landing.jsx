@@ -1,8 +1,47 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 export default function Landing() {
   const navigate = useNavigate();
+  const [industryModal, setIndustryModal] = useState(null);
+
+  const INDUSTRY_INFO = {
+    'Manufacturing': {
+      headline: 'Built for the factory floor.',
+      body: `Manufacturing operations run on tight schedules — procurement calls, supplier updates, logistics coordination. But for every legitimate call, there are dozens of cold pitches for energy contracts, warranty services, and equipment financing.\n\nGate AI answers every inbound call instantly, detects cold sales pitches within the first 10 seconds, and routes real calls — a parts supplier confirming a delivery, a client asking about a production run — directly to the right person with a brief AI summary before their phone even rings.\n\nNo more interrupting your floor manager for a solar panel pitch.`,
+      stats: [{ val: '70%', label: 'of inbound calls are cold pitches' }, { val: '<10s', label: 'cold call detection' }, { val: '24/7', label: 'AI coverage' }],
+    },
+    'Warehousing': {
+      headline: 'Keep your team moving, not answering.',
+      body: `Warehouse operations can't afford distraction. Your team is coordinating inbound shipments, managing pick-and-pack, and handling carrier communications — none of which leaves time to deal with unsolicited sales calls.\n\nGate AI acts as a first line of defence on your business line. It greets every caller professionally, identifies the purpose of the call, blocks cold pitches immediately, and routes logistics queries, carrier updates, and vendor calls to the right person — with a one-line summary sent as the call connects.\n\nYour warehouse team only picks up the phone when it matters.`,
+      stats: [{ val: '94%', label: 'cold call block rate' }, { val: '12hrs', label: 'saved per team per week' }, { val: '$0', label: 'upfront cost' }],
+    },
+    'Logistics & Freight': {
+      headline: 'Route calls as efficiently as you route freight.',
+      body: `Freight and logistics businesses operate across multiple contacts — dispatchers, operations managers, finance teams, customer service. A single business number receives calls meant for all of them, plus a constant stream of cold sales pitches for fuel cards, freight software, and insurance.\n\nGate AI identifies the intent of every call and routes it to the right person automatically. A carrier calling about a Tuesday pickup goes straight to your dispatcher. A client asking about a quote goes to sales. A cold pitch for SEO services gets politely declined before it wastes anyone's time.\n\nEvery forwarded call arrives with a brief AI summary — who's calling, which company, and exactly why.`,
+      stats: [{ val: '25', label: 'cold calls blocked daily' }, { val: '3min', label: 'saved per blocked call' }, { val: '100%', label: 'calls answered' }],
+    },
+    'Construction': {
+      headline: 'Your site runs on communication. Protect it.',
+      body: `Construction businesses field calls from subcontractors, suppliers, inspectors, and clients — all day, every day. Cold callers know this and exploit it, posing as vendors or service providers to get through.\n\nGate AI screens every inbound call before it reaches your team. It asks callers to identify themselves and their purpose, blocks unsolicited pitches on the spot, and routes legitimate calls — a subcontractor confirming start times, a supplier chasing an invoice, a client asking about a project timeline — directly to the right person.\n\nYour project managers stay focused. Your clients always get through.`,
+      stats: [{ val: '80%', label: 'reduction in unwanted calls' }, { val: 'Auto', label: 'routing by intent' }, { val: '10min', label: 'setup time' }],
+    },
+    'Fleet Services': {
+      headline: 'Keep your drivers on the road, not on hold.',
+      body: `Fleet operations depend on fast, clear communication between dispatchers, drivers, and clients. Cold calls clog up your business line with pitches for fleet tracking software, fuel cards, and tyre services — pulling your team away from real coordination.\n\nGate AI sits in front of your main number, screens every call in real time, and makes sure only legitimate traffic — a client booking a vehicle, a driver checking in, a supplier confirming parts — gets through to your team. Cold callers hear a professional decline and never interrupt your dispatch again.`,
+      stats: [{ val: '24/7', label: 'AI receptionist' }, { val: 'Zero', label: 'missed legitimate calls' }, { val: 'Flat', label: 'monthly subscription' }],
+    },
+    'Distribution': {
+      headline: 'Every call handled. Every order protected.',
+      body: `Distribution centres operate on volume — high call traffic from retailers, suppliers, and logistics partners, plus a constant stream of cold outreach from vendors trying to sell everything from pallet racking to software subscriptions.\n\nGate AI handles the noise automatically. It identifies legitimate calls from your retail partners, supplier contacts, and freight carriers, routes them instantly to the right team member, and sends a one-line AI brief before the phone even rings. Cold pitches are blocked before they reach anyone.\n\nYour operations team focuses on fulfilment, not filtering.`,
+      stats: [{ val: '15-40', label: 'cold calls blocked daily' }, { val: 'AI', label: 'intent classification' }, { val: '3 tiers', label: 'from $79/mo' }],
+    },
+    'Industrial Services': {
+      headline: 'Professional. Efficient. Always available.',
+      body: `Industrial service businesses — HVAC, electrical, mechanical, maintenance — need to be reachable at all times. But being reachable means fielding cold pitches for business insurance, software tools, and marketing services alongside real service calls.\n\nGate AI answers every call instantly, qualifies the caller's intent, and separates genuine service requests from cold outreach. Real calls — a client booking a maintenance visit, a parts supplier confirming an order — are routed to the right engineer or coordinator with a brief summary. Cold calls are professionally declined.\n\nYou stay professional and accessible without the noise.`,
+      stats: [{ val: '100%', label: 'calls answered' }, { val: 'Smart', label: 'routing by intent' }, { val: '14-day', label: 'free trial' }],
+    },
+  };
   const timersRef = useRef([]);
   const globeCanvasRef = useRef(null);
 
@@ -570,7 +609,7 @@ export default function Landing() {
               { label: 'Distribution', icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15 15 0 0 1 4 10 15 15 0 0 1-4 10 15 15 0 0 1-4-10 15 15 0 0 1 4-10z"/></svg> },
               { label: 'Industrial Services', icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33"/></svg> },
             ].map((item, i) => (
-              <div key={i} className="industry-chip">{item.icon}{item.label}</div>
+              <div key={i} className="industry-chip" onClick={() => setIndustryModal(item.label)} style={{cursor:'pointer'}}>{item.icon}{item.label}</div>
             ))}
           </div>
         </div>
@@ -759,6 +798,29 @@ export default function Landing() {
           <div className="footer-copy">© 2026 Gate AI, Inc. All rights reserved.</div>
         </div>
       </footer>
+      {/* Industry modal */}
+      {industryModal && (() => {
+        const info = INDUSTRY_INFO[industryModal];
+        return (
+          <div className="ind-overlay" onClick={() => setIndustryModal(null)}>
+            <div className="ind-modal" onClick={e => e.stopPropagation()}>
+              <button className="ind-close" onClick={() => setIndustryModal(null)}>✕</button>
+              <div className="ind-eyebrow">Gate AI for {industryModal}</div>
+              <h2 className="ind-headline">{info.headline}</h2>
+              <div className="ind-stats">
+                {info.stats.map((s,i) => (
+                  <div key={i} className="ind-stat">
+                    <span className="ind-stat-val">{s.val}</span>
+                    <span className="ind-stat-label">{s.label}</span>
+                  </div>
+                ))}
+              </div>
+              <p className="ind-body">{info.body}</p>
+              <a href="/book-demo" onClick={e => { e.preventDefault(); setIndustryModal(null); navigate('/book-demo'); }} className="btn btn-primary ind-cta">Book a Demo →</a>
+            </div>
+          </div>
+        );
+      })()}
     </>
   );
 }
@@ -1121,6 +1183,21 @@ h1,h2,h3{font-weight:700;letter-spacing:-0.03em;line-height:1.05;}
 .industries-grid{display:flex;justify-content:center;flex-wrap:wrap;gap:14px 18px;}
 .industry-chip{display:inline-flex;align-items:center;gap:8px;padding:10px 18px;background:var(--bg-3);border:1px solid var(--border);border-radius:100px;font-size:13.5px;color:var(--text-2);font-weight:500;transition:all 200ms ease;}
 .industry-chip:hover{border-color:var(--accent);color:var(--text);transform:translateY(-2px);}
+.ind-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(6px);z-index:999;display:flex;align-items:center;justify-content:center;padding:24px;animation:fadeIn 180ms ease;}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.ind-modal{background:var(--bg-2);border:1px solid var(--border-2);border-radius:24px;padding:40px;max-width:560px;width:100%;position:relative;animation:slideUp 220ms cubic-bezier(0.34,1.56,0.64,1);}
+@keyframes slideUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+.ind-close{position:absolute;top:20px;right:20px;width:32px;height:32px;border-radius:50%;background:var(--bg-3);border:1px solid var(--border);color:var(--text-3);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;transition:all 180ms;}
+.ind-close:hover{background:var(--bg-4);color:var(--text);}
+.ind-eyebrow{font-size:11px;font-weight:600;color:var(--accent-2);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:12px;}
+.ind-headline{font-size:clamp(22px,3vw,30px);font-weight:800;letter-spacing:-0.03em;line-height:1.1;margin-bottom:24px;}
+.ind-stats{display:flex;gap:0;margin-bottom:28px;border:1px solid var(--border);border-radius:14px;overflow:hidden;}
+.ind-stat{flex:1;padding:16px;text-align:center;border-right:1px solid var(--border);}
+.ind-stat:last-child{border-right:none;}
+.ind-stat-val{display:block;font-size:22px;font-weight:700;color:var(--accent-2);font-family:var(--mono);letter-spacing:-0.03em;}
+.ind-stat-label{display:block;font-size:11px;color:var(--text-3);margin-top:3px;text-transform:uppercase;letter-spacing:0.6px;}
+.ind-body{font-size:14.5px;color:var(--text-2);line-height:1.75;white-space:pre-line;margin-bottom:28px;}
+.ind-cta{align-self:flex-start;}
 .industry-chip svg{width:14px;height:14px;color:var(--accent-2);}
 .stats{padding:120px 0;}
 .stats-head{text-align:center;margin-bottom:72px;}
