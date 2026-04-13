@@ -112,8 +112,8 @@ export default function Landing() {
       camera = new THREE.PerspectiveCamera(52, W / H, 0.1, 500);
       const isMobile = W < 720;
       const isLandscapeMobile = H < 500 && W > H;
-      const camZ = isLandscapeMobile ? 8.5 : isMobile ? 10.5 : 6.3;
-      const camX = isLandscapeMobile ? -2.0 : isMobile ? 0 : -2.2;
+      const camZ = isLandscapeMobile ? 7.0 : isMobile ? 10.5 : 6.3;
+      const camX = isLandscapeMobile ? -3.5 : isMobile ? 0 : -2.2;
       camera.position.set(camX, 0, camZ);
 
       const handleResize = () => {
@@ -124,8 +124,8 @@ export default function Landing() {
         renderer.setSize(w, h);
         const mob = w < 720;
         const land = h < 500 && w > h;
-        camera.position.z = land ? 8.5 : mob ? 10.5 : 6.3;
-        camera.position.x = land ? -2.0 : mob ? 0 : -2.2;
+        camera.position.z = land ? 7.0 : mob ? 10.5 : 6.3;
+        camera.position.x = land ? -3.5 : mob ? 0 : -2.2;
       };
       window.addEventListener('resize', handleResize);
 
@@ -523,9 +523,18 @@ export default function Landing() {
               <a href="#capabilities" className="btn btn-ghost">See how it works</a>
             </div>
           </div>
+        </div>
+      </section>
 
-          {/* Right — animated chat widget */}
-          <div className="hero-right">
+      {/* PHONE WIDGET SECTION */}
+      <section className="phone-section">
+        <div className="container phone-section-inner">
+          <div className="phone-section-left">
+            <div className="eyebrow"><span className="eyebrow-dot"></span>See it in action</div>
+            <h2 className="h-section" style={{marginBottom:16}}>Every call, handled<br />in real time.</h2>
+            <p className="lede">Watch Gate AI answer, screen, and route a call — all within seconds. Cold callers get a polite decline. Legitimate callers get through with an AI summary already sent.</p>
+          </div>
+          <div className="phone-section-right">
             <div className="phone-shell">
               <div className="phone-frame">
                 {/* Mac bar */}
@@ -1083,29 +1092,33 @@ h1,h2,h3{font-weight:700;letter-spacing:-0.03em;line-height:1.05;}
 
 .hero{padding:140px 0 80px;position:relative;overflow:hidden;}
 .hero-globe-canvas{position:absolute;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;}
-.hero-inner{position:relative;z-index:1;display:grid;grid-template-columns:1fr 400px;align-items:center;gap:60px;}
-@media(max-width:1000px){.hero-inner{grid-template-columns:1fr;gap:48px;}.hero-right{max-width:480px;margin:0 auto;}}
-/* Mobile hero — stack properly, globe smaller and centred */
+.hero-inner{position:relative;z-index:1;display:grid;grid-template-columns:1fr;align-items:center;gap:60px;max-width:680px;}
+@media(max-width:1000px){.hero-inner{gap:48px;}}
+/* Mobile hero — portrait */
 @media(max-width:720px){
   .hero{padding:100px 0 60px;}
-  .hero-globe-canvas{opacity:0.45;}
+  .hero-globe-canvas{opacity:0.65;}
   .hero-inner{gap:32px;}
   .hero-left .h-display{margin-bottom:18px;}
   .hero-lede{font-size:15px;margin-bottom:28px;}
 }
-/* Landscape mobile — two column layout, globe on right, text on left */
+/* Landscape mobile — globe on right, text on left */
 @media(max-height:500px) and (orientation:landscape){
   .hero{padding:70px 0 30px;}
   .hero-globe-canvas{opacity:0.9;}
-  .hero-inner{grid-template-columns:1fr 1fr;gap:24px;align-items:center;}
-  .hero-right{display:none;}
+  .hero-inner{grid-template-columns:1fr;gap:16px;}
   .h-display{font-size:clamp(24px,4.5vw,38px)!important;margin-bottom:10px!important;}
   .hero-lede{font-size:13px;margin-bottom:14px;line-height:1.5;}
   .hero-ctas{gap:8px;}
   .btn{padding:10px 18px;font-size:12px;}
-  .hgc-inline{padding:7px 14px;gap:14px;font-size:11px;}
-  .hero-globe-counter{bottom:12px;right:5%;left:auto;transform:none;}
 }
+
+/* Phone widget section */
+.phone-section{padding:80px 0;border-top:1px solid var(--border);}
+.phone-section-inner{display:grid;grid-template-columns:1fr 440px;gap:80px;align-items:center;}
+.phone-section-left .lede{max-width:460px;}
+@media(max-width:1000px){.phone-section-inner{grid-template-columns:1fr;gap:48px;}.phone-section-right{max-width:480px;margin:0 auto;}}
+@media(max-width:720px){.phone-section{padding:52px 0;}}
 .hero-left .h-display{margin-bottom:24px;}
 .hero-left .accent{background:linear-gradient(180deg,var(--accent-2) 0%,var(--accent) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-style:italic;font-weight:700;}
 .hero-lede{font-size:clamp(16px,1.3vw,18px);color:var(--text-2);max-width:520px;margin:0 0 36px;line-height:1.6;}
