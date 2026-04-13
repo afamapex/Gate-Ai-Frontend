@@ -61,6 +61,7 @@ export default function Auth() {
       <div className="auth-layout">
         <div className="auth-left">
           <a onClick={() => navigate('/')} className="auth-logo"><NavLogo /><span>Gate <span style={{color:'var(--accent-2)',fontWeight:500}}>AI</span></span></a>
+          <button className="auth-back" onClick={() => navigate('/')}>← Back to home</button>
           <div className="auth-form-wrap">
             <div className="auth-tabs">
               <button className={`auth-tab${tab==='signup'?' active':''}`} onClick={() => { setTab('signup'); setError(''); }}>Sign Up</button>
@@ -71,7 +72,7 @@ export default function Auth() {
             {tab === 'signup' && (
               <form onSubmit={handleSignup} className="auth-form">
                 <h2 className="auth-heading">Create your account</h2>
-                <p className="auth-sub">14-day free trial. No credit card required.</p>
+                <p className="auth-sub">14-day free trial.</p>
                 {plan && <div className="plan-badge"><span className="plan-dot"/>{plan.charAt(0).toUpperCase()+plan.slice(1)} plan selected</div>}
                 <div className="field-row">
                   <div className="field"><label>First name</label><input type="text" placeholder="John" value={signup.first_name} onChange={e => setSignup(s=>({...s,first_name:e.target.value}))}/></div>
@@ -107,6 +108,15 @@ export default function Auth() {
                 <p className="auth-switch">Don't have an account? <button type="button" onClick={() => setTab('signup')}>Sign up free</button></p>
               </form>
             )}
+          </div>
+          <div className="auth-footer-links">
+            <a onClick={e => { e.preventDefault(); navigate('/capabilities'); }}>Capabilities</a>
+            <a onClick={e => { e.preventDefault(); navigate('/pricing'); }}>Pricing</a>
+            <a onClick={e => { e.preventDefault(); navigate('/integrations'); }}>Integrations</a>
+            <a onClick={e => { e.preventDefault(); navigate('/faq'); }}>FAQ</a>
+            <a onClick={e => { e.preventDefault(); navigate('/contact'); }}>Contact</a>
+            <a onClick={e => { e.preventDefault(); navigate('/privacy'); }}>Privacy</a>
+            <a onClick={e => { e.preventDefault(); navigate('/terms'); }}>Terms</a>
           </div>
         </div>
         <div className="auth-right">
@@ -148,7 +158,12 @@ const CSS = `
 .auth-left{flex:0 0 480px;padding:48px;display:flex;flex-direction:column;border-right:1px solid var(--border);position:relative;overflow:hidden;}
 .auth-left::before{content:'';position:absolute;top:-200px;left:-200px;width:600px;height:600px;background:radial-gradient(circle,rgba(108,92,231,0.12) 0%,transparent 60%);pointer-events:none;}
 .auth-left::after{content:'';position:absolute;inset:0;background-image:linear-gradient(rgba(108,92,231,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(108,92,231,0.04) 1px,transparent 1px);background-size:40px 40px;mask-image:radial-gradient(ellipse 80% 60% at 20% 30%,black,transparent);pointer-events:none;}
-.auth-logo{display:flex;align-items:center;gap:10px;font-size:16px;font-weight:700;letter-spacing:-0.3px;position:relative;z-index:1;}
+.auth-logo{display:flex;align-items:center;gap:10px;font-size:16px;font-weight:700;letter-spacing:-0.3px;position:relative;z-index:1;margin-bottom:auto;}
+.auth-back{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--text-3);position:relative;z-index:1;margin-bottom:32px;transition:color 180ms ease;background:none;border:none;font-family:var(--font);cursor:pointer;padding:0;}
+.auth-back:hover{color:var(--text);}
+.auth-footer-links{position:relative;z-index:1;margin-top:auto;padding-top:32px;display:flex;flex-wrap:wrap;gap:16px;}
+.auth-footer-links a{font-size:12px;color:var(--text-3);transition:color 180ms ease;}
+.auth-footer-links a:hover{color:var(--text);}
 .auth-form-wrap{flex:1;display:flex;flex-direction:column;justify-content:center;position:relative;z-index:1;max-width:360px;}
 .auth-tabs{display:flex;background:var(--bg-3);border:1px solid var(--border);border-radius:12px;padding:4px;margin-bottom:28px;}
 .auth-tab{flex:1;padding:10px;text-align:center;font-size:13.5px;font-weight:600;border-radius:9px;cursor:pointer;transition:all 200ms;color:var(--text-3);border:none;background:transparent;font-family:var(--font);}
