@@ -1185,9 +1185,9 @@ h1,h2,h3{font-weight:700;letter-spacing:-0.03em;line-height:1.05;}
 .industry-chip:hover{border-color:var(--accent);color:var(--text);transform:translateY(-2px);}
 .ind-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(6px);z-index:999;display:flex;align-items:center;justify-content:center;padding:24px;animation:fadeIn 180ms ease;}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
-.ind-modal{background:var(--bg-2);border:1px solid var(--border-2);border-radius:24px;padding:40px;max-width:560px;width:100%;position:relative;animation:slideUp 220ms cubic-bezier(0.34,1.56,0.64,1);}
+.ind-modal{background:var(--bg-2);border:1px solid var(--border-2);border-radius:24px;padding:40px;max-width:560px;width:100%;position:relative;animation:slideUp 220ms cubic-bezier(0.34,1.56,0.64,1);max-height:90vh;overflow-y:auto;}
 @keyframes slideUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
-.ind-close{position:absolute;top:20px;right:20px;width:32px;height:32px;border-radius:50%;background:var(--bg-3);border:1px solid var(--border);color:var(--text-3);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;transition:all 180ms;}
+.ind-close{position:sticky;top:0;float:right;width:32px;height:32px;border-radius:50%;background:var(--bg-3);border:1px solid var(--border);color:var(--text-3);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;transition:all 180ms;z-index:10;margin-left:auto;margin-bottom:8px;}
 .ind-close:hover{background:var(--bg-4);color:var(--text);}
 .ind-eyebrow{font-size:11px;font-weight:600;color:var(--accent-2);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:12px;}
 .ind-headline{font-size:clamp(22px,3vw,30px);font-weight:800;letter-spacing:-0.03em;line-height:1.1;margin-bottom:24px;}
@@ -1198,6 +1198,15 @@ h1,h2,h3{font-weight:700;letter-spacing:-0.03em;line-height:1.05;}
 .ind-stat-label{display:block;font-size:11px;color:var(--text-3);margin-top:3px;text-transform:uppercase;letter-spacing:0.6px;}
 .ind-body{font-size:14.5px;color:var(--text-2);line-height:1.75;white-space:pre-line;margin-bottom:28px;}
 .ind-cta{align-self:flex-start;}
+@media(max-width:720px){
+  .ind-overlay{padding:0;align-items:flex-end;}
+  .ind-modal{border-radius:24px 24px 0 0;max-height:82vh;padding:24px 20px 36px;width:100%;max-width:100%;}
+  .ind-stats{flex-direction:row;}
+  .ind-stat{padding:12px 8px;}
+  .ind-stat-val{font-size:18px;}
+  .ind-stat-label{font-size:10px;}
+  .ind-body{font-size:14px;}
+}
 .industry-chip svg{width:14px;height:14px;color:var(--accent-2);}
 .stats{padding:120px 0;}
 .stats-head{text-align:center;margin-bottom:72px;}
