@@ -162,10 +162,10 @@ export default function Landing() {
       scene.add(globeGroup);
 
       // Lighting so Earth texture is visible
-      scene.add(new THREE.AmbientLight(0xffffff, 0.82));
-      const sunLight = new THREE.DirectionalLight(0xffffff, 1.2);
+      scene.add(new THREE.AmbientLight(0xffffff, 0.55));
+      const sunLight = new THREE.DirectionalLight(0xffffff, 0.85);
       sunLight.position.set(5, 3, 5); scene.add(sunLight);
-      const fillLight = new THREE.DirectionalLight(0x8ab4ff, 0.35);
+      const fillLight = new THREE.DirectionalLight(0x8ab4ff, 0.25);
       fillLight.position.set(-5,-2,3); scene.add(fillLight);
 
       // Earth texture from Three.js CDN
