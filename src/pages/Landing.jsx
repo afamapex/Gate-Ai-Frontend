@@ -970,8 +970,8 @@ const SCENARIOS = {
     { r: 'caller', d: 2200, t: "Hi there, I'm calling about your business energy rates — we're offering a free audit that could save you up to 30%..." },
     { r: 'gate',   d: 4200, t: "Thanks for sharing that. Could I ask who specifically you're trying to reach at the company?" },
     { r: 'caller', d: 5800, t: "Oh, I'm looking to speak with whoever handles your energy or utilities budget." },
-    { r: 'gate',   d: 7600, t: "Understood. One moment while I check our screening rules." },
-    { r: 'result', d: 9200, type: 'blocked', title: '🚫 Call Blocked', sub: 'Cold call detected · 96% confidence · Logged' },
+    { r: 'gate',   d: 7600, t: "Appreciate the call, but we're not taking cold pitches on this line. I'll let you go — have a good one." },
+    { r: 'result', d: 9600, type: 'blocked', title: '🚫 Call Blocked', sub: 'Cold call detected · 96% confidence · Logged' },
   ],
   forwarded: [
     { r: 'gate',   d: 400,  t: 'Thank you for calling Acme Logistics. This is Gate AI. How can I direct your call?' },
@@ -983,20 +983,26 @@ const SCENARIOS = {
   ],
 };
 
-let _chatTimers = [];
-let _curTab = 'blocked';
+// Per-widget state so desktop ('') and mobile ('2') run independently
+const _chatTimers = { '': [], '2': [] };
+const _curTab = { '': 'blocked', '2': 'blocked' };
 
-function clearChatTimers() { _chatTimers.forEach(t => clearTimeout(t)); _chatTimers = []; }
+function clearChatTimers(suffix) {
+  suffix = suffix || '';
+  (_chatTimers[suffix] || []).forEach(t => clearTimeout(t));
+  _chatTimers[suffix] = [];
+}
 
-function showChatResult(type, title, sub) {
-  const msgs = document.getElementById('chat-msgs');
-  const rt = document.getElementById('result-takeover');
-  const sb = document.getElementById('shield-big');
-  const rtitle = document.getElementById('result-title');
-  const rsub = document.getElementById('result-sub');
+function showChatResult(type, title, sub, suffix) {
+  suffix = suffix || '';
+  const msgs = document.getElementById('chat-msgs' + suffix);
+  const rt = document.getElementById('result-takeover' + suffix);
+  const sb = document.getElementById('shield-big' + suffix);
+  const rtitle = document.getElementById('result-title' + suffix);
+  const rsub = document.getElementById('result-sub' + suffix);
   if (!msgs || !rt) return;
   msgs.style.opacity = '0';
-  setTimeout(() => {
+  const t1 = setTimeout(() => {
     sb.className = 'shield-big ' + (type === 'blocked' ? 'shield-blocked' : 'shield-forwarded');
     sb.innerHTML = SHIELD_SVG[type];
     rtitle.className = 'result-title ' + type;
@@ -1004,28 +1010,31 @@ function showChatResult(type, title, sub) {
     rsub.textContent = sub;
     rt.style.pointerEvents = 'auto';
     rt.classList.add('show');
-    setTimeout(() => { sb.classList.add('pop'); rtitle.classList.add('show'); rsub.classList.add('show'); }, 100);
-    setTimeout(() => {
-      _curTab = _curTab === 'blocked' ? 'forwarded' : 'blocked';
-      const tb = document.getElementById('tab-b');
-      const tf = document.getElementById('tab-f');
-      if (tb) tb.className = 'c-tab' + (_curTab === 'blocked' ? ' active' : '');
-      if (tf) tf.className = 'c-tab' + (_curTab === 'forwarded' ? ' active' : '');
-      const m = document.getElementById('chat-msgs');
-      if (m) m.style.opacity = '1';
+    const t2 = setTimeout(() => { sb.classList.add('pop'); rtitle.classList.add('show'); rsub.classList.add('show'); }, 100);
+    _chatTimers[suffix].push(t2);
+    const t3 = setTimeout(() => {
+      _curTab[suffix] = _curTab[suffix] === 'blocked' ? 'forwarded' : 'blocked';
+      const tb = document.getElementById('tab-b' + suffix);
+      const tf = document.getElementById('tab-f' + suffix);
+      if (tb) tb.className = 'c-tab' + (_curTab[suffix] === 'blocked' ? ' active' : '');
+      if (tf) tf.className = 'c-tab' + (_curTab[suffix] === 'forwarded' ? ' active' : '');
+      if (msgs) msgs.style.opacity = '1';
       rt.classList.remove('show'); rt.style.pointerEvents = 'none';
       sb.classList.remove('pop'); rtitle.classList.remove('show'); rsub.classList.remove('show');
-      runChatScenario();
+      runChatScenario(suffix);
     }, 4000);
+    _chatTimers[suffix].push(t3);
   }, 400);
+  _chatTimers[suffix].push(t1);
 }
 
 function runChatScenario(suffix) {
   suffix = suffix || '';
-  clearChatTimers();
+  clearChatTimers(suffix);
   const el = document.getElementById('chat-msgs' + suffix);
   if (!el) return;
   el.innerHTML = '';
+  el.style.opacity = '1';
   const sb = document.getElementById('shield-big' + suffix);
   const rtitle = document.getElementById('result-title' + suffix);
   const rsub = document.getElementById('result-sub' + suffix);
@@ -1035,19 +1044,19 @@ function runChatScenario(suffix) {
   if (rsub) rsub.classList.remove('show');
   if (rt) { rt.classList.remove('show'); rt.style.pointerEvents = 'none'; }
 
-  SCENARIOS[_curTab].forEach((step, i) => {
+  SCENARIOS[_curTab[suffix]].forEach((step, i) => {
     if (step.r === 'result') {
-      _chatTimers.push(setTimeout(() => showChatResult(step.type, step.title, step.sub, suffix), step.d));
+      _chatTimers[suffix].push(setTimeout(() => showChatResult(step.type, step.title, step.sub, suffix), step.d));
       return;
     }
     if (step.r === 'gate') {
-      _chatTimers.push(setTimeout(() => {
+      _chatTimers[suffix].push(setTimeout(() => {
         const t = document.createElement('div'); t.className = 'chat-typing'; t.id = 'ctyp' + suffix + i;
         t.innerHTML = '<span></span><span></span><span></span>';
         el.appendChild(t); requestAnimationFrame(() => t.classList.add('show')); el.scrollTop = el.scrollHeight;
       }, step.d - 650));
     }
-    _chatTimers.push(setTimeout(() => {
+    _chatTimers[suffix].push(setTimeout(() => {
       const old = document.getElementById('ctyp' + suffix + i); if (old) old.remove();
       const m = document.createElement('div'); m.className = 'chat-msg ' + step.r;
       const av = step.r === 'gate' ? GATE_AV : CALLER_AV;
@@ -1084,8 +1093,8 @@ function startChatSequence(timers) {
 }
 
 window.switchChatTab = (tab) => {
-  _curTab = tab;
   ['', '2'].forEach(s => {
+    _curTab[s] = tab;
     const tb = document.getElementById('tab-b' + s);
     const tf = document.getElementById('tab-f' + s);
     if (tb) tb.className = 'c-tab' + (tab === 'blocked' ? ' active' : '');
@@ -1097,9 +1106,11 @@ window.switchChatTab = (tab) => {
 window.switchChatTab2 = (tab) => window.switchChatTab(tab);
 
 window.replayChatAnim = () => {
-  const msgs = document.getElementById('chat-msgs');
-  if (msgs) msgs.style.opacity = '1';
-  runChatScenario();
+  ['', '2'].forEach(s => {
+    const msgs = document.getElementById('chat-msgs' + s);
+    if (msgs) msgs.style.opacity = '1';
+    runChatScenario(s);
+  });
 };
 
 // ─── CSS ─────────────────────────────────────────────────────
