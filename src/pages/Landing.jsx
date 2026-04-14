@@ -1361,9 +1361,10 @@ h1,h2,h3{font-weight:700;letter-spacing:-0.03em;line-height:1.05;}
 .tier-features li{display:flex;gap:10px;font-size:13.5px;color:var(--text-2);line-height:1.5;}
 .tier-features li::before{content:'';min-width:16px;height:16px;margin-top:2px;border-radius:50%;background:rgba(0,214,143,0.14);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%2300d68f' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:center;}
 .tier .btn{justify-content:center;width:100%;}
+#faq{background:var(--bg-2);border-top:1px solid var(--border);}
 .faq-head{text-align:center;margin-bottom:60px;}
 .faq-list{max-width:780px;margin:0 auto;display:flex;flex-direction:column;gap:12px;}
-.faq-item{background:var(--bg-2);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;transition:all 200ms ease;}
+.faq-item{background:var(--bg-3);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;transition:all 200ms ease;}
 .faq-item[open]{border-color:var(--border-2);}
 .faq-item summary{padding:22px 28px;cursor:pointer;font-size:16px;font-weight:600;list-style:none;display:flex;justify-content:space-between;align-items:center;gap:20px;}
 .faq-item summary::-webkit-details-marker{display:none;}
