@@ -165,7 +165,8 @@ export default function Landing() {
       scene.add(new THREE.AmbientLight(0xffffff, 0.82));
       const sunLight = new THREE.DirectionalLight(0xffffff, 1.2);
       sunLight.position.set(5, 3, 5); scene.add(sunLight);
-      scene.add(new THREE.DirectionalLight(0x8ab4ff, 0.35)).position.set(-5,-2,3);
+      const fillLight = new THREE.DirectionalLight(0x8ab4ff, 0.35);
+      fillLight.position.set(-5,-2,3); scene.add(fillLight);
 
       // Earth texture from Three.js CDN
       const earthTex = new THREE.TextureLoader().load(
