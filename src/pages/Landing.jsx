@@ -645,8 +645,8 @@ export default function Landing() {
                 </div>
                 <div className="ph ph-chat" id="ph-chat2">
                   <div className="chat-tabs">
-                    <button className="c-tab active" id="tab-b2">Blocked call</button>
-                    <button className="c-tab" id="tab-f2">Forwarded call</button>
+                    <button className="c-tab active" id="tab-b2" onClick={() => window.switchChatTab2('blocked')}>Blocked call</button>
+                    <button className="c-tab" id="tab-f2" onClick={() => window.switchChatTab2('forwarded')}>Forwarded call</button>
                   </div>
                   <div className="chat-hdr">
                     <div className="hdr-pill"><ShieldLogo size={12} id="hdr2" /><span className="hdr-live"></span>Call started</div>
@@ -1020,15 +1020,16 @@ function showChatResult(type, title, sub) {
   }, 400);
 }
 
-function runChatScenario() {
+function runChatScenario(suffix) {
+  suffix = suffix || '';
   clearChatTimers();
-  const el = document.getElementById('chat-msgs');
+  const el = document.getElementById('chat-msgs' + suffix);
   if (!el) return;
   el.innerHTML = '';
-  const sb = document.getElementById('shield-big');
-  const rtitle = document.getElementById('result-title');
-  const rsub = document.getElementById('result-sub');
-  const rt = document.getElementById('result-takeover');
+  const sb = document.getElementById('shield-big' + suffix);
+  const rtitle = document.getElementById('result-title' + suffix);
+  const rsub = document.getElementById('result-sub' + suffix);
+  const rt = document.getElementById('result-takeover' + suffix);
   if (sb) sb.classList.remove('pop');
   if (rtitle) rtitle.classList.remove('show');
   if (rsub) rsub.classList.remove('show');
@@ -1036,18 +1037,18 @@ function runChatScenario() {
 
   SCENARIOS[_curTab].forEach((step, i) => {
     if (step.r === 'result') {
-      _chatTimers.push(setTimeout(() => showChatResult(step.type, step.title, step.sub), step.d));
+      _chatTimers.push(setTimeout(() => showChatResult(step.type, step.title, step.sub, suffix), step.d));
       return;
     }
     if (step.r === 'gate') {
       _chatTimers.push(setTimeout(() => {
-        const t = document.createElement('div'); t.className = 'chat-typing'; t.id = 'ctyp' + i;
+        const t = document.createElement('div'); t.className = 'chat-typing'; t.id = 'ctyp' + suffix + i;
         t.innerHTML = '<span></span><span></span><span></span>';
         el.appendChild(t); requestAnimationFrame(() => t.classList.add('show')); el.scrollTop = el.scrollHeight;
       }, step.d - 650));
     }
     _chatTimers.push(setTimeout(() => {
-      const old = document.getElementById('ctyp' + i); if (old) old.remove();
+      const old = document.getElementById('ctyp' + suffix + i); if (old) old.remove();
       const m = document.createElement('div'); m.className = 'chat-msg ' + step.r;
       const av = step.r === 'gate' ? GATE_AV : CALLER_AV;
       const who = step.r === 'gate' ? 'Gate AI' : 'Caller';
@@ -1076,21 +1077,24 @@ function startChatSequence(timers) {
     timers.push(setTimeout(() => {
       if (done) { done.style.opacity = '0'; done.style.pointerEvents = 'none'; }
       if (chat) chat.style.opacity = '1';
-      if (suffix === '') runChatScenario();
+      if (suffix === '') runChatScenario('');
+      else runChatScenario('2');
     }, 3900));
   });
 }
 
 window.switchChatTab = (tab) => {
   _curTab = tab;
-  const tb = document.getElementById('tab-b');
-  const tf = document.getElementById('tab-f');
-  if (tb) tb.className = 'c-tab' + (tab === 'blocked' ? ' active' : '');
-  if (tf) tf.className = 'c-tab' + (tab === 'forwarded' ? ' active' : '');
-  const msgs = document.getElementById('chat-msgs');
-  if (msgs) msgs.style.opacity = '1';
-  runChatScenario();
+  ['', '2'].forEach(s => {
+    const tb = document.getElementById('tab-b' + s);
+    const tf = document.getElementById('tab-f' + s);
+    if (tb) tb.className = 'c-tab' + (tab === 'blocked' ? ' active' : '');
+    if (tf) tf.className = 'c-tab' + (tab === 'forwarded' ? ' active' : '');
+  });
+  runChatScenario(''); runChatScenario('2');
 };
+
+window.switchChatTab2 = (tab) => window.switchChatTab(tab);
 
 window.replayChatAnim = () => {
   const msgs = document.getElementById('chat-msgs');
@@ -1103,7 +1107,7 @@ const CSS = `
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800&family=Inter:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 :root {
-  --bg:#0a0b12;--bg-2:#0f1018;--bg-3:#161820;--bg-4:#1e2030;
+  --bg:#111320;--bg-2:#161826;--bg-3:#1c1f30;--bg-4:#22263a;
   --border:#1f2130;--border-2:#2a2d40;
   --text:#f0f1f5;--text-2:#b0b4c8;--text-3:#7b8099;
   --accent:#6c5ce7;--accent-2:#a29bfe;--accent-glow:rgba(108,92,231,0.35);
@@ -1114,9 +1118,8 @@ const CSS = `
 *{margin:0;padding:0;box-sizing:border-box;}
 html{scroll-behavior:smooth;}
 body{font-family:var(--font);background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;line-height:1.5;overflow-x:hidden;}
-/* Subtle purple glow in page center */
-body::before{content:'';position:fixed;top:20%;left:50%;transform:translateX(-50%);width:900px;height:600px;background:radial-gradient(ellipse at center,rgba(108,92,231,0.10) 0%,rgba(108,92,231,0.04) 45%,transparent 70%);pointer-events:none;z-index:0;}
-/* Brighter section backgrounds */
+/* Strong purple glow in page center */
+body::before{content:'';position:fixed;top:15%;left:50%;transform:translateX(-50%);width:1200px;height:800px;background:radial-gradient(ellipse at center,rgba(108,92,231,0.22) 0%,rgba(108,92,231,0.10) 35%,rgba(80,60,200,0.04) 60%,transparent 75%);pointer-events:none;z-index:0;}
 section{position:relative;z-index:1;}
 ::selection{background:var(--accent);color:white;}
 a{color:inherit;text-decoration:none;}
