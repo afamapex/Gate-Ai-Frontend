@@ -158,12 +158,31 @@ export default function Landing() {
       const GLOBE_R = 1.2, FF_R = GLOBE_R + 0.45, BLOCK_DIST = FF_R + 0.12;
       const globeGroup = new THREE.Group();
       globeGroup.rotation.z = THREE.MathUtils.degToRad(23);
-      globeGroup.position.set(0, 0, 0); // origin — force field and globe stay aligned
+      globeGroup.position.set(0, 0, 0);
       scene.add(globeGroup);
-      // Globe — cell glow shader material
+
+      // Lighting so Earth texture is visible
+      scene.add(new THREE.AmbientLight(0xffffff, 0.82));
+      const sunLight = new THREE.DirectionalLight(0xffffff, 1.2);
+      sunLight.position.set(5, 3, 5); scene.add(sunLight);
+      scene.add(new THREE.DirectionalLight(0x8ab4ff, 0.35)).position.set(-5,-2,3);
+
+      // Earth texture from Three.js CDN
+      const earthTex = new THREE.TextureLoader().load(
+        'https://threejs.org/examples/textures/planets/earth_atmos_2048.jpg',
+        () => { globe.material.needsUpdate = true; }
+      );
+      const globe = new THREE.Mesh(
+        new THREE.SphereGeometry(GLOBE_R, 64, 64),
+        new THREE.MeshPhongMaterial({map:earthTex, shininess:8, specular:new THREE.Color(0x112244)})
+      );
+      globeGroup.add(globe);
+
+      // Cell glow overlay — transparent, on top of Earth texture
       const MAX_HITS = 5;
       const globeHits = [];
       const globeGlowMat = new THREE.ShaderMaterial({
+        transparent:true, depthWrite:false, side:THREE.FrontSide,
         uniforms:{
           hitPos:   { value: Array.from({length:5}, ()=>new THREE.Vector3()) },
           hitTimes: { value: new Array(5).fill(0.0) },
@@ -185,8 +204,6 @@ export default function Landing() {
             float ci=floor(phi/cPhi)+0.5; float cj=floor((theta+PI)/cTheta)+0.5;
             float cphi=ci*cPhi; float ctheta=cj*cTheta-PI;
             vec3 cell=vec3(sin(cphi)*cos(ctheta),cos(cphi),sin(cphi)*sin(ctheta));
-            float rim=1.0-abs(dot(n,vec3(0,0,1)));
-            vec3 base=vec3(0.047,0.043,0.148)+vec3(0.12,0.10,0.45)*pow(rim,2.5)*0.35;
             float glow=0.0;
             for(int i=0;i<MAX_HITS;i++){
               if(float(i)>=hitCount) break;
@@ -199,14 +216,11 @@ export default function Landing() {
             }
             glow=clamp(glow,0.0,1.0);
             float eu=fract(phi/cPhi); float ev=fract((theta+PI)/cTheta);
-            float edgeDist=min(min(eu,1.0-eu),min(ev,1.0-ev))*2.0;
-            float cellEdge=smoothstep(0.0,0.22,edgeDist);
-            vec3 col=mix(base,vec3(0.0,0.95,0.42)*1.2,glow*cellEdge*0.85);
-            gl_FragColor=vec4(col,1.0);
+            float cellEdge=smoothstep(0.0,0.22,min(min(eu,1.0-eu),min(ev,1.0-ev))*2.0);
+            gl_FragColor=vec4(0.0,0.95,0.42,glow*cellEdge*1.8);
           }`
       });
-      const globe = new THREE.Mesh(new THREE.SphereGeometry(GLOBE_R, 64, 64), globeGlowMat);
-      globeGroup.add(globe);
+      globe.add(new THREE.Mesh(new THREE.SphereGeometry(GLOBE_R+0.003,64,64), globeGlowMat));
 
       // Grid lines
       const lm = new THREE.LineBasicMaterial({ color:0x3344aa, transparent:true, opacity:0.10 });
