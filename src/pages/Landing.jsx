@@ -1264,7 +1264,7 @@ h1,h2,h3{font-weight:700;letter-spacing:-0.03em;line-height:1.05;}
 .result-sub{font-size:11.5px;color:#5c6078;opacity:0;transition:opacity 350ms ease 400ms;text-align:center;}
 .result-sub.show{opacity:1;}
 
-.industries{padding:60px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);}
+.industries{padding:60px 0;background:var(--bg-2);border-top:1px solid var(--border);border-bottom:1px solid var(--border);}
 .industries-label{text-align:center;font-size:12px;color:var(--text-3);text-transform:uppercase;letter-spacing:2px;margin-bottom:32px;font-weight:500;}
 .industries-grid{display:flex;justify-content:center;flex-wrap:wrap;gap:14px 18px;}
 .industry-chip{display:inline-flex;align-items:center;gap:8px;padding:10px 18px;background:var(--bg-3);border:1px solid var(--border);border-radius:100px;font-size:13.5px;color:var(--text-2);font-weight:500;transition:all 200ms ease;}
