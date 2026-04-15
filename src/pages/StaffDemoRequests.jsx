@@ -1,16 +1,24 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { staffDemoRequests } from '../services/staffApi.js';
 
 const STATUS_FILTERS = [
-  { value: '',          label: 'All statuses' },
-  { value: 'new',       label: 'New' },
-  { value: 'contacted', label: 'Contacted' },
-  { value: 'scheduled', label: 'Scheduled' },
-  { value: 'completed', label: 'Completed' },
-  { value: 'invited',   label: 'Invited' },
-  { value: 'declined',  label: 'Declined' },
+  { value: '',                    label: 'All statuses' },
+  { value: 'new',                 label: 'New' },
+  { value: 'meeting_invite_sent', label: 'Meeting invite sent' },
+  { value: 'scheduled',           label: 'Scheduled' },
+  { value: 'completed',           label: 'Completed' },
+  { value: 'no_show',             label: 'No-show' },
+  { value: 'rescheduling',        label: 'Rescheduling' },
+  { value: 'invited',             label: 'Invited' },
+  { value: 'declined',            label: 'Declined' },
 ];
+
+const STATUS_LABELS = {
+  new: 'New', meeting_invite_sent: 'Invite sent', scheduled: 'Scheduled',
+  completed: 'Completed', no_show: 'No-show', rescheduling: 'Rescheduling',
+  declined: 'Declined', invited: 'Invited',
+};
 
 function fmtRelative(d) {
   if (!d) return '—';
@@ -25,12 +33,14 @@ function fmtRelative(d) {
 
 function StatusBadge({ value }) {
   const palettes = {
-    new:       ['rgba(91,192,222,0.12)', 'rgba(91,192,222,0.35)', '#5bc0de'],
-    contacted: ['rgba(108,92,231,0.15)', 'rgba(108,92,231,0.4)',  '#a29bfe'],
-    scheduled: ['rgba(255,165,0,0.12)',  'rgba(255,165,0,0.35)',  '#ffb347'],
-    completed: ['rgba(81,207,102,0.12)', 'rgba(81,207,102,0.35)', '#51cf66'],
-    invited:   ['rgba(81,207,102,0.12)', 'rgba(81,207,102,0.35)', '#51cf66'],
-    declined:  ['rgba(139,143,163,0.12)','rgba(139,143,163,0.35)','#8b8fa3'],
+    new:                 ['rgba(91,192,222,0.12)', 'rgba(91,192,222,0.35)', '#5bc0de'],
+    meeting_invite_sent: ['rgba(108,92,231,0.15)', 'rgba(108,92,231,0.4)',  '#a29bfe'],
+    scheduled:           ['rgba(81,207,102,0.12)', 'rgba(81,207,102,0.35)', '#51cf66'],
+    completed:           ['rgba(108,92,231,0.15)', 'rgba(108,92,231,0.4)',  '#a29bfe'],
+    no_show:             ['rgba(255,107,107,0.1)', 'rgba(255,107,107,0.3)', '#ff6b6b'],
+    rescheduling:        ['rgba(255,165,0,0.12)',  'rgba(255,165,0,0.35)',  '#ffb347'],
+    invited:             ['rgba(81,207,102,0.12)', 'rgba(81,207,102,0.35)', '#51cf66'],
+    declined:            ['rgba(139,143,163,0.12)','rgba(139,143,163,0.35)','#8b8fa3'],
   };
   const [bg, border, fg] = palettes[value] || palettes.new;
   return (
@@ -38,15 +48,15 @@ function StatusBadge({ value }) {
       display: 'inline-block', padding: '2px 8px', borderRadius: 999,
       background: bg, border: `1px solid ${border}`, color: fg,
       fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.4,
-    }}>{value}</span>
+    }}>{STATUS_LABELS[value] || value}</span>
   );
 }
 
 export default function StaffDemoRequests() {
   const navigate = useNavigate();
-  const [data,    setData]    = useState({ demo_requests: [], total: 0, page: 1, pages: 1 });
+  const [data, setData] = useState({ demo_requests: [], total: 0, page: 1, pages: 1 });
   const [loading, setLoading] = useState(true);
-  const [error,   setError]   = useState('');
+  const [error, setError] = useState('');
   const [search, setSearch] = useState('');
   const [searchInput, setSearchInput] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
