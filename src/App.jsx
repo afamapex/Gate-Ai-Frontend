@@ -20,6 +20,7 @@ import Terms        from './pages/Terms.jsx';
 import StaffLogin       from './pages/StaffLogin.jsx';
 import StaffDashboard   from './pages/StaffDashboard.jsx';
 import StaffPlaceholder from './pages/StaffPlaceholder.jsx';
+import StaffCompanies   from './pages/StaffCompanies.jsx';
 
 function ProtectedRoute({ children }) {
   const { token, loading } = useAuth();
@@ -39,7 +40,6 @@ function ProtectedRoute({ children }) {
   return token ? children : <Navigate to="/auth" replace />;
 }
 
-// Tiny helper to wrap a staff page in the protected route + layout shell.
 function StaffPage({ children, requiredRoles = null }) {
   return (
     <StaffProtectedRoute requiredRoles={requiredRoles}>
@@ -82,21 +82,21 @@ export default function App() {
             <Route path="/staff/login"           element={<StaffLogin />} />
             <Route path="/staff"                 element={<Navigate to="/staff/dashboard" replace />} />
 
-            <Route path="/staff/dashboard"          element={<StaffPage><StaffDashboard /></StaffPage>} />
-            <Route path="/staff/companies"          element={<StaffPage><StaffPlaceholder /></StaffPage>} />
-            <Route path="/staff/companies/:id"      element={<StaffPage><StaffPlaceholder /></StaffPage>} />
-            <Route path="/staff/invites"            element={<StaffPage><StaffPlaceholder /></StaffPage>} />
-            <Route path="/staff/invites/new"        element={<StaffPage><StaffPlaceholder /></StaffPage>} />
-            <Route path="/staff/demo-requests"      element={<StaffPage><StaffPlaceholder /></StaffPage>} />
-            <Route path="/staff/demo-requests/:id"  element={<StaffPage><StaffPlaceholder /></StaffPage>} />
-            <Route path="/staff/contact-requests"   element={<StaffPage><StaffPlaceholder /></StaffPage>} />
+            <Route path="/staff/dashboard"            element={<StaffPage><StaffDashboard /></StaffPage>} />
+            <Route path="/staff/companies"            element={<StaffPage><StaffCompanies /></StaffPage>} />
+            <Route path="/staff/companies/:id"        element={<StaffPage><StaffPlaceholder /></StaffPage>} />
+            <Route path="/staff/invites"              element={<StaffPage><StaffPlaceholder /></StaffPage>} />
+            <Route path="/staff/invites/new"          element={<StaffPage><StaffPlaceholder /></StaffPage>} />
+            <Route path="/staff/demo-requests"        element={<StaffPage><StaffPlaceholder /></StaffPage>} />
+            <Route path="/staff/demo-requests/:id"    element={<StaffPage><StaffPlaceholder /></StaffPage>} />
+            <Route path="/staff/contact-requests"     element={<StaffPage><StaffPlaceholder /></StaffPage>} />
             <Route path="/staff/contact-requests/:id" element={<StaffPage><StaffPlaceholder /></StaffPage>} />
-            <Route path="/staff/billing"            element={<StaffPage><StaffPlaceholder /></StaffPage>} />
-            <Route path="/staff/billing/events"     element={<StaffPage><StaffPlaceholder /></StaffPage>} />
-            <Route path="/staff/calls"              element={<StaffPage><StaffPlaceholder /></StaffPage>} />
-            <Route path="/staff/system-health"      element={<StaffPage><StaffPlaceholder /></StaffPage>} />
-            <Route path="/staff/staff-users"        element={<StaffPage requiredRoles={['superadmin']}><StaffPlaceholder /></StaffPage>} />
-            <Route path="/staff/audit-log"          element={<StaffPage><StaffPlaceholder /></StaffPage>} />
+            <Route path="/staff/billing"              element={<StaffPage><StaffPlaceholder /></StaffPage>} />
+            <Route path="/staff/billing/events"       element={<StaffPage><StaffPlaceholder /></StaffPage>} />
+            <Route path="/staff/calls"                element={<StaffPage><StaffPlaceholder /></StaffPage>} />
+            <Route path="/staff/system-health"        element={<StaffPage><StaffPlaceholder /></StaffPage>} />
+            <Route path="/staff/staff-users"          element={<StaffPage requiredRoles={['superadmin']}><StaffPlaceholder /></StaffPage>} />
+            <Route path="/staff/audit-log"            element={<StaffPage><StaffPlaceholder /></StaffPage>} />
 
             {/* Redirects */}
             <Route path="/app/*" element={<Navigate to="/dashboard" replace />} />
