@@ -19,6 +19,7 @@ import Terms        from './pages/Terms.jsx';
 
 import Activate        from './pages/Activate.jsx';
 import ActivateSuccess from './pages/ActivateSuccess.jsx';
+import Book            from './pages/Book.jsx';
 
 import StaffLogin              from './pages/StaffLogin.jsx';
 import StaffDashboard          from './pages/StaffDashboard.jsx';
@@ -37,6 +38,7 @@ import StaffCalls              from './pages/StaffCalls.jsx';
 import StaffSystemHealth       from './pages/StaffSystemHealth.jsx';
 import StaffStaffUsers         from './pages/StaffStaffUsers.jsx';
 import StaffAuditLog           from './pages/StaffAuditLog.jsx';
+import StaffMeetings           from './pages/StaffMeetings.jsx';
 
 function ProtectedRoute({ children }) {
   const { token, loading } = useAuth();
@@ -76,6 +78,7 @@ export default function App() {
 
             <Route path="/activate/:token"         element={<Activate />} />
             <Route path="/activate/:token/success" element={<ActivateSuccess />} />
+            <Route path="/book/:token"             element={<Book />} />
 
             <Route path="/dashboard/*" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
 
@@ -90,6 +93,7 @@ export default function App() {
             <Route path="/staff/invites/:id"             element={<StaffPage><StaffInviteDetail /></StaffPage>} />
             <Route path="/staff/demo-requests"           element={<StaffPage><StaffDemoRequests /></StaffPage>} />
             <Route path="/staff/demo-requests/:id"       element={<StaffPage><StaffDemoRequestDetail /></StaffPage>} />
+            <Route path="/staff/meetings"                element={<StaffPage><StaffMeetings /></StaffPage>} />
             <Route path="/staff/contact-requests"        element={<StaffPage><StaffContactRequests /></StaffPage>} />
             <Route path="/staff/contact-requests/:id"    element={<StaffPage><StaffContactRequestDetail /></StaffPage>} />
             <Route path="/staff/billing"                 element={<StaffPage><StaffBilling /></StaffPage>} />
