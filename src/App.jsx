@@ -1,5 +1,9 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext.jsx';
+import { StaffAuthProvider } from './context/StaffAuthContext.jsx';
+import StaffProtectedRoute from './components/StaffProtectedRoute.jsx';
+import StaffLayout from './components/StaffLayout.jsx';
+
 import Landing      from './pages/Landing.jsx';
 import Login        from './pages/Login.jsx';
 import Auth         from './pages/Auth.jsx';
@@ -12,6 +16,10 @@ import FAQ          from './pages/FAQ.jsx';
 import Contact      from './pages/Contact.jsx';
 import Privacy      from './pages/Privacy.jsx';
 import Terms        from './pages/Terms.jsx';
+
+import StaffLogin       from './pages/StaffLogin.jsx';
+import StaffDashboard   from './pages/StaffDashboard.jsx';
+import StaffPlaceholder from './pages/StaffPlaceholder.jsx';
 
 function ProtectedRoute({ children }) {
   const { token, loading } = useAuth();
@@ -31,43 +39,74 @@ function ProtectedRoute({ children }) {
   return token ? children : <Navigate to="/auth" replace />;
 }
 
+// Tiny helper to wrap a staff page in the protected route + layout shell.
+function StaffPage({ children, requiredRoles = null }) {
+  return (
+    <StaffProtectedRoute requiredRoles={requiredRoles}>
+      <StaffLayout>{children}</StaffLayout>
+    </StaffProtectedRoute>
+  );
+}
+
 export default function App() {
   return (
     <AuthProvider>
-      <BrowserRouter>
-        <Routes>
-          {/* Public — landing */}
-          <Route path="/"             element={<Landing />} />
+      <StaffAuthProvider>
+        <BrowserRouter>
+          <Routes>
+            {/* Public — landing */}
+            <Route path="/"             element={<Landing />} />
 
-          {/* Auth */}
-          <Route path="/auth"         element={<Auth />} />
-          <Route path="/login"        element={<Login />} />
+            {/* Customer auth */}
+            <Route path="/auth"         element={<Auth />} />
+            <Route path="/login"        element={<Login />} />
 
-          {/* Public pages */}
-          <Route path="/book-demo"    element={<BookDemo />} />
-          <Route path="/pricing"      element={<Pricing />} />
-          <Route path="/capabilities" element={<Capabilities />} />
-          <Route path="/integrations" element={<Integrations />} />
-          <Route path="/faq"          element={<FAQ />} />
-          <Route path="/contact"      element={<Contact />} />
-          <Route path="/privacy"      element={<Privacy />} />
-          <Route path="/terms"        element={<Terms />} />
+            {/* Public pages */}
+            <Route path="/book-demo"    element={<BookDemo />} />
+            <Route path="/pricing"      element={<Pricing />} />
+            <Route path="/capabilities" element={<Capabilities />} />
+            <Route path="/integrations" element={<Integrations />} />
+            <Route path="/faq"          element={<FAQ />} />
+            <Route path="/contact"      element={<Contact />} />
+            <Route path="/privacy"      element={<Privacy />} />
+            <Route path="/terms"        element={<Terms />} />
 
-          {/* Protected — dashboard */}
-          <Route path="/dashboard/*" element={
-            <ProtectedRoute>
-              <Dashboard />
-            </ProtectedRoute>
-          } />
+            {/* Customer dashboard */}
+            <Route path="/dashboard/*" element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            } />
 
-          {/* Redirects */}
-          <Route path="/app/*" element={<Navigate to="/dashboard" replace />} />
-          <Route path="/signup" element={<Navigate to="/auth" replace />} />
+            {/* ── Staff console ─────────────────────────── */}
+            <Route path="/staff/login"           element={<StaffLogin />} />
+            <Route path="/staff"                 element={<Navigate to="/staff/dashboard" replace />} />
 
-          {/* Catch-all */}
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </BrowserRouter>
+            <Route path="/staff/dashboard"          element={<StaffPage><StaffDashboard /></StaffPage>} />
+            <Route path="/staff/companies"          element={<StaffPage><StaffPlaceholder /></StaffPage>} />
+            <Route path="/staff/companies/:id"      element={<StaffPage><StaffPlaceholder /></StaffPage>} />
+            <Route path="/staff/invites"            element={<StaffPage><StaffPlaceholder /></StaffPage>} />
+            <Route path="/staff/invites/new"        element={<StaffPage><StaffPlaceholder /></StaffPage>} />
+            <Route path="/staff/demo-requests"      element={<StaffPage><StaffPlaceholder /></StaffPage>} />
+            <Route path="/staff/demo-requests/:id"  element={<StaffPage><StaffPlaceholder /></StaffPage>} />
+            <Route path="/staff/contact-requests"   element={<StaffPage><StaffPlaceholder /></StaffPage>} />
+            <Route path="/staff/contact-requests/:id" element={<StaffPage><StaffPlaceholder /></StaffPage>} />
+            <Route path="/staff/billing"            element={<StaffPage><StaffPlaceholder /></StaffPage>} />
+            <Route path="/staff/billing/events"     element={<StaffPage><StaffPlaceholder /></StaffPage>} />
+            <Route path="/staff/calls"              element={<StaffPage><StaffPlaceholder /></StaffPage>} />
+            <Route path="/staff/system-health"      element={<StaffPage><StaffPlaceholder /></StaffPage>} />
+            <Route path="/staff/staff-users"        element={<StaffPage requiredRoles={['superadmin']}><StaffPlaceholder /></StaffPage>} />
+            <Route path="/staff/audit-log"          element={<StaffPage><StaffPlaceholder /></StaffPage>} />
+
+            {/* Redirects */}
+            <Route path="/app/*" element={<Navigate to="/dashboard" replace />} />
+            <Route path="/signup" element={<Navigate to="/auth" replace />} />
+
+            {/* Catch-all */}
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </BrowserRouter>
+      </StaffAuthProvider>
     </AuthProvider>
   );
 }
