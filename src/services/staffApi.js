@@ -37,14 +37,12 @@ const put   = (path, body) => request('PUT',    path, body);
 const patch = (path, body) => request('PATCH',  path, body);
 const del   = (path)       => request('DELETE', path);
 
-// ─── Auth ────────────────────────────────────────────────────
 export const staffAuth = {
   login:  (email, password) => post('/api/auth/staff/login', { email, password }),
   logout: ()                => post('/api/auth/staff/logout'),
   me:     ()                => get('/api/auth/me'),
 };
 
-// ─── Companies (Phase 6.2) ───────────────────────────────────
 export const staffCompanies = {
   list:        (params = {}) => { const q = new URLSearchParams(params).toString(); return get(`/api/staff/companies${q ? '?' + q : ''}`); },
   get:         (id)          => get(`/api/staff/companies/${id}`),
@@ -56,7 +54,6 @@ export const staffCompanies = {
   billing:     (id)          => get(`/api/staff/companies/${id}/billing`),
 };
 
-// ─── Invites (Phase 6.3) ─────────────────────────────────────
 export const staffInvites = {
   list:       (params = {}) => { const q = new URLSearchParams(params).toString(); return get(`/api/staff/invites${q ? '?' + q : ''}`); },
   get:        (id)          => get(`/api/staff/invites/${id}`),
@@ -66,7 +63,6 @@ export const staffInvites = {
   regenerate: (id)          => post(`/api/staff/invites/${id}/regenerate`),
 };
 
-// ─── Demo Requests (Phase 6.4) ───────────────────────────────
 export const staffDemoRequests = {
   list:    (params = {}) => { const q = new URLSearchParams(params).toString(); return get(`/api/staff/demo-requests${q ? '?' + q : ''}`); },
   get:     (id)          => get(`/api/staff/demo-requests/${id}`),
@@ -74,35 +70,30 @@ export const staffDemoRequests = {
   convert: (id)          => post(`/api/staff/demo-requests/${id}/convert`),
 };
 
-// ─── Contact Requests (Phase 6.4) ────────────────────────────
 export const staffContactRequests = {
   list:   (params = {}) => { const q = new URLSearchParams(params).toString(); return get(`/api/staff/contact-requests${q ? '?' + q : ''}`); },
   get:    (id)          => get(`/api/staff/contact-requests/${id}`),
   update: (id, data)    => patch(`/api/staff/contact-requests/${id}`, data),
 };
 
-// ─── Billing (Phase 6.5) ─────────────────────────────────────
 export const staffBilling = {
   summary:       ()             => get('/api/staff/billing/summary'),
   subscriptions: (params = {})  => { const q = new URLSearchParams(params).toString(); return get(`/api/staff/billing/subscriptions${q ? '?' + q : ''}`); },
   events:        (params = {})  => { const q = new URLSearchParams(params).toString(); return get(`/api/staff/billing/events${q ? '?' + q : ''}`); },
 };
 
-// ─── System Calls (Phase 6.5) ────────────────────────────────
 export const staffCalls = {
   volume:     ()         => get('/api/staff/calls/volume'),
   breakdown:  ()         => get('/api/staff/calls/breakdown'),
   topBlocked: ()         => get('/api/staff/calls/top-blocked'),
 };
 
-// ─── System Health (Phase 6.6) ───────────────────────────────
 export const staffSystem = {
   health:             ()       => get('/api/staff/system/health'),
   failedOnboardings:  ()       => get('/api/staff/system/failed-onboardings'),
   errors:             (params = {}) => { const q = new URLSearchParams(params).toString(); return get(`/api/staff/system/errors${q ? '?' + q : ''}`); },
 };
 
-// ─── Staff Users (Phase 6.6) ─────────────────────────────────
 export const staffUsers = {
   list:           ()         => get('/api/staff/staff-users'),
   create:         (data)     => post('/api/staff/staff-users', data),
@@ -111,7 +102,18 @@ export const staffUsers = {
   deactivate:     (id)       => post(`/api/staff/staff-users/${id}/deactivate`),
 };
 
-// ─── Audit Log (Phase 6.7) ───────────────────────────────────
 export const staffAuditLog = {
   list: (params = {}) => { const q = new URLSearchParams(params).toString(); return get(`/api/staff/audit-log${q ? '?' + q : ''}`); },
+};
+
+// ─── Meetings (Phase 7) ──────────────────────────────────────
+export const staffMeetings = {
+  list:           (params = {}) => { const q = new URLSearchParams(params).toString(); return get(`/api/staff/meetings${q ? '?' + q : ''}`); },
+  get:            (id)          => get(`/api/staff/meetings/${id}`),
+  fromDemoRequest:(demo_request_id) => post('/api/staff/meetings/from-demo-request', { demo_request_id }),
+  resend:         (id)          => post(`/api/staff/meetings/${id}/resend`),
+  markCompleted:  (id)          => post(`/api/staff/meetings/${id}/mark-completed`),
+  markNoShow:     (id)          => post(`/api/staff/meetings/${id}/mark-no-show`),
+  markDeclined:   (id)          => post(`/api/staff/meetings/${id}/mark-declined`),
+  cancel:         (id)          => post(`/api/staff/meetings/${id}/cancel`),
 };
