@@ -32,22 +32,21 @@ import StaffDemoRequests       from './pages/StaffDemoRequests.jsx';
 import StaffDemoRequestDetail  from './pages/StaffDemoRequestDetail.jsx';
 import StaffContactRequests    from './pages/StaffContactRequests.jsx';
 import StaffContactRequestDetail from './pages/StaffContactRequestDetail.jsx';
+import StaffBilling            from './pages/StaffBilling.jsx';
+import StaffBillingEvents      from './pages/StaffBillingEvents.jsx';
+import StaffCalls              from './pages/StaffCalls.jsx';
 
 function ProtectedRoute({ children }) {
   const { token, loading } = useAuth();
-
   if (loading) {
     return (
       <div style={{
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         minHeight: '100vh', background: '#0a0b0f',
         fontFamily: "'DM Sans', sans-serif", color: '#8b8fa3', fontSize: 14,
-      }}>
-        Loading...
-      </div>
+      }}>Loading...</div>
     );
   }
-
   return token ? children : <Navigate to="/auth" replace />;
 }
 
@@ -65,14 +64,9 @@ export default function App() {
       <StaffAuthProvider>
         <BrowserRouter>
           <Routes>
-            {/* Public — landing */}
             <Route path="/"             element={<Landing />} />
-
-            {/* Customer auth (login only — signup removed) */}
             <Route path="/auth"         element={<Auth />} />
             <Route path="/login"        element={<Login />} />
-
-            {/* Public pages */}
             <Route path="/book-demo"    element={<BookDemo />} />
             <Route path="/pricing"      element={<Pricing />} />
             <Route path="/capabilities" element={<Capabilities />} />
@@ -82,18 +76,11 @@ export default function App() {
             <Route path="/privacy"      element={<Privacy />} />
             <Route path="/terms"        element={<Terms />} />
 
-            {/* Invite activation (public — no auth) */}
             <Route path="/activate/:token"         element={<Activate />} />
             <Route path="/activate/:token/success" element={<ActivateSuccess />} />
 
-            {/* Customer dashboard */}
-            <Route path="/dashboard/*" element={
-              <ProtectedRoute>
-                <Dashboard />
-              </ProtectedRoute>
-            } />
+            <Route path="/dashboard/*" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
 
-            {/* ── Staff console ─────────────────────────── */}
             <Route path="/staff/login"           element={<StaffLogin />} />
             <Route path="/staff"                 element={<Navigate to="/staff/dashboard" replace />} />
 
@@ -107,18 +94,15 @@ export default function App() {
             <Route path="/staff/demo-requests/:id"       element={<StaffPage><StaffDemoRequestDetail /></StaffPage>} />
             <Route path="/staff/contact-requests"        element={<StaffPage><StaffContactRequests /></StaffPage>} />
             <Route path="/staff/contact-requests/:id"    element={<StaffPage><StaffContactRequestDetail /></StaffPage>} />
-            <Route path="/staff/billing"                 element={<StaffPage><StaffPlaceholder /></StaffPage>} />
-            <Route path="/staff/billing/events"          element={<StaffPage><StaffPlaceholder /></StaffPage>} />
-            <Route path="/staff/calls"                   element={<StaffPage><StaffPlaceholder /></StaffPage>} />
+            <Route path="/staff/billing"                 element={<StaffPage><StaffBilling /></StaffPage>} />
+            <Route path="/staff/billing/events"          element={<StaffPage><StaffBillingEvents /></StaffPage>} />
+            <Route path="/staff/calls"                   element={<StaffPage><StaffCalls /></StaffPage>} />
             <Route path="/staff/system-health"           element={<StaffPage><StaffPlaceholder /></StaffPage>} />
             <Route path="/staff/staff-users"             element={<StaffPage requiredRoles={['superadmin']}><StaffPlaceholder /></StaffPage>} />
             <Route path="/staff/audit-log"               element={<StaffPage><StaffPlaceholder /></StaffPage>} />
 
-            {/* Redirects */}
             <Route path="/app/*" element={<Navigate to="/dashboard" replace />} />
             <Route path="/signup" element={<Navigate to="/auth" replace />} />
-
-            {/* Catch-all */}
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </BrowserRouter>
