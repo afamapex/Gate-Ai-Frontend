@@ -17,6 +17,9 @@ import Contact      from './pages/Contact.jsx';
 import Privacy      from './pages/Privacy.jsx';
 import Terms        from './pages/Terms.jsx';
 
+import Activate        from './pages/Activate.jsx';
+import ActivateSuccess from './pages/ActivateSuccess.jsx';
+
 import StaffLogin         from './pages/StaffLogin.jsx';
 import StaffDashboard     from './pages/StaffDashboard.jsx';
 import StaffPlaceholder   from './pages/StaffPlaceholder.jsx';
@@ -61,7 +64,7 @@ export default function App() {
             {/* Public — landing */}
             <Route path="/"             element={<Landing />} />
 
-            {/* Customer auth */}
+            {/* Customer auth (login only — signup removed) */}
             <Route path="/auth"         element={<Auth />} />
             <Route path="/login"        element={<Login />} />
 
@@ -74,6 +77,10 @@ export default function App() {
             <Route path="/contact"      element={<Contact />} />
             <Route path="/privacy"      element={<Privacy />} />
             <Route path="/terms"        element={<Terms />} />
+
+            {/* Invite activation (public — no auth) */}
+            <Route path="/activate/:token"         element={<Activate />} />
+            <Route path="/activate/:token/success" element={<ActivateSuccess />} />
 
             {/* Customer dashboard */}
             <Route path="/dashboard/*" element={
