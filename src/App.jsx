@@ -35,16 +35,14 @@ import StaffContactRequestDetail from './pages/StaffContactRequestDetail.jsx';
 import StaffBilling            from './pages/StaffBilling.jsx';
 import StaffBillingEvents      from './pages/StaffBillingEvents.jsx';
 import StaffCalls              from './pages/StaffCalls.jsx';
+import StaffSystemHealth       from './pages/StaffSystemHealth.jsx';
+import StaffStaffUsers         from './pages/StaffStaffUsers.jsx';
 
 function ProtectedRoute({ children }) {
   const { token, loading } = useAuth();
   if (loading) {
     return (
-      <div style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        minHeight: '100vh', background: '#0a0b0f',
-        fontFamily: "'DM Sans', sans-serif", color: '#8b8fa3', fontSize: 14,
-      }}>Loading...</div>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: '#0a0b0f', fontFamily: "'DM Sans', sans-serif", color: '#8b8fa3', fontSize: 14 }}>Loading...</div>
     );
   }
   return token ? children : <Navigate to="/auth" replace />;
@@ -81,8 +79,8 @@ export default function App() {
 
             <Route path="/dashboard/*" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
 
-            <Route path="/staff/login"           element={<StaffLogin />} />
-            <Route path="/staff"                 element={<Navigate to="/staff/dashboard" replace />} />
+            <Route path="/staff/login" element={<StaffLogin />} />
+            <Route path="/staff"       element={<Navigate to="/staff/dashboard" replace />} />
 
             <Route path="/staff/dashboard"               element={<StaffPage><StaffDashboard /></StaffPage>} />
             <Route path="/staff/companies"               element={<StaffPage><StaffCompanies /></StaffPage>} />
@@ -97,8 +95,8 @@ export default function App() {
             <Route path="/staff/billing"                 element={<StaffPage><StaffBilling /></StaffPage>} />
             <Route path="/staff/billing/events"          element={<StaffPage><StaffBillingEvents /></StaffPage>} />
             <Route path="/staff/calls"                   element={<StaffPage><StaffCalls /></StaffPage>} />
-            <Route path="/staff/system-health"           element={<StaffPage><StaffPlaceholder /></StaffPage>} />
-            <Route path="/staff/staff-users"             element={<StaffPage requiredRoles={['superadmin']}><StaffPlaceholder /></StaffPage>} />
+            <Route path="/staff/system-health"           element={<StaffPage><StaffSystemHealth /></StaffPage>} />
+            <Route path="/staff/staff-users"             element={<StaffPage requiredRoles={['superadmin']}><StaffStaffUsers /></StaffPage>} />
             <Route path="/staff/audit-log"               element={<StaffPage><StaffPlaceholder /></StaffPage>} />
 
             <Route path="/app/*" element={<Navigate to="/dashboard" replace />} />
