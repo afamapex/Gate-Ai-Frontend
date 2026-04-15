@@ -22,7 +22,6 @@ import ActivateSuccess from './pages/ActivateSuccess.jsx';
 
 import StaffLogin              from './pages/StaffLogin.jsx';
 import StaffDashboard          from './pages/StaffDashboard.jsx';
-import StaffPlaceholder        from './pages/StaffPlaceholder.jsx';
 import StaffCompanies          from './pages/StaffCompanies.jsx';
 import StaffCompanyDetail      from './pages/StaffCompanyDetail.jsx';
 import StaffInvites            from './pages/StaffInvites.jsx';
@@ -37,6 +36,7 @@ import StaffBillingEvents      from './pages/StaffBillingEvents.jsx';
 import StaffCalls              from './pages/StaffCalls.jsx';
 import StaffSystemHealth       from './pages/StaffSystemHealth.jsx';
 import StaffStaffUsers         from './pages/StaffStaffUsers.jsx';
+import StaffAuditLog           from './pages/StaffAuditLog.jsx';
 
 function ProtectedRoute({ children }) {
   const { token, loading } = useAuth();
@@ -97,7 +97,7 @@ export default function App() {
             <Route path="/staff/calls"                   element={<StaffPage><StaffCalls /></StaffPage>} />
             <Route path="/staff/system-health"           element={<StaffPage><StaffSystemHealth /></StaffPage>} />
             <Route path="/staff/staff-users"             element={<StaffPage requiredRoles={['superadmin']}><StaffStaffUsers /></StaffPage>} />
-            <Route path="/staff/audit-log"               element={<StaffPage><StaffPlaceholder /></StaffPage>} />
+            <Route path="/staff/audit-log"               element={<StaffPage><StaffAuditLog /></StaffPage>} />
 
             <Route path="/app/*" element={<Navigate to="/dashboard" replace />} />
             <Route path="/signup" element={<Navigate to="/auth" replace />} />
