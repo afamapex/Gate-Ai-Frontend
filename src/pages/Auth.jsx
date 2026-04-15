@@ -1,43 +1,20 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 
 const API = import.meta.env.VITE_API_URL || 'https://gate-ai-backend-production.up.railway.app';
 
 export default function Auth() {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
   const { token, login } = useAuth();
-  const [tab, setTab] = useState(searchParams.get('tab') === 'signin' ? 'signin' : 'signup');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
-  const plan = searchParams.get('plan');
 
   useEffect(() => {
     if (token) navigate('/dashboard', { replace: true });
   }, [token]);
 
-  const [signup, setSignup] = useState({ first_name: '', last_name: '', email: '', company_name: '', industry: '', password: '' });
   const [signin, setSignin] = useState({ email: '', password: '' });
-
-  async function handleSignup(e) {
-    e.preventDefault();
-    setError(''); setSuccess('');
-    const { first_name, last_name, email, company_name, password } = signup;
-    if (!first_name || !last_name || !email || !company_name || !password) { setError('Please fill in all required fields.'); return; }
-    if (password.length < 8) { setError('Password must be at least 8 characters.'); return; }
-    setLoading(true);
-    try {
-      const res = await fetch(`${API}/api/auth/register`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(signup) });
-      const data = await res.json();
-      if (!res.ok) { setError(data.error || 'Registration failed.'); return; }
-      login(data); // AuthContext expects { token, user, company }
-      setSuccess('Account created! Provisioning your phone number...');
-      setTimeout(() => { if (plan) navigate(`/dashboard?checkout=${plan}`); else navigate('/dashboard'); }, 1200);
-    } catch { setError('Connection error. Please try again.'); }
-    finally { setLoading(false); }
-  }
 
   async function handleSignin(e) {
     e.preventDefault();
@@ -49,7 +26,7 @@ export default function Auth() {
       const res = await fetch(`${API}/api/auth/login`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password }) });
       const data = await res.json();
       if (!res.ok) { setError(data.error || 'Invalid email or password.'); return; }
-      login(data); // AuthContext expects { token, user, company }
+      login(data);
       navigate('/dashboard');
     } catch { setError('Connection error. Please try again.'); }
     finally { setLoading(false); }
@@ -63,69 +40,47 @@ export default function Auth() {
         <div className="auth-left">
           <a onClick={() => navigate('/')} className="auth-logo"><NavLogo /><span>Gate <span style={{color:'var(--accent-2)',fontWeight:500}}>AI</span></span></a>
           <div className="auth-form-wrap">
-            <div className="auth-tabs">
-              <button className={`auth-tab${tab==='signup'?' active':''}`} onClick={() => { setTab('signup'); setError(''); }}>Sign Up</button>
-              <button className={`auth-tab${tab==='signin'?' active':''}`} onClick={() => { setTab('signin'); setError(''); }}>Sign In</button>
-            </div>
             {error && <div className="auth-error">{error}</div>}
-            {success && <div className="auth-success">{success}</div>}
-            {tab === 'signup' && (
-              <form onSubmit={handleSignup} className="auth-form">
-                <h2 className="auth-heading">Create your account</h2>
-                <p className="auth-sub">14-day free trial.</p>
-                {plan && <div className="plan-badge"><span className="plan-dot"/>{plan.charAt(0).toUpperCase()+plan.slice(1)} plan selected</div>}
-                <div className="field-row">
-                  <div className="field"><label>First name</label><input type="text" placeholder="John" value={signup.first_name} onChange={e => setSignup(s=>({...s,first_name:e.target.value}))}/></div>
-                  <div className="field"><label>Last name</label><input type="text" placeholder="Smith" value={signup.last_name} onChange={e => setSignup(s=>({...s,last_name:e.target.value}))}/></div>
-                </div>
-                <div className="field"><label>Work email</label><input type="email" placeholder="john@company.com" value={signup.email} onChange={e => setSignup(s=>({...s,email:e.target.value}))}/></div>
-                <div className="field"><label>Company name</label><input type="text" placeholder="Acme Logistics LLC" value={signup.company_name} onChange={e => setSignup(s=>({...s,company_name:e.target.value}))}/></div>
-                <div className="field">
-                  <label>Industry</label>
-                  <select value={signup.industry} onChange={e => setSignup(s=>({...s,industry:e.target.value}))}>
-                    <option value="">Select your industry</option>
-                    <option value="logistics">Logistics & Freight</option>
-                    <option value="manufacturing">Manufacturing</option>
-                    <option value="distribution">Distribution & Warehousing</option>
-                    <option value="construction">Construction</option>
-                    <option value="transport">Transport & Haulage</option>
-                    <option value="other">Other</option>
-                  </select>
-                </div>
-                <div className="field"><label>Password</label><input type="password" placeholder="Min. 8 characters" value={signup.password} onChange={e => setSignup(s=>({...s,password:e.target.value}))}/></div>
-                <button type="submit" className="btn-submit" disabled={loading}>{loading?'Creating account...':'Create account →'}</button>
-                <p className="auth-switch">Already have an account? <button type="button" onClick={() => setTab('signin')}>Sign in</button></p>
-                <p className="auth-legal">By creating an account you agree to our <span onClick={() => navigate('/terms')}>Terms</span> and <span onClick={() => navigate('/privacy')}>Privacy Policy</span>.</p>
-              </form>
-            )}
-            {tab === 'signin' && (
-              <form onSubmit={handleSignin} className="auth-form">
-                <h2 className="auth-heading">Welcome back</h2>
-                <p className="auth-sub">Sign in to your Gate AI dashboard.</p>
-                <div className="field"><label>Email</label><input type="email" placeholder="john@company.com" value={signin.email} onChange={e => setSignin(s=>({...s,email:e.target.value}))}/></div>
-                <div className="field"><label>Password</label><input type="password" placeholder="Your password" value={signin.password} onChange={e => setSignin(s=>({...s,password:e.target.value}))}/></div>
-                <button type="submit" className="btn-submit" disabled={loading}>{loading?'Signing in...':'Sign in →'}</button>
-                <p className="auth-switch">Don't have an account? <button type="button" onClick={() => setTab('signup')}>Sign up free</button></p>
-              </form>
-            )}
+            <form onSubmit={handleSignin} className="auth-form">
+              <h2 className="auth-heading">Welcome back</h2>
+              <p className="auth-sub">Sign in to your Gate AI dashboard.</p>
+              <div className="field"><label>Email</label><input type="email" placeholder="you@company.com" value={signin.email} onChange={e => setSignin(s=>({...s,email:e.target.value}))} autoFocus/></div>
+              <div className="field"><label>Password</label><input type="password" placeholder="••••••••" value={signin.password} onChange={e => setSignin(s=>({...s,password:e.target.value}))}/></div>
+              <button className="btn-submit" type="submit" disabled={loading}>{loading ? 'Signing in...' : 'Sign in'}</button>
+            </form>
+            <div className="auth-switch">
+              Want to try Gate AI? <button onClick={() => navigate('/book-demo')}>Book a demo</button>
+            </div>
           </div>
           <div className="auth-footer-links">
-            <a onClick={e => { e.preventDefault(); navigate('/capabilities'); }}>Capabilities</a>
-            <a onClick={e => { e.preventDefault(); navigate('/pricing'); }}>Pricing</a>
-            <a onClick={e => { e.preventDefault(); navigate('/integrations'); }}>Integrations</a>
-            <a onClick={e => { e.preventDefault(); navigate('/faq'); }}>FAQ</a>
-            <a onClick={e => { e.preventDefault(); navigate('/contact'); }}>Contact</a>
-            <a onClick={e => { e.preventDefault(); navigate('/privacy'); }}>Privacy</a>
-            <a onClick={e => { e.preventDefault(); navigate('/terms'); }}>Terms</a>
+            <a onClick={() => navigate('/privacy')}>Privacy</a>
+            <a onClick={() => navigate('/terms')}>Terms</a>
+            <a onClick={() => navigate('/contact')}>Contact</a>
           </div>
         </div>
         <div className="auth-right">
           <div className="auth-showcase">
             <div className="showcase-card">
-              <div className="sc-header"><span className="dot dot-r"/><span className="dot dot-y"/><span className="dot dot-g"/><span className="sc-title">gate-ai · live dashboard</span></div>
+              <div className="sc-header">
+                <div className="dot dot-r"/><div className="dot dot-y"/><div className="dot dot-g"/>
+                <div className="sc-title">live_call_screening</div>
+              </div>
               <div className="sc-body">
-                {[{type:'blocked',name:'Unknown — "Calling about your energy rates..."',detail:'+1 (555) 234-8821 · 0:09 · Cold call'},{type:'forwarded',name:'Daniel @ AB Logistics — re: Tuesday pickup',detail:'+1 (214) 882-3301 · Routed → Dave M.'},{type:'blocked',name:'Unknown — "We help businesses with SEO..."',detail:'+1 (888) 102-4421 · 0:06 · Cold call'},{type:'live',name:'Caller being screened now...',detail:'+1 (972) 441-0092 · AI active'}].map((row,i)=>(
-                  <div key={i} className="sc-row"><span className={`sc-dot sc-dot-${row.type}`}/><div className="sc-text"><div className="sc-name">{row.name}</div><div className="sc-detail">{row.detail}</div></div><span className={`sc-badge sc-badge-${row.type}`}>{row.type==='blocked'?'Blocked':row.type==='forwarded'?'Forwarded':'Live'}</span></div>
+                {[
+                  { dot: 'blocked', name: 'SolarMax Inc', detail: 'Cold pitch — solar panels', badge: 'blocked' },
+                  { dot: 'forwarded', name: 'Daniel Reeves', detail: 'AB Logistics — order pickup', badge: 'forwarded' },
+                  { dot: 'blocked', name: 'Digital Marketing Pro', detail: 'SEO services pitch', badge: 'blocked' },
+                  { dot: 'forwarded', name: 'Maria Gonzalez', detail: 'Pacific Freight — Q2 rates', badge: 'forwarded' },
+                  { dot: 'live', name: 'Unknown caller', detail: '+1 (312) 555-0199 — screening…', badge: 'live' },
+                ].map((c,i) => (
+                  <div key={i} className="sc-row">
+                    <div className={`sc-dot sc-dot-${c.dot}`}/>
+                    <div className="sc-text">
+                      <div className="sc-name">{c.name}</div>
+                      <div className="sc-detail">{c.detail}</div>
+                    </div>
+                    <div className={`sc-badge sc-badge-${c.badge}`}>{c.badge}</div>
+                  </div>
                 ))}
               </div>
               <div className="sc-stats">
@@ -135,7 +90,7 @@ export default function Auth() {
               </div>
             </div>
             <div className="auth-taglines">
-              {['Phone number provisioned automatically in seconds','AI trained for logistics & manufacturing from day one','14-day trial — no credit card, cancel anytime'].map((t,i)=>(
+              {['AI-powered cold call detection from day one','Built specifically for logistics & manufacturing','Book a demo to get started — invite-only access'].map((t,i)=>(
                 <div key={i} className="auth-tagline">{t}</div>
               ))}
             </div>
@@ -165,28 +120,20 @@ const CSS = `
 .auth-footer-links a{font-size:12px;color:var(--text-3);transition:color 180ms ease;}
 .auth-footer-links a:hover{color:var(--text);}
 .auth-form-wrap{flex:1;display:flex;flex-direction:column;justify-content:center;position:relative;z-index:1;max-width:360px;}
-.auth-tabs{display:flex;background:var(--bg-3);border:1px solid var(--border);border-radius:12px;padding:4px;margin-bottom:28px;}
-.auth-tab{flex:1;padding:10px;text-align:center;font-size:13.5px;font-weight:600;border-radius:9px;cursor:pointer;transition:all 200ms;color:var(--text-3);border:none;background:transparent;font-family:var(--font);}
-.auth-tab.active{background:var(--bg-4);color:var(--text);box-shadow:0 1px 4px rgba(0,0,0,0.4);}
 .auth-form{display:flex;flex-direction:column;}
 .auth-heading{font-size:26px;font-weight:700;letter-spacing:-0.03em;margin-bottom:6px;}
 .auth-sub{font-size:14px;color:var(--text-2);margin-bottom:24px;line-height:1.5;}
-.plan-badge{display:inline-flex;align-items:center;gap:7px;background:rgba(108,92,231,0.1);border:1px solid rgba(108,92,231,0.25);border-radius:100px;padding:6px 14px;font-size:12px;font-weight:600;color:var(--accent-2);margin-bottom:20px;width:fit-content;}
-.plan-dot{width:6px;height:6px;border-radius:50%;background:var(--accent-2);box-shadow:0 0 8px var(--accent-2);}
-.field{margin-bottom:14px;}.field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:0;}
+.field{margin-bottom:14px;}
 label{display:block;font-size:11.5px;font-weight:600;color:var(--text-2);margin-bottom:7px;letter-spacing:0.3px;text-transform:uppercase;}
-input,select{width:100%;background:var(--bg-3);border:1px solid var(--border-2);border-radius:10px;padding:12px 14px;font-size:14px;color:var(--text);font-family:var(--font);transition:border-color 200ms,box-shadow 200ms;outline:none;}
-input:focus,select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(108,92,231,0.15);}
-input::placeholder{color:var(--text-3);}select option{background:var(--bg-3);}
+input{width:100%;background:var(--bg-3);border:1px solid var(--border-2);border-radius:10px;padding:12px 14px;font-size:14px;color:var(--text);font-family:var(--font);transition:border-color 200ms,box-shadow 200ms;outline:none;}
+input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(108,92,231,0.15);}
+input::placeholder{color:var(--text-3);}
 .btn-submit{width:100%;padding:14px;background:var(--accent);color:white;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;transition:all 200ms;margin-top:8px;font-family:var(--font);}
 .btn-submit:hover:not(:disabled){background:#7c6ef0;transform:translateY(-1px);box-shadow:0 8px 24px var(--accent-glow);}
 .btn-submit:disabled{opacity:0.6;cursor:not-allowed;}
 .auth-error{background:rgba(255,107,107,0.1);border:1px solid rgba(255,107,107,0.25);border-radius:10px;padding:12px 14px;font-size:13px;color:var(--red);margin-bottom:16px;}
-.auth-success{background:rgba(0,214,143,0.1);border:1px solid rgba(0,214,143,0.25);border-radius:10px;padding:12px 14px;font-size:13px;color:var(--green);margin-bottom:16px;}
 .auth-switch{text-align:center;font-size:13px;color:var(--text-3);margin-top:16px;}
 .auth-switch button{background:none;border:none;color:var(--accent-2);font-weight:500;cursor:pointer;font-family:var(--font);font-size:13px;}
-.auth-legal{font-size:11.5px;color:var(--text-3);text-align:center;margin-top:12px;line-height:1.6;}
-.auth-legal span{text-decoration:underline;cursor:pointer;}
 .auth-right{flex:1;display:flex;align-items:center;justify-content:center;padding:60px;position:relative;overflow:hidden;}
 .auth-right::before{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:800px;height:800px;background:radial-gradient(circle,rgba(108,92,231,0.1) 0%,transparent 60%);pointer-events:none;}
 .auth-showcase{position:relative;z-index:1;width:100%;max-width:480px;}
@@ -215,5 +162,5 @@ input::placeholder{color:var(--text-3);}select option{background:var(--bg-3);}
 .auth-tagline{display:flex;align-items:center;gap:12px;font-size:13.5px;color:var(--text-2);}
 .auth-tagline::before{content:'';width:20px;height:20px;border-radius:50%;background:rgba(0,214,143,0.15);border:1px solid rgba(0,214,143,0.3);flex-shrink:0;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M4 10l4 4L16 6' stroke='%2300d68f' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:center;}
 @media(max-width:900px){.auth-right{display:none;}.auth-left{flex:1;border-right:none;}}
-@media(max-width:480px){.auth-left{padding:32px 24px;}.field-row{grid-template-columns:1fr;}}
+@media(max-width:480px){.auth-left{padding:32px 24px;}}
 `;
