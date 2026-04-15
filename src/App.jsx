@@ -20,14 +20,18 @@ import Terms        from './pages/Terms.jsx';
 import Activate        from './pages/Activate.jsx';
 import ActivateSuccess from './pages/ActivateSuccess.jsx';
 
-import StaffLogin         from './pages/StaffLogin.jsx';
-import StaffDashboard     from './pages/StaffDashboard.jsx';
-import StaffPlaceholder   from './pages/StaffPlaceholder.jsx';
-import StaffCompanies     from './pages/StaffCompanies.jsx';
-import StaffCompanyDetail from './pages/StaffCompanyDetail.jsx';
-import StaffInvites       from './pages/StaffInvites.jsx';
-import StaffInviteNew     from './pages/StaffInviteNew.jsx';
-import StaffInviteDetail  from './pages/StaffInviteDetail.jsx';
+import StaffLogin              from './pages/StaffLogin.jsx';
+import StaffDashboard          from './pages/StaffDashboard.jsx';
+import StaffPlaceholder        from './pages/StaffPlaceholder.jsx';
+import StaffCompanies          from './pages/StaffCompanies.jsx';
+import StaffCompanyDetail      from './pages/StaffCompanyDetail.jsx';
+import StaffInvites            from './pages/StaffInvites.jsx';
+import StaffInviteNew          from './pages/StaffInviteNew.jsx';
+import StaffInviteDetail       from './pages/StaffInviteDetail.jsx';
+import StaffDemoRequests       from './pages/StaffDemoRequests.jsx';
+import StaffDemoRequestDetail  from './pages/StaffDemoRequestDetail.jsx';
+import StaffContactRequests    from './pages/StaffContactRequests.jsx';
+import StaffContactRequestDetail from './pages/StaffContactRequestDetail.jsx';
 
 function ProtectedRoute({ children }) {
   const { token, loading } = useAuth();
@@ -93,22 +97,22 @@ export default function App() {
             <Route path="/staff/login"           element={<StaffLogin />} />
             <Route path="/staff"                 element={<Navigate to="/staff/dashboard" replace />} />
 
-            <Route path="/staff/dashboard"            element={<StaffPage><StaffDashboard /></StaffPage>} />
-            <Route path="/staff/companies"            element={<StaffPage><StaffCompanies /></StaffPage>} />
-            <Route path="/staff/companies/:id"        element={<StaffPage><StaffCompanyDetail /></StaffPage>} />
-            <Route path="/staff/invites"              element={<StaffPage><StaffInvites /></StaffPage>} />
-            <Route path="/staff/invites/new"          element={<StaffPage><StaffInviteNew /></StaffPage>} />
-            <Route path="/staff/invites/:id"          element={<StaffPage><StaffInviteDetail /></StaffPage>} />
-            <Route path="/staff/demo-requests"        element={<StaffPage><StaffPlaceholder /></StaffPage>} />
-            <Route path="/staff/demo-requests/:id"    element={<StaffPage><StaffPlaceholder /></StaffPage>} />
-            <Route path="/staff/contact-requests"     element={<StaffPage><StaffPlaceholder /></StaffPage>} />
-            <Route path="/staff/contact-requests/:id" element={<StaffPage><StaffPlaceholder /></StaffPage>} />
-            <Route path="/staff/billing"              element={<StaffPage><StaffPlaceholder /></StaffPage>} />
-            <Route path="/staff/billing/events"       element={<StaffPage><StaffPlaceholder /></StaffPage>} />
-            <Route path="/staff/calls"                element={<StaffPage><StaffPlaceholder /></StaffPage>} />
-            <Route path="/staff/system-health"        element={<StaffPage><StaffPlaceholder /></StaffPage>} />
-            <Route path="/staff/staff-users"          element={<StaffPage requiredRoles={['superadmin']}><StaffPlaceholder /></StaffPage>} />
-            <Route path="/staff/audit-log"            element={<StaffPage><StaffPlaceholder /></StaffPage>} />
+            <Route path="/staff/dashboard"               element={<StaffPage><StaffDashboard /></StaffPage>} />
+            <Route path="/staff/companies"               element={<StaffPage><StaffCompanies /></StaffPage>} />
+            <Route path="/staff/companies/:id"           element={<StaffPage><StaffCompanyDetail /></StaffPage>} />
+            <Route path="/staff/invites"                 element={<StaffPage><StaffInvites /></StaffPage>} />
+            <Route path="/staff/invites/new"             element={<StaffPage><StaffInviteNew /></StaffPage>} />
+            <Route path="/staff/invites/:id"             element={<StaffPage><StaffInviteDetail /></StaffPage>} />
+            <Route path="/staff/demo-requests"           element={<StaffPage><StaffDemoRequests /></StaffPage>} />
+            <Route path="/staff/demo-requests/:id"       element={<StaffPage><StaffDemoRequestDetail /></StaffPage>} />
+            <Route path="/staff/contact-requests"        element={<StaffPage><StaffContactRequests /></StaffPage>} />
+            <Route path="/staff/contact-requests/:id"    element={<StaffPage><StaffContactRequestDetail /></StaffPage>} />
+            <Route path="/staff/billing"                 element={<StaffPage><StaffPlaceholder /></StaffPage>} />
+            <Route path="/staff/billing/events"          element={<StaffPage><StaffPlaceholder /></StaffPage>} />
+            <Route path="/staff/calls"                   element={<StaffPage><StaffPlaceholder /></StaffPage>} />
+            <Route path="/staff/system-health"           element={<StaffPage><StaffPlaceholder /></StaffPage>} />
+            <Route path="/staff/staff-users"             element={<StaffPage requiredRoles={['superadmin']}><StaffPlaceholder /></StaffPage>} />
+            <Route path="/staff/audit-log"               element={<StaffPage><StaffPlaceholder /></StaffPage>} />
 
             {/* Redirects */}
             <Route path="/app/*" element={<Navigate to="/dashboard" replace />} />
