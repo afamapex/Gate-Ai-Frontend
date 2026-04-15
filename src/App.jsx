@@ -17,10 +17,11 @@ import Contact      from './pages/Contact.jsx';
 import Privacy      from './pages/Privacy.jsx';
 import Terms        from './pages/Terms.jsx';
 
-import StaffLogin       from './pages/StaffLogin.jsx';
-import StaffDashboard   from './pages/StaffDashboard.jsx';
-import StaffPlaceholder from './pages/StaffPlaceholder.jsx';
-import StaffCompanies   from './pages/StaffCompanies.jsx';
+import StaffLogin         from './pages/StaffLogin.jsx';
+import StaffDashboard     from './pages/StaffDashboard.jsx';
+import StaffPlaceholder   from './pages/StaffPlaceholder.jsx';
+import StaffCompanies     from './pages/StaffCompanies.jsx';
+import StaffCompanyDetail from './pages/StaffCompanyDetail.jsx';
 
 function ProtectedRoute({ children }) {
   const { token, loading } = useAuth();
@@ -84,7 +85,7 @@ export default function App() {
 
             <Route path="/staff/dashboard"            element={<StaffPage><StaffDashboard /></StaffPage>} />
             <Route path="/staff/companies"            element={<StaffPage><StaffCompanies /></StaffPage>} />
-            <Route path="/staff/companies/:id"        element={<StaffPage><StaffPlaceholder /></StaffPage>} />
+            <Route path="/staff/companies/:id"        element={<StaffPage><StaffCompanyDetail /></StaffPage>} />
             <Route path="/staff/invites"              element={<StaffPage><StaffPlaceholder /></StaffPage>} />
             <Route path="/staff/invites/new"          element={<StaffPage><StaffPlaceholder /></StaffPage>} />
             <Route path="/staff/demo-requests"        element={<StaffPage><StaffPlaceholder /></StaffPage>} />
