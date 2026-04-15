@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useAuth } from "../context/AuthContext.jsx";
+import ImpersonationBanner from "../components/ImpersonationBanner.jsx";
 import { useWebSocket } from "../hooks/useWebSocket.js";
 import {
   calls as callsApi,
@@ -1545,6 +1546,7 @@ export default function Dashboard() {
   return (
     <>
       <style>{CSS}</style>
+      <ImpersonationBanner />
       <div className="app">
         <Sidebar active={activePage} setActive={setActivePage} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
         <div className="main">
