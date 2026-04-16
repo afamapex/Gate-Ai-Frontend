@@ -29,9 +29,10 @@ const patch = (path, body) => request('PATCH',  path, body);
 const del   = (path)       => request('DELETE', path);
 
 export const auth = {
-  login:    (email, password) => post('/api/auth/login', { email, password }),
-  register: (data)            => post('/api/auth/register', data),
-  me:       ()                => get('/api/auth/me'),
+  login:            (email, password) => post('/api/auth/login', { email, password }),
+  register:         (data)            => post('/api/auth/register', data),
+  me:               ()                => get('/api/auth/me'),
+  dismissChecklist: ()                => post('/api/auth/checklist/dismiss'),
 };
 
 export const calls = {
@@ -76,8 +77,10 @@ export const settings = {
 };
 
 export const notifications = {
-  get:    ()     => get('/api/notifications'),
-  update: (data) => patch('/api/notifications', data),
+  get:          ()     => get('/api/notifications'),
+  update:       (data) => patch('/api/notifications', data),
+  testBlocked:   ()    => post('/api/notifications/test/blocked'),
+  testForwarded: ()    => post('/api/notifications/test/forwarded'),
 };
 
 export const billing = {
