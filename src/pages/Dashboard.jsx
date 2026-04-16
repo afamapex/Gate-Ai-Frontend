@@ -1,12 +1,14 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useAuth } from "../context/AuthContext.jsx";
 import ImpersonationBanner from "../components/ImpersonationBanner.jsx";
+import GettingStartedChecklist from "../components/GettingStartedChecklist.jsx";
 import { useWebSocket } from "../hooks/useWebSocket.js";
 import {
   calls as callsApi,
   users as usersApi,
   whitelist as whitelistApi,
   patterns as patternsApi,
+  routing as routingApi,
   settings as settingsApi,
   notifications as notificationsApi,
   billing as billingApi,
@@ -455,7 +457,6 @@ function Topbar({ title, onMenuToggle, setActivePage }) {
 
   const avatarText = user ? initials(`${user.first_name || ""} ${user.last_name || ""}`) : "?";
 
-  // Load recent calls for notifications panel
   useEffect(() => {
     if (showNotif && notifCalls.length === 0) {
       callsApi.list({ limit: 5, sort: "desc" })
@@ -464,7 +465,6 @@ function Topbar({ title, onMenuToggle, setActivePage }) {
     }
   }, [showNotif]);
 
-  // Close on outside click
   useEffect(() => {
     function handleClick(e) {
       if (menuRef.current && !menuRef.current.contains(e.target)) setShowMenu(false);
@@ -625,7 +625,7 @@ function BillingBanner() {
 
 // ─── CALL DETAIL MODAL ───────────────────────────────────────
 function CallDetailModal({ call, onClose, onWhitelist, onBlock }) {
-  const [confirm, setConfirm] = useState(null); // 'whitelist' | 'block'
+  const [confirm, setConfirm] = useState(null);
   if (!call) return null;
   const c = normalizeCall(call);
   const confColor = c.confidence >= 90 ? "var(--green)" : c.confidence >= 75 ? "var(--orange)" : "var(--red)";
@@ -717,18 +717,18 @@ function CallActionMenu({ call, onWhitelist, onBlock, onUnblock }) {
         <button className="btn btn-sm" onClick={() => setOpen(v => !v)}>Actions {Icons.chevDown}</button>
         {open && (
           <div className="action-menu">
-  {c.status === "blocked" ? (
-    <>
-      <div className="action-menu-item" onClick={() => { setOpen(false); setConfirm("unblock"); }}>↩ Unblock number</div>
-      <div className="action-menu-item success" onClick={() => { setOpen(false); setConfirm("whitelist"); }}>✓ Whitelist number</div>
-    </>
-  ) : (
-    <>
-      <div className="action-menu-item success" onClick={() => { setOpen(false); setConfirm("whitelist"); }}>✓ Whitelist number</div>
-      <div className="action-menu-item danger" onClick={() => { setOpen(false); setConfirm("block"); }}>✕ Block number</div>
-    </>
-  )}
-</div>
+            {c.status === "blocked" ? (
+              <>
+                <div className="action-menu-item" onClick={() => { setOpen(false); setConfirm("unblock"); }}>↩ Unblock number</div>
+                <div className="action-menu-item success" onClick={() => { setOpen(false); setConfirm("whitelist"); }}>✓ Whitelist number</div>
+              </>
+            ) : (
+              <>
+                <div className="action-menu-item success" onClick={() => { setOpen(false); setConfirm("whitelist"); }}>✓ Whitelist number</div>
+                <div className="action-menu-item danger" onClick={() => { setOpen(false); setConfirm("block"); }}>✕ Block number</div>
+              </>
+            )}
+          </div>
         )}
       </div>
       {confirm === "whitelist" && (
@@ -751,14 +751,14 @@ function CallActionMenu({ call, onWhitelist, onBlock, onUnblock }) {
         />
       )}
       {confirm === "unblock" && (
-  <ConfirmModal
-    title="Unblock this number?"
-    message={`${c.phone} will be removed from your blocked patterns and go through normal screening on future calls.`}
-    confirmLabel="Unblock"
-    onConfirm={() => onUnblock(call)}
-    onClose={() => setConfirm(null)}
-  />
-)}
+        <ConfirmModal
+          title="Unblock this number?"
+          message={`${c.phone} will be removed from your blocked patterns and go through normal screening on future calls.`}
+          confirmLabel="Unblock"
+          onConfirm={() => onUnblock(call)}
+          onClose={() => setConfirm(null)}
+        />
+      )}
     </>
   );
 }
@@ -846,7 +846,7 @@ async function unblockCaller(call) {
 }
 
 // ─── DASHBOARD PAGE ──────────────────────────────────────────
-function DashboardPage({ onViewCall, liveCalls }) {
+function DashboardPage({ onViewCall, liveCalls, setActivePage }) {
   const [callList, setCallList] = useState([]);
   const [ptList,   setPtList]   = useState([]);
   const [teamList, setTeamList] = useState([]);
@@ -876,6 +876,9 @@ function DashboardPage({ onViewCall, liveCalls }) {
 
   return (
     <>
+      {/* Getting Started checklist — shown to new companies until dismissed */}
+      <GettingStartedChecklist setActivePage={setActivePage} />
+
       <BillingBanner />
       <div className="stats-grid">
         <StatCard label="Total Calls Today" value={total} icon={Icons.phone} iconBg="var(--accent-dim)" change={total > 0 ? `${total} calls` : "No calls yet"} changeDir="up" />
@@ -1327,6 +1330,12 @@ function SettingsPage() {
   const [pwError,   setPwError]   = useState("");
   const [pwSaved,   setPwSaved]   = useState(false);
 
+  // Test notification state
+  const [testingB,     setTestingB]     = useState(false);
+  const [testingF,     setTestingF]     = useState(false);
+  const [testBSent,    setTestBSent]    = useState(false);
+  const [testFSent,    setTestFSent]    = useState(false);
+
   useEffect(() => {
     notificationsApi.get()
       .then(res => setNotifs(res?.settings || res || {}))
@@ -1340,7 +1349,6 @@ function SettingsPage() {
     setSavingCompany(true); setCompanySaved(false);
     try {
       const updated = await settingsApi.update({ company_name: companyForm.name, industry: companyForm.industry, timezone: companyForm.timezone });
-      // Update local auth context
       const token = localStorage.getItem("gateai_token");
       if (token) {
         const me = await fetch(`${import.meta.env.VITE_API_URL || "https://gate-ai-backend-production.up.railway.app"}/api/auth/me`, { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json());
@@ -1388,6 +1396,26 @@ function SettingsPage() {
   async function openBillingPortal() {
     try { const res = await billingApi.portal(); if (res?.url) window.location.href = res.url; }
     catch (err) { alert(err.message); }
+  }
+
+  async function sendTestBlocked() {
+    setTestingB(true);
+    try {
+      await notificationsApi.testBlocked();
+      setTestBSent(true);
+      setTimeout(() => setTestBSent(false), 5000);
+    } catch (err) { alert("Test failed: " + (err.message || "Unknown error")); }
+    finally { setTestingB(false); }
+  }
+
+  async function sendTestForwarded() {
+    setTestingF(true);
+    try {
+      await notificationsApi.testForwarded();
+      setTestFSent(true);
+      setTimeout(() => setTestFSent(false), 5000);
+    } catch (err) { alert("Test failed: " + (err.message || "Unknown error")); }
+    finally { setTestingF(false); }
   }
 
   if (loading) return <Spinner />;
@@ -1516,6 +1544,26 @@ function SettingsPage() {
           <ToggleSetting label="Blocked call email alerts" desc="Receive an email when a call is blocked. Off by default." value={!!notifs?.blocked_call_email_enabled} onChange={() => toggle("blocked_call_email_enabled")} />
           <ToggleSetting label="Real-time Slack alerts" desc="Get instant Slack notifications for blocked and forwarded calls" value={!!notifs?.slack_enabled} onChange={() => toggle("slack_enabled")} />
           <ToggleSetting label="Weekly analytics report" desc="Auto-generate and email a weekly call analytics summary" value={!!notifs?.weekly_report_enabled} onChange={() => toggle("weekly_report_enabled")} />
+
+          {/* Test notification buttons */}
+          <div style={{ borderTop: "1px solid var(--border)", paddingTop: 18, marginTop: 2 }}>
+            <div style={{ fontSize: 13.5, fontWeight: 600, color: "var(--text-primary)", marginBottom: 4 }}>
+              Test your notifications
+            </div>
+            <div style={{ fontSize: 12, color: "var(--text-tertiary)", marginBottom: 14, lineHeight: 1.5 }}>
+              Send a test notification to confirm your email and Slack setup is working correctly.
+            </div>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              <button className="btn btn-sm" onClick={sendTestBlocked} disabled={testingB}
+                style={testBSent ? { color: "var(--green)", borderColor: "rgba(0,214,143,0.3)" } : {}}>
+                {testBSent ? "✓ Sent!" : testingB ? "Sending…" : "🚫 Test blocked call"}
+              </button>
+              <button className="btn btn-sm" onClick={sendTestForwarded} disabled={testingF}
+                style={testFSent ? { color: "var(--green)", borderColor: "rgba(0,214,143,0.3)" } : {}}>
+                {testFSent ? "✓ Sent!" : testingF ? "Sending…" : "📞 Test forwarded call"}
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -1552,7 +1600,7 @@ export default function Dashboard() {
         <div className="main">
           <Topbar title={PAGE_TITLES[activePage]} onMenuToggle={() => setSidebarOpen(!sidebarOpen)} setActivePage={setActivePage} />
           <div className="content">
-            {activePage === "dashboard"    && <DashboardPage onViewCall={setSelectedCall} liveCalls={liveCalls} />}
+            {activePage === "dashboard"    && <DashboardPage onViewCall={setSelectedCall} liveCalls={liveCalls} setActivePage={setActivePage} />}
             {activePage === "calls"        && <CallLogPage   onViewCall={setSelectedCall} />}
             {activePage === "screening"    && <ScreeningPage />}
             {activePage === "team"         && <TeamPage />}
