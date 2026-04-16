@@ -8,6 +8,7 @@ import Landing      from './pages/Landing.jsx';
 import Login        from './pages/Login.jsx';
 import Auth         from './pages/Auth.jsx';
 import Dashboard    from './pages/Dashboard.jsx';
+import Provisioning from './pages/Provisioning.jsx';
 import BookDemo     from './pages/BookDemo.jsx';
 import Pricing      from './pages/Pricing.jsx';
 import Capabilities from './pages/Capabilities.jsx';
@@ -80,6 +81,11 @@ export default function App() {
             <Route path="/activate/:token/success" element={<ActivateSuccess />} />
             <Route path="/book/:token"             element={<Book />} />
 
+            {/* Provisioning screen — shown after registration while
+                Twilio + Vapi are being set up in the background.
+                Protected so unauthenticated users can't land here. */}
+            <Route path="/provisioning" element={<ProtectedRoute><Provisioning /></ProtectedRoute>} />
+
             <Route path="/dashboard/*" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
 
             <Route path="/staff/login" element={<StaffLogin />} />
@@ -103,9 +109,9 @@ export default function App() {
             <Route path="/staff/staff-users"             element={<StaffPage requiredRoles={['superadmin']}><StaffStaffUsers /></StaffPage>} />
             <Route path="/staff/audit-log"               element={<StaffPage><StaffAuditLog /></StaffPage>} />
 
-            <Route path="/app/*" element={<Navigate to="/dashboard" replace />} />
+            <Route path="/app/*"  element={<Navigate to="/dashboard" replace />} />
             <Route path="/signup" element={<Navigate to="/auth" replace />} />
-            <Route path="*" element={<Navigate to="/" replace />} />
+            <Route path="*"       element={<Navigate to="/" replace />} />
           </Routes>
         </BrowserRouter>
       </StaffAuthProvider>
