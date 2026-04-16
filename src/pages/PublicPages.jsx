@@ -28,7 +28,7 @@ export function PublicNav({ active }) {
             ))}
           </ul>
           <div className="pub-cta">
-            <a href="/auth" onClick={go('/auth')} className="pub-btn-ghost">Sign Up / Sign In</a>
+            <a href="/auth" onClick={go('/auth')} className="pub-btn-ghost">Sign In</a>
             <a href="/book-demo" onClick={go('/book-demo')} className="pub-btn-primary">Book Demo</a>
           </div>
         </div>
