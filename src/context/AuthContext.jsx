@@ -95,7 +95,7 @@ export function AuthProvider({ children }) {
 
   const logout = useCallback(() => {
     clearAuth();
-    window.location.href = '/auth';
+    window.location.href = '/';
   }, [clearAuth]);
 
   return (
