@@ -503,7 +503,7 @@ export default function Landing() {
             <li><a href="/contact" onClick={e => goPage(e, '/contact')}>Contact</a></li>
           </ul>
           <div className="nav-cta">
-            <a href="/auth" onClick={e => goAuth(e)} className="btn btn-ghost nav-btn">Sign Up / Sign In</a>
+            <a href="/auth" onClick={e => goAuth(e)} className="btn btn-ghost nav-btn">Sign In</a>
             <a href="/book-demo" onClick={goDemo} className="btn btn-primary nav-btn">Book Demo</a>
           </div>
         </div>
