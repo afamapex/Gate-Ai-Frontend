@@ -40,6 +40,7 @@ import StaffSystemHealth       from './pages/StaffSystemHealth.jsx';
 import StaffStaffUsers         from './pages/StaffStaffUsers.jsx';
 import StaffAuditLog           from './pages/StaffAuditLog.jsx';
 import StaffMeetings           from './pages/StaffMeetings.jsx';
+import ScrollToTop             from './components/ScrollToTop.jsx';
 
 function ProtectedRoute({ children }) {
   const { token, loading } = useAuth();
@@ -64,6 +65,7 @@ export default function App() {
     <AuthProvider>
       <StaffAuthProvider>
         <BrowserRouter>
+          <ScrollToTop />
           <Routes>
             <Route path="/"             element={<Landing />} />
             <Route path="/auth"         element={<Auth />} />
