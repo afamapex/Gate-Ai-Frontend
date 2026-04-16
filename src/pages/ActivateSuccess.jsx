@@ -15,7 +15,8 @@ export default function ActivateSuccess() {
       const existingToken = localStorage.getItem('gateai_token');
       if (existingToken) {
         setStatus('success');
-        setTimeout(() => { window.location.href = '/dashboard'; }, 2000);
+        // Go to provisioning screen — it handles already-provisioned accounts gracefully
+        setTimeout(() => { window.location.href = '/provisioning'; }, 2000);
         return;
       }
       setStatus('error');
@@ -34,10 +35,11 @@ export default function ActivateSuccess() {
 
     setStatus('success');
 
-    // Redirect to dashboard after a short delay so they see the success screen.
+    // Redirect to provisioning screen — it polls for the phone number
+    // and AI assistant, then transitions to the dashboard once ready.
     setTimeout(() => {
-      window.location.href = '/dashboard';
-    }, 3000);
+      window.location.href = '/provisioning';
+    }, 2500);
   }, []);
 
   return (
@@ -118,7 +120,7 @@ export default function ActivateSuccess() {
                 <div className="as-spinner"/>
               </div>
               <h1 className="as-heading">Setting up your account…</h1>
-              <p className="as-body">Just a moment while we configure everything.</p>
+              <p className="as-body">Just a moment while we get things ready.</p>
             </>
           )}
 
@@ -129,12 +131,11 @@ export default function ActivateSuccess() {
                   <polyline points="20 6 9 17 4 12"/>
                 </svg>
               </div>
-              <h1 className="as-heading">You're all set!</h1>
+              <h1 className="as-heading">Payment confirmed!</h1>
               <p className="as-body">
-                Your Gate AI account is live. Your 7-day free trial has started — you can cancel anytime from your billing settings.
+                Your 7-day free trial has started. Setting up your Gate AI phone number now — this takes about 15 seconds.
               </p>
-              <a href="/dashboard" className="as-btn">Go to your dashboard</a>
-              <div className="as-redirect">Redirecting you automatically in a few seconds…</div>
+              <div className="as-redirect">Taking you to your setup screen…</div>
             </>
           )}
 
