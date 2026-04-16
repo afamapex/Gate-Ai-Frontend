@@ -10,9 +10,10 @@ export default function Auth() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    if (token) navigate('/dashboard', { replace: true });
-  }, [token]);
+  if (token) {
+    navigate('/', { replace: true });
+    return null;
+  }
 
   const [signin, setSignin] = useState({ email: '', password: '' });
 
