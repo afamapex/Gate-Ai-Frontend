@@ -1,9 +1,5 @@
 // ═══════════════════════════════════════════════════════════════
 // Gate AI — Getting Started Checklist
-// Shown on the main Dashboard page for new companies until
-// all steps are complete or the user dismisses it.
-// Completion checks run against live API data, not localStorage,
-// except for "Send test notification" which is localStorage-tracked.
 // ═══════════════════════════════════════════════════════════════
 
 import { useState, useEffect, useCallback } from 'react';
@@ -17,22 +13,29 @@ import {
   notifications as notificationsApi,
 } from '../services/api.js';
 
+// ── localStorage keys scoped per company ─────────────────────
+const lsKey  = (companyId, suffix) => `gateai_checklist_${companyId}_${suffix}`;
+
 export default function GettingStartedChecklist({ setActivePage }) {
   const { token, user, company, login } = useAuth();
 
-  const [steps,        setSteps]        = useState(null);   // null = loading
-  const [dismissing,   setDismissing]   = useState(false);
-  const [testingB,     setTestingB]     = useState(false);
-  const [testingF,     setTestingF]     = useState(false);
-  const [testBSent,    setTestBSent]    = useState(false);
-  const [testFSent,    setTestFSent]    = useState(false);
+  const [steps,      setSteps]      = useState(null);
+  const [dismissing, setDismissing] = useState(false);
+  const [testingB,   setTestingB]   = useState(false);
+  const [testingF,   setTestingF]   = useState(false);
+  const [testBSent,  setTestBSent]  = useState(false);
+  const [testFSent,  setTestFSent]  = useState(false);
 
-  // ── Don't render if already dismissed ─────────────────────
-  const dismissed = !!company?.checklist_dismissed_at;
+  // ── Persistent dismiss — check BOTH the company record AND localStorage
+  // so it survives logout even if the backend call fails.
+  const dismissKey = company?.id ? lsKey(company.id, 'dismissed') : null;
+  const dismissed  =
+    !!company?.checklist_dismissed_at ||
+    !!(dismissKey && localStorage.getItem(dismissKey));
 
   // ── Load completion status ─────────────────────────────────
   const loadSteps = useCallback(async () => {
-    if (dismissed) return;
+    if (dismissed || !company?.id) return;
     try {
       const [usersRes, routingRes, whitelistRes, settingsRes, notifsRes] = await Promise.all([
         usersApi.list().catch(() => null),
@@ -42,103 +45,116 @@ export default function GettingStartedChecklist({ setActivePage }) {
         notificationsApi.get().catch(() => null),
       ]);
 
-      const userList      = usersRes?.users     || usersRes     || [];
-      const routingList   = routingRes?.rules   || routingRes   || [];
-      const wlList        = whitelistRes?.contacts || whitelistRes || [];
-      const aiSettings    = settingsRes?.ai_settings || settingsRes || {};
-      const notifs        = notifsRes?.settings  || notifsRes   || {};
+      const userList    = usersRes?.users       || usersRes    || [];
+      const routingList = routingRes?.rules      || routingRes  || [];
+      const wlList      = whitelistRes?.contacts || whitelistRes || [];
+      const aiSettings  = settingsRes?.ai_settings || settingsRes || {};
+      const notifs      = notifsRes?.settings    || notifsRes   || {};
 
-      // Slack is considered connected if a webhook URL is configured
-      const slackConnected = !!(
-        notifs?.slack_webhook_url ||
-        notifs?.slack_enabled && notifs?.slack_webhook_url
-      );
+      // Slack: auto-detected via webhook URL, OR manually marked done
+      const slackConnected =
+        !!(notifs?.slack_webhook_url) ||
+        !!localStorage.getItem(lsKey(company.id, 'slack_done'));
 
-      // Rejection script is customized if it has a non-empty value
-      const scriptCustomized = !!(aiSettings?.rejection_script);
+      // Rejection script: auto-detected if a custom script exists, OR manually marked done
+      const scriptCustomized =
+        !!(aiSettings?.rejection_script) ||
+        !!localStorage.getItem(lsKey(company.id, 'script_done'));
 
-      // Test notification — tracked in localStorage
-      const testSent = !!localStorage.getItem(`gateai_test_notif_${company?.id}`);
+      // Test notification — localStorage only
+      const testSent = !!localStorage.getItem(lsKey(company.id, 'test_done'));
 
       setSteps([
         {
-          id:       'team',
-          done:     userList.length > 1,
-          label:    'Add your first team member',
-          desc:     'Gate AI needs to know who to route calls to.',
-          page:     'team',
-          cta:      'Go to Team',
+          id:    'team',
+          done:  userList.length > 1,
+          label: 'Add your first team member',
+          desc:  'Gate AI needs to know who to route calls to.',
+          page:  'team',
+          cta:   'Go to Team',
+          canMarkDone: false,
         },
         {
-          id:       'routing',
-          done:     routingList.length > 0,
-          label:    'Set up a call routing rule',
-          desc:     'Define which types of calls go to which team members.',
-          page:     'team',
-          cta:      'Go to Team',
+          id:    'routing',
+          done:  routingList.length > 0,
+          label: 'Set up a call routing rule',
+          desc:  'Define which types of calls go to which team members.',
+          page:  'team',
+          cta:   'Go to Team',
+          canMarkDone: false,
         },
         {
-          id:       'whitelist',
-          done:     wlList.length > 0,
-          label:    'Add a whitelist contact',
-          desc:     'Known contacts skip screening and ring through directly.',
-          page:     'screening',
-          cta:      'Go to Screening',
+          id:    'whitelist',
+          done:  wlList.length > 0,
+          label: 'Add a whitelist contact',
+          desc:  'Known contacts skip screening and ring through directly.',
+          page:  'screening',
+          cta:   'Go to Screening',
+          canMarkDone: false,
         },
         {
-          id:       'slack',
-          done:     slackConnected,
-          label:    'Connect Slack notifications',
-          desc:     'Get instant alerts for blocked and forwarded calls.',
-          page:     'integrations',
-          cta:      'Go to Integrations',
+          id:    'slack',
+          done:  slackConnected,
+          label: 'Connect Slack notifications',
+          desc:  'Get instant alerts for blocked and forwarded calls.',
+          page:  'integrations',
+          cta:   'Go to Integrations',
+          canMarkDone: true,   // ← manual mark-done available
+          markDoneKey: 'slack_done',
         },
         {
-          id:       'script',
-          done:     scriptCustomized,
-          label:    'Customize your rejection script',
-          desc:     'Tailor the message cold callers hear when blocked.',
-          page:     'screening',
-          cta:      'Go to AI Behavior',
+          id:    'script',
+          done:  scriptCustomized,
+          label: 'Customize your rejection script',
+          desc:  'Tailor the message cold callers hear when blocked.',
+          page:  'screening',
+          cta:   'Go to AI Behavior',
+          canMarkDone: true,   // ← manual mark-done available
+          markDoneKey: 'script_done',
         },
         {
-          id:       'test',
-          done:     testSent,
-          label:    'Send a test notification',
-          desc:     'Confirm your email and Slack notifications are working.',
-          page:     null, // inline action, no navigation
-          cta:      null,
+          id:    'test',
+          done:  testSent,
+          label: 'Send a test notification',
+          desc:  'Confirm your email and Slack notifications are working.',
+          page:  null,
+          cta:   null,
+          canMarkDone: false,
         },
       ]);
     } catch {
-      setSteps([]); // fail silently — don't block the dashboard
+      setSteps([]);
     }
   }, [dismissed, company?.id]);
 
   useEffect(() => { loadSteps(); }, [loadSteps]);
 
-  // ── Dismiss checklist ──────────────────────────────────────
+  // ── Persistent dismiss ─────────────────────────────────────
   async function handleDismiss() {
     setDismissing(true);
+    // Write to localStorage immediately — this is the reliable fallback.
+    // Even if the API call below fails, the checklist stays dismissed.
+    if (dismissKey) localStorage.setItem(dismissKey, '1');
     try {
       await authApi.dismissChecklist();
-      // Update auth context so checklist_dismissed_at is set and component
-      // won't re-render on the next /me refresh.
-      login({
-        token,
-        user,
-        company: { ...company, checklist_dismissed_at: new Date().toISOString() },
-      });
     } catch {
-      // If the API call fails, just hide it locally — don't block the user
-      login({
-        token,
-        user,
-        company: { ...company, checklist_dismissed_at: new Date().toISOString() },
-      });
-    } finally {
-      setDismissing(false);
+      // Non-fatal — localStorage already handled it above
     }
+    // Update auth context so the in-memory company object is also updated
+    login({
+      token,
+      user,
+      company: { ...company, checklist_dismissed_at: new Date().toISOString() },
+    });
+    setDismissing(false);
+  }
+
+  // ── Manual mark-done for steps that can't be auto-detected ─
+  function handleMarkDone(step) {
+    if (!step.markDoneKey || !company?.id) return;
+    localStorage.setItem(lsKey(company.id, step.markDoneKey), '1');
+    // Optimistically update the step in state
+    setSteps(prev => prev.map(s => s.id === step.id ? { ...s, done: true } : s));
   }
 
   // ── Test notification handlers ─────────────────────────────
@@ -146,10 +162,9 @@ export default function GettingStartedChecklist({ setActivePage }) {
     setTestingB(true);
     try {
       await notificationsApi.testBlocked();
-      localStorage.setItem(`gateai_test_notif_${company?.id}`, '1');
+      localStorage.setItem(lsKey(company.id, 'test_done'), '1');
       setTestBSent(true);
       setTimeout(() => setTestBSent(false), 5000);
-      // Refresh steps so the test step marks as done
       loadSteps();
     } catch (err) {
       alert('Test failed: ' + (err.message || 'Unknown error'));
@@ -162,7 +177,7 @@ export default function GettingStartedChecklist({ setActivePage }) {
     setTestingF(true);
     try {
       await notificationsApi.testForwarded();
-      localStorage.setItem(`gateai_test_notif_${company?.id}`, '1');
+      localStorage.setItem(lsKey(company.id, 'test_done'), '1');
       setTestFSent(true);
       setTimeout(() => setTestFSent(false), 5000);
       loadSteps();
@@ -173,16 +188,13 @@ export default function GettingStartedChecklist({ setActivePage }) {
     }
   }
 
-  // ── Don't render if dismissed or still loading ─────────────
+  // ── Don't render if dismissed or loading ──────────────────
   if (dismissed) return null;
-  if (!steps) return null; // loading — no flash of content
+  if (!steps)    return null;
 
-  const doneCount  = steps.filter(s => s.done).length;
-  const allDone    = doneCount === steps.length;
+  const doneCount   = steps.filter(s => s.done).length;
+  const allDone     = doneCount === steps.length;
   const progressPct = Math.round((doneCount / steps.length) * 100);
-
-  // Once all steps are complete, auto-show a "dismiss" prompt
-  // but don't auto-dismiss — let the user do it explicitly.
 
   return (
     <div style={{
@@ -197,9 +209,7 @@ export default function GettingStartedChecklist({ setActivePage }) {
         display: 'flex', justifyContent: 'space-between', alignItems: 'center',
         padding: '16px 20px',
         borderBottom: '1px solid var(--border)',
-        background: allDone
-          ? 'rgba(0,214,143,0.04)'
-          : 'rgba(108,92,231,0.04)',
+        background: allDone ? 'rgba(0,214,143,0.04)' : 'rgba(108,92,231,0.04)',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <div style={{
@@ -291,7 +301,7 @@ export default function GettingStartedChecklist({ setActivePage }) {
               )}
             </div>
 
-            {/* Label + desc */}
+            {/* Label + description */}
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{
                 fontSize: 13.5, fontWeight: 500,
@@ -308,7 +318,9 @@ export default function GettingStartedChecklist({ setActivePage }) {
               )}
             </div>
 
-            {/* Action — either navigation button or inline test buttons */}
+            {/* Actions */}
+
+            {/* Test notification — inline buttons */}
             {!step.done && step.id === 'test' && (
               <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
                 <button
@@ -330,14 +342,28 @@ export default function GettingStartedChecklist({ setActivePage }) {
               </div>
             )}
 
+            {/* Steps with navigation + optional manual mark-done */}
             {!step.done && step.page && (
-              <button
-                className="btn btn-sm btn-primary"
-                onClick={() => setActivePage(step.page)}
-                style={{ flexShrink: 0, fontSize: 11.5 }}
-              >
-                {step.cta}
-              </button>
+              <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+                <button
+                  className="btn btn-sm btn-primary"
+                  onClick={() => setActivePage(step.page)}
+                  style={{ fontSize: 11.5 }}
+                >
+                  {step.cta}
+                </button>
+                {/* Slack and script can't be auto-verified — show a manual tick */}
+                {step.canMarkDone && (
+                  <button
+                    className="btn btn-sm"
+                    onClick={() => handleMarkDone(step)}
+                    style={{ fontSize: 11.5 }}
+                    title="Mark this step as done"
+                  >
+                    ✓ Done
+                  </button>
+                )}
+              </div>
             )}
 
             {step.done && (
