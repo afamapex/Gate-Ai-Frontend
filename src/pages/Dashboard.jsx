@@ -444,14 +444,50 @@ function Sidebar({ active, setActive, isOpen, onClose }) {
   );
 }
 
+// ─── SEARCH ITEMS ────────────────────────────────────────────
+const SEARCH_ITEMS = [
+  { label: "Dashboard",                page: "dashboard",    filter: null,        keywords: ["home","overview","dashboard","main"] },
+  { label: "Call Log",                 page: "calls",        filter: "all",       keywords: ["calls","log","history","all calls"] },
+  { label: "Blocked calls",            page: "calls",        filter: "blocked",   keywords: ["blocked","spam","block","rejected"] },
+  { label: "Forwarded calls",          page: "calls",        filter: "forwarded", keywords: ["forwarded","connected","routed"] },
+  { label: "Screened calls",           page: "calls",        filter: "screened",  keywords: ["screened","flagged","pending"] },
+  { label: "Screening Rules",          page: "screening",    filter: null,        keywords: ["screen","patterns","rules","keywords","block list"] },
+  { label: "Whitelist / VIP",          page: "screening",    filter: null,        keywords: ["whitelist","vip","allow","bypass","contact"] },
+  { label: "Team & Routing",           page: "team",         filter: null,        keywords: ["team","routing","employees","members","staff"] },
+  { label: "Integrations",             page: "integrations", filter: null,        keywords: ["integrations","slack","twilio","connect","zapier","teams"] },
+  { label: "Settings",                 page: "settings",     filter: null,        keywords: ["settings","preferences","account","profile"] },
+  { label: "Account Details",          page: "settings",     filter: null,        keywords: ["account","name","email","phone","forwarding"] },
+  { label: "Billing & Subscription",   page: "settings",     filter: null,        keywords: ["billing","subscription","plan","payment","invoice","stripe"] },
+  { label: "Notification Preferences", page: "settings",     filter: null,        keywords: ["notifications","alerts","email alerts","slack alerts","weekly"] },
+  { label: "AI Assistant",             page: "settings",     filter: null,        keywords: ["assistant","ai","gate-ai","name","vapi"] },
+  { label: "Change Password",          page: "settings",     filter: null,        keywords: ["password","security","change password"] },
+];
+
 // ─── TOPBAR ──────────────────────────────────────────────────
-function Topbar({ title, onMenuToggle, setActivePage }) {
+function Topbar({ title, onMenuToggle, setActivePage, onSearchNavigate }) {
   const { user, logout } = useAuth();
-  const [showMenu,  setShowMenu]  = useState(false);
-  const [showNotif, setShowNotif] = useState(false);
-  const [notifCalls, setNotifCalls] = useState([]);
-  const menuRef  = useRef(null);
-  const notifRef = useRef(null);
+  const [showMenu,    setShowMenu]    = useState(false);
+  const [showNotif,   setShowNotif]   = useState(false);
+  const [notifCalls,  setNotifCalls]  = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [showSearch,  setShowSearch]  = useState(false);
+  const menuRef   = useRef(null);
+  const notifRef  = useRef(null);
+  const searchRef = useRef(null);
+
+  // Filter suggestions as user types
+  const q = searchQuery.trim().toLowerCase();
+  const suggestions = q.length < 1 ? [] : SEARCH_ITEMS.filter(item =>
+    item.label.toLowerCase().includes(q) ||
+    item.keywords.some(k => k.includes(q))
+  ).slice(0, 6);
+
+  function handleSearchSelect(item) {
+    setSearchQuery("");
+    setShowSearch(false);
+    if (onSearchNavigate) onSearchNavigate(item.page, item.filter);
+    else setActivePage(item.page);
+  }
 
   const avatarText = user ? initials(`${user.first_name || ""} ${user.last_name || ""}`) : "?";
 
@@ -467,6 +503,7 @@ function Topbar({ title, onMenuToggle, setActivePage }) {
     function handleClick(e) {
       if (menuRef.current && !menuRef.current.contains(e.target)) setShowMenu(false);
       if (notifRef.current && !notifRef.current.contains(e.target)) setShowNotif(false);
+      if (searchRef.current && !searchRef.current.contains(e.target)) setShowSearch(false);
     }
     document.addEventListener("mousedown", handleClick);
     return () => document.removeEventListener("mousedown", handleClick);
@@ -489,7 +526,47 @@ function Topbar({ title, onMenuToggle, setActivePage }) {
         <div className="live-indicator"><span className="live-dot" /> Live</div>
       </div>
       <div className="topbar-right">
-        <div className="topbar-search">{Icons.search}<input placeholder="Search calls, contacts..." /></div>
+        <div className="topbar-search" ref={searchRef} style={{ position: "relative" }}>
+          {Icons.search}
+          <input
+            placeholder="Search pages, settings..."
+            value={searchQuery}
+            onChange={e => { setSearchQuery(e.target.value); setShowSearch(true); }}
+            onFocus={() => setShowSearch(true)}
+            onKeyDown={e => {
+              if (e.key === "Escape") { setShowSearch(false); setSearchQuery(""); }
+              if (e.key === "Enter" && suggestions.length > 0) handleSearchSelect(suggestions[0]);
+            }}
+          />
+          {showSearch && suggestions.length > 0 && (
+            <div style={{
+              position: "absolute", top: "calc(100% + 6px)", left: 0, right: 0,
+              background: "var(--bg-card)", border: "1px solid var(--border-light)",
+              borderRadius: "var(--radius-md)", boxShadow: "var(--shadow-lg)",
+              zIndex: 300, overflow: "hidden", minWidth: 220,
+            }}>
+              {suggestions.map((item, i) => (
+                <div
+                  key={i}
+                  onClick={() => handleSearchSelect(item)}
+                  style={{
+                    padding: "9px 14px", fontSize: 13, color: "var(--text-secondary)",
+                    cursor: "pointer", display: "flex", alignItems: "center", gap: 8,
+                    borderBottom: i < suggestions.length - 1 ? "1px solid var(--border)" : "none",
+                    transition: "background 150ms ease",
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.background = "var(--bg-hover)"}
+                  onMouseLeave={e => e.currentTarget.style.background = "transparent"}
+                >
+                  <span style={{ color: "var(--text-tertiary)", fontSize: 11 }}>
+                    {item.page.charAt(0).toUpperCase() + item.page.slice(1)}
+                  </span>
+                  <span style={{ color: "var(--text-primary)", fontWeight: 500 }}>{item.label}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
 
         {/* Notifications bell */}
         <div ref={notifRef} style={{ position: "relative" }}>
@@ -546,9 +623,9 @@ function Topbar({ title, onMenuToggle, setActivePage }) {
 }
 
 // ─── STAT CARD ───────────────────────────────────────────────
-function StatCard({ label, value, icon, iconBg, change, changeDir }) {
+function StatCard({ label, value, icon, iconBg, change, changeDir, onClick }) {
   return (
-    <div className="stat-card">
+    <div className="stat-card" onClick={onClick} style={{ cursor: onClick ? "pointer" : "default" }}>
       <div className="stat-header">
         <span className="stat-label">{label}</span>
         <div className="stat-icon" style={{ background: iconBg }}>{icon}</div>
@@ -846,7 +923,7 @@ async function unblockCaller(call) {
 }
 
 // ─── DASHBOARD PAGE ──────────────────────────────────────────
-function DashboardPage({ onViewCall, liveCalls, setActivePage }) {
+function DashboardPage({ onViewCall, liveCalls, setActivePage, setCallLogFilter }) {
   const [callList, setCallList] = useState([]);
   const [ptList,   setPtList]   = useState([]);
   const [teamList, setTeamList] = useState([]);
@@ -883,10 +960,14 @@ function DashboardPage({ onViewCall, liveCalls, setActivePage }) {
 
       <BillingBanner />
       <div className="stats-grid">
-        <StatCard label="Total Calls Today" value={total} icon={Icons.phone} iconBg="var(--accent-dim)" change={total > 0 ? `${total} calls` : "No calls yet"} changeDir="up" />
-        <StatCard label="Blocked / Spam" value={blocked} icon={Icons.ban} iconBg="var(--red-dim)" change={total > 0 ? `${Math.round(blocked/total*100)}% of calls` : "0% of calls"} changeDir="down" />
-        <StatCard label="Forwarded" value={forwarded} icon={Icons.forward} iconBg="var(--green-dim)" change={forwarded > 0 ? "Connected" : "None yet"} changeDir="up" />
-        <StatCard label="Flagged / Screened" value={screened} icon={Icons.eye} iconBg="var(--orange-dim)" change="Pending review" changeDir={null} />
+        <StatCard label="Total Calls Today" value={total} icon={Icons.phone} iconBg="var(--accent-dim)" change={total > 0 ? `${total} calls` : "No calls yet"} changeDir="up"
+          onClick={() => { setActivePage("calls"); setCallLogFilter("all"); }} />
+        <StatCard label="Blocked / Spam" value={blocked} icon={Icons.ban} iconBg="var(--red-dim)" change={total > 0 ? `${Math.round(blocked/total*100)}% of calls` : "0% of calls"} changeDir="down"
+          onClick={() => { setActivePage("calls"); setCallLogFilter("blocked"); }} />
+        <StatCard label="Forwarded" value={forwarded} icon={Icons.forward} iconBg="var(--green-dim)" change={forwarded > 0 ? "Connected" : "None yet"} changeDir="up"
+          onClick={() => { setActivePage("calls"); setCallLogFilter("forwarded"); }} />
+        <StatCard label="Flagged / Screened" value={screened} icon={Icons.eye} iconBg="var(--orange-dim)" change="Pending review" changeDir={null}
+          onClick={() => { setActivePage("calls"); setCallLogFilter("screened"); }} />
       </div>
 
       <div className="section">
@@ -926,8 +1007,11 @@ function DashboardPage({ onViewCall, liveCalls, setActivePage }) {
       </div>
 
       <div className="dashboard-bottom-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-        <div className="section">
-          <div className="section-header"><span className="section-title">Top Blocked Patterns</span></div>
+        <div className="section" style={{ cursor: "pointer" }} onClick={() => setActivePage("screening")}>
+          <div className="section-header">
+            <span className="section-title">Top Blocked Patterns</span>
+            <span style={{ fontSize: 11, color: "var(--text-tertiary)" }}>View all →</span>
+          </div>
           <div style={{ padding: 16 }}>
             {ptList.length === 0 ? (
               <div style={{ color: "var(--text-tertiary)", fontSize: 13, padding: "8px 0" }}>No blocked patterns configured yet</div>
@@ -942,8 +1026,11 @@ function DashboardPage({ onViewCall, liveCalls, setActivePage }) {
             ))}
           </div>
         </div>
-        <div className="section">
-          <div className="section-header"><span className="section-title">Active Team Members</span></div>
+        <div className="section" style={{ cursor: "pointer" }} onClick={() => setActivePage("team")}>
+          <div className="section-header">
+            <span className="section-title">Active Team Members</span>
+            <span style={{ fontSize: 11, color: "var(--text-tertiary)" }}>View all →</span>
+          </div>
           <div style={{ padding: 16 }}>
             {teamList.length === 0 ? (
               <div style={{ color: "var(--text-tertiary)", fontSize: 13, padding: "8px 0" }}>No team members added yet</div>
@@ -967,10 +1054,10 @@ function DashboardPage({ onViewCall, liveCalls, setActivePage }) {
 }
 
 // ─── CALL LOG PAGE ───────────────────────────────────────────
-function CallLogPage({ onViewCall }) {
+function CallLogPage({ onViewCall, initialFilter }) {
   const [callList,  setCallList]  = useState([]);
   const [loading,   setLoading]   = useState(true);
-  const [filter,    setFilter]    = useState("all");
+  const [filter,    setFilter]    = useState(initialFilter || "all");
   const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
@@ -1903,10 +1990,25 @@ const PAGE_TITLES = {
 };
 
 export default function Dashboard() {
-  const [activePage,   setActivePage]   = useState("dashboard");
-  const [selectedCall, setSelectedCall] = useState(null);
-  const [sidebarOpen,  setSidebarOpen]  = useState(false);
-  const [liveCalls,    setLiveCalls]    = useState([]);
+  const [activePage,    setActivePage]    = useState("dashboard");
+  const [selectedCall,  setSelectedCall]  = useState(null);
+  const [sidebarOpen,   setSidebarOpen]   = useState(false);
+  const [liveCalls,     setLiveCalls]     = useState([]);
+  const [callLogFilter, setCallLogFilter] = useState("all");
+
+  // When navigating away from calls, reset filter so it starts fresh next time
+  // unless the navigation explicitly sets a filter (stat card clicks)
+  function navigateTo(page) {
+    if (page !== "calls") setCallLogFilter("all");
+    setActivePage(page);
+  }
+
+  // Called by the search bar — optionally carries a filter for the calls page
+  function handleSearchNavigate(page, filter) {
+    if (page === "calls" && filter) setCallLogFilter(filter);
+    else if (page !== "calls") setCallLogFilter("all");
+    setActivePage(page);
+  }
 
   const handleWsMessage = useCallback((msg) => {
     if (msg.type === "new_call") setLiveCalls(prev => [msg.call, ...prev].slice(0, 20));
@@ -1919,12 +2021,12 @@ export default function Dashboard() {
       <ImpersonationBanner />
       <JWTExpiryBanner />
       <div className="app">
-        <Sidebar active={activePage} setActive={setActivePage} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+        <Sidebar active={activePage} setActive={navigateTo} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
         <div className="main">
-          <Topbar title={PAGE_TITLES[activePage]} onMenuToggle={() => setSidebarOpen(!sidebarOpen)} setActivePage={setActivePage} />
+          <Topbar title={PAGE_TITLES[activePage] || "Dashboard"} onMenuToggle={() => setSidebarOpen(!sidebarOpen)} setActivePage={navigateTo} onSearchNavigate={handleSearchNavigate} />
           <div className="content">
-            {activePage === "dashboard"    && <DashboardPage onViewCall={setSelectedCall} liveCalls={liveCalls} setActivePage={setActivePage} />}
-            {activePage === "calls"        && <CallLogPage   onViewCall={setSelectedCall} />}
+            {activePage === "dashboard"    && <DashboardPage onViewCall={setSelectedCall} liveCalls={liveCalls} setActivePage={setActivePage} setCallLogFilter={setCallLogFilter} />}
+            {activePage === "calls"        && <CallLogPage   onViewCall={setSelectedCall} initialFilter={callLogFilter} />}
             {activePage === "screening"    && <ScreeningPage />}
             {activePage === "team"         && <TeamPage />}
             {activePage === "integrations" && <IntegrationsPage />}
