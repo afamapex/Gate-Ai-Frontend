@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useAuth } from "../context/AuthContext.jsx";
 import ImpersonationBanner from "../components/ImpersonationBanner.jsx";
+import NotificationBanner from '../components/NotificationBanner.jsx';
 import JWTExpiryBanner from '../components/JWTExpiryBanner.jsx';
 import GettingStartedChecklist from "../components/GettingStartedChecklist.jsx";
 import { useWebSocket } from "../hooks/useWebSocket.js";
@@ -877,6 +878,8 @@ function DashboardPage({ onViewCall, liveCalls, setActivePage }) {
 
   return (
     <>
+      {/* Notification banner — whitelist suggestions and grey area reviews */}
+      <NotificationBanner />
       {/* Getting Started checklist — shown to new companies until dismissed */}
       <GettingStartedChecklist setActivePage={setActivePage} />
 
