@@ -1536,7 +1536,7 @@ function SettingsPage() {
   const [companySaved,  setCompanySaved]  = useState(false);
 
   // Account state
-  const [accountForm,   setAccountForm]   = useState({ first_name: "", last_name: "", email: "" });
+  const [accountForm,   setAccountForm]   = useState({ first_name: "", last_name: "", email, phone: "" });
   const [savingAccount, setSavingAccount] = useState(false);
   const [accountSaved,  setAccountSaved]  = useState(false);
 
@@ -1558,7 +1558,7 @@ function SettingsPage() {
       .catch(() => setNotifs({}))
       .finally(() => setLoading(false));
     if (company) setCompanyForm({ name: company.name || "", industry: company.industry || "", timezone: company.timezone || "" });
-    if (user)    setAccountForm({ first_name: user.first_name || "", last_name: user.last_name || "", email: user.email || "" });
+    if (user)    setAccountForm({ first_name: user.first_name || "", last_name: user.last_name || "", email: user.email || "", phone: user.phone || "" });
   }, []);
 
   async function saveCompany() {
@@ -1706,6 +1706,9 @@ function SettingsPage() {
             <label style={labelStyle}>Email Address</label>
             <input type="email" style={fieldStyle} value={accountForm.email} onChange={e => setAccountForm(f => ({ ...f, email: e.target.value }))} onFocus={e => e.target.style.borderColor = "var(--accent)"} onBlur={e => e.target.style.borderColor = "var(--border)"} />
           </div>
+          <div style={{ gridColumn: "1 / -1" }}>
+            <label style={labelStyle}>Phone Number <span style={{ fontSize: 10, color: "var(--accent-light)", fontWeight: 400, textTransform: "none", marginLeft: 6 }}>Used for call forwarding</span></label>
+            <input type="tel" style={fieldStyle} placeholder="+1 (555) 123-4567" value={accountForm.phone || ""} onChange={e => setAccountForm(f => ({ ...f, phone: e.target.value }))} onFocus={e => e.target.style.borderColor = "var(--accent)"} onBlur={e => e.target.style.borderColor = "var(--border)"} />
         </div>
         <div style={{ padding: "0 20px 20px", display: "flex", justifyContent: "flex-end" }}>
           <button className="btn btn-sm btn-primary" onClick={saveAccount} disabled={savingAccount}>{savingAccount ? "Saving..." : "Save changes"}</button>
