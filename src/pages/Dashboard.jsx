@@ -1209,13 +1209,24 @@ function ScreeningPage() {
 
 // ─── TEAM PAGE ───────────────────────────────────────────────
 function TeamPage() {
-  const [team,    setTeam]    = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [adding,  setAdding]  = useState(false);
-  const [form,    setForm]    = useState({ first_name: "", last_name: "", email: "", phone: "", extension: "", role: "employee" });
+  const [team,       setTeam]       = useState([]);
+  const [rules,      setRules]      = useState([]);
+  const [loading,    setLoading]    = useState(true);
+  const [adding,     setAdding]     = useState(false);
+  const [editEmp,    setEditEmp]    = useState(null); // employee being edited
+  const [savingEmp,  setSavingEmp]  = useState(false);
+  const [addingRule, setAddingRule] = useState(false);
+  const [ruleForm,   setRuleForm]   = useState({ intent_match: "", route_to_id: "", priority: "medium" });
+  const [form,       setForm]       = useState({ first_name: "", last_name: "", email: "", phone: "", extension: "", role: "employee" });
 
   useEffect(() => {
-    usersApi.list().then(res => setTeam(res?.users || res || [])).catch(console.error).finally(() => setLoading(false));
+    Promise.all([
+      usersApi.list(),
+      routingApi.list(),
+    ]).then(([teamRes, routingRes]) => {
+      setTeam(teamRes?.users || teamRes || []);
+      setRules(routingRes?.rules || routingRes || []);
+    }).catch(console.error).finally(() => setLoading(false));
   }, []);
 
   async function addMember() {
@@ -1227,53 +1238,251 @@ function TeamPage() {
       setAdding(false);
     } catch (err) { alert(err.message); }
   }
+
+  async function saveEmployee() {
+    if (!editEmp) return;
+    setSavingEmp(true);
+    try {
+      const updated = await usersApi.update(editEmp.id, {
+        first_name: editEmp.first_name,
+        last_name:  editEmp.last_name,
+        phone:      editEmp.phone,
+        extension:  editEmp.extension,
+        role:       editEmp.role,
+      });
+      setTeam(prev => prev.map(m => m.id === editEmp.id ? { ...m, ...editEmp } : m));
+      setEditEmp(null);
+    } catch (err) { alert(err.message); }
+    finally { setSavingEmp(false); }
+  }
+
   async function removeMember(id) {
     if (!confirm("Remove this team member?")) return;
     try { await usersApi.remove(id); setTeam(prev => prev.filter(m => m.id !== id)); }
     catch (err) { alert(err.message); }
   }
 
+  async function addRule() {
+    if (!ruleForm.intent_match || !ruleForm.route_to_id) return;
+    try {
+      const rule = await routingApi.create(ruleForm);
+      setRules(prev => [...prev, rule]);
+      setRuleForm({ intent_match: "", route_to_id: "", priority: "medium" });
+      setAddingRule(false);
+    } catch (err) { alert(err.message); }
+  }
+
+  async function removeRule(id) {
+    if (!confirm("Remove this routing rule?")) return;
+    try { await routingApi.remove(id); setRules(prev => prev.filter(r => r.id !== id)); }
+    catch (err) { alert(err.message); }
+  }
+
+  async function toggleRule(rule) {
+    try {
+      await routingApi.update(rule.id, { is_active: !rule.is_active });
+      setRules(prev => prev.map(r => r.id === rule.id ? { ...r, is_active: !r.is_active } : r));
+    } catch (err) { alert(err.message); }
+  }
+
   const COLORS = ["linear-gradient(135deg, var(--accent), #a29bfe)", "linear-gradient(135deg, var(--green), #0abf76)", "linear-gradient(135deg, var(--blue), #228be6)", "linear-gradient(135deg, var(--orange), #e67700)"];
   if (loading) return <Spinner />;
 
+  const PRIORITY_COLORS = { high: "var(--red)", medium: "var(--orange)", low: "var(--text-tertiary)" };
+
   return (
-    <div className="section">
-      <div className="section-header">
-        <span className="section-title">Team Members & Routing</span>
-        <button className="btn btn-sm btn-primary" onClick={() => setAdding(!adding)}>{Icons.plus} Add Employee</button>
-      </div>
-      {adding && (
-        <div className="add-form-row">
-          <input className="form-input" placeholder="First name *" value={form.first_name} onChange={e => setForm(p => ({ ...p, first_name: e.target.value }))} />
-          <input className="form-input" placeholder="Last name" value={form.last_name} onChange={e => setForm(p => ({ ...p, last_name: e.target.value }))} />
-          <input className="form-input" placeholder="Email *" value={form.email} onChange={e => setForm(p => ({ ...p, email: e.target.value }))} />
-          <input className="form-input" placeholder="Phone" value={form.phone} onChange={e => setForm(p => ({ ...p, phone: e.target.value }))} />
-          <input className="form-input" placeholder="Extension" value={form.extension} onChange={e => setForm(p => ({ ...p, extension: e.target.value }))} />
-          <button className="btn btn-sm btn-primary" onClick={addMember}>Add</button>
-          <button className="btn btn-sm" onClick={() => setAdding(false)}>Cancel</button>
-        </div>
-      )}
-      {team.length === 0 ? <div className="empty-state"><p>No team members yet — add your first employee above</p></div> : (
-        <div className="employee-grid">
-          {team.map((emp, i) => (
-            <div key={emp.id} className="employee-card">
-              <div className="emp-avatar" style={{ background: COLORS[i % COLORS.length] }}>{initials(`${emp.first_name || ""} ${emp.last_name || ""}`)}</div>
-              <div className="emp-info">
-                <div className="emp-name">{emp.first_name} {emp.last_name}</div>
-                <div className="emp-role">{emp.role || emp.department}</div>
-                {emp.extension && <div className="emp-ext">Ext. {emp.extension}</div>}
-              </div>
-              <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 6 }}>
-                <div className="emp-status" style={{ background: "var(--green)" }} />
-                <button className="btn btn-sm" style={{ color: "var(--red)", fontSize: 10, padding: "2px 7px" }} onClick={() => removeMember(emp.id)}>Remove</button>
-              </div>
+    <>
+      {/* ── Edit Employee Modal ── */}
+      {editEmp && (
+        <div className="modal-overlay" onClick={() => setEditEmp(null)}>
+          <div className="modal modal-sm" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <span className="modal-title">Edit {editEmp.first_name} {editEmp.last_name}</span>
+              <button className="modal-close" onClick={() => setEditEmp(null)}>{Icons.x}</button>
             </div>
-          ))}
+            <div className="modal-body">
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
+                <div>
+                  <label className="form-label">First Name</label>
+                  <input className="form-input-full" value={editEmp.first_name || ""} onChange={e => setEditEmp(p => ({ ...p, first_name: e.target.value }))} />
+                </div>
+                <div>
+                  <label className="form-label">Last Name</label>
+                  <input className="form-input-full" value={editEmp.last_name || ""} onChange={e => setEditEmp(p => ({ ...p, last_name: e.target.value }))} />
+                </div>
+              </div>
+              <div style={{ marginBottom: 12 }}>
+                <label className="form-label">Phone Number <span style={{ color: "var(--accent-light)", fontSize: 10 }}>← Required for call forwarding</span></label>
+                <input className="form-input-full" placeholder="+1 (555) 123-4567" value={editEmp.phone || ""} onChange={e => setEditEmp(p => ({ ...p, phone: e.target.value }))} />
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
+                <div>
+                  <label className="form-label">Extension</label>
+                  <input className="form-input-full" placeholder="e.g. 201" value={editEmp.extension || ""} onChange={e => setEditEmp(p => ({ ...p, extension: e.target.value }))} />
+                </div>
+                <div>
+                  <label className="form-label">Role</label>
+                  <select className="form-input-full" value={editEmp.role || "employee"} onChange={e => setEditEmp(p => ({ ...p, role: e.target.value }))}>
+                    <option value="owner">Owner</option>
+                    <option value="admin">Admin</option>
+                    <option value="employee">Employee</option>
+                  </select>
+                </div>
+              </div>
+              {!editEmp.phone && (
+                <div style={{ background: "rgba(255,169,77,0.08)", border: "1px solid rgba(255,169,77,0.2)", borderRadius: 8, padding: "10px 14px", fontSize: 12.5, color: "var(--orange)", lineHeight: 1.5 }}>
+                  ⚠ No phone number set — Gate AI cannot forward calls to this person until a number is added.
+                </div>
+              )}
+            </div>
+            <div className="modal-footer">
+              <button className="btn btn-sm" onClick={() => setEditEmp(null)}>Cancel</button>
+              <button className="btn btn-sm btn-primary" onClick={saveEmployee} disabled={savingEmp}>
+                {savingEmp ? "Saving…" : "Save changes"}
+              </button>
+            </div>
+          </div>
         </div>
       )}
-    </div>
+
+      {/* ── Team Members ── */}
+      <div className="section" style={{ marginBottom: 20 }}>
+        <div className="section-header">
+          <span className="section-title">Team Members</span>
+          <button className="btn btn-sm btn-primary" onClick={() => setAdding(!adding)}>{Icons.plus} Add Employee</button>
+        </div>
+        {adding && (
+          <div className="add-form-row">
+            <input className="form-input" placeholder="First name *" value={form.first_name} onChange={e => setForm(p => ({ ...p, first_name: e.target.value }))} />
+            <input className="form-input" placeholder="Last name" value={form.last_name} onChange={e => setForm(p => ({ ...p, last_name: e.target.value }))} />
+            <input className="form-input" placeholder="Email *" value={form.email} onChange={e => setForm(p => ({ ...p, email: e.target.value }))} />
+            <input className="form-input" placeholder="Phone *" value={form.phone} onChange={e => setForm(p => ({ ...p, phone: e.target.value }))} />
+            <input className="form-input" placeholder="Extension" value={form.extension} onChange={e => setForm(p => ({ ...p, extension: e.target.value }))} />
+            <button className="btn btn-sm btn-primary" onClick={addMember}>Add</button>
+            <button className="btn btn-sm" onClick={() => setAdding(false)}>Cancel</button>
+          </div>
+        )}
+        {team.length === 0 ? <div className="empty-state"><p>No team members yet — add your first employee above</p></div> : (
+          <div className="employee-grid">
+            {team.map((emp, i) => (
+              <div key={emp.id} className="employee-card" style={{ cursor: "pointer" }} onClick={() => setEditEmp({ ...emp })}>
+                <div className="emp-avatar" style={{ background: COLORS[i % COLORS.length] }}>{initials(`${emp.first_name || ""} ${emp.last_name || ""}`)}</div>
+                <div className="emp-info">
+                  <div className="emp-name">{emp.first_name} {emp.last_name}</div>
+                  <div className="emp-role">{emp.role}</div>
+                  {emp.phone
+                    ? <div className="emp-ext" style={{ color: "var(--green)", fontSize: 11 }}>📞 {emp.phone}</div>
+                    : <div className="emp-ext" style={{ color: "var(--orange)", fontSize: 11 }}>⚠ No phone — click to add</div>
+                  }
+                  {emp.extension && <div className="emp-ext">Ext. {emp.extension}</div>}
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 6 }} onClick={e => e.stopPropagation()}>
+                  <div className="emp-status" style={{ background: emp.phone ? "var(--green)" : "var(--orange)" }} />
+                  <button className="btn btn-sm" style={{ color: "var(--red)", fontSize: 10, padding: "2px 7px" }} onClick={() => removeMember(emp.id)}>Remove</button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* ── Routing Rules ── */}
+      <div className="section">
+        <div className="section-header">
+          <span className="section-title">Call Routing Rules</span>
+          <button className="btn btn-sm btn-primary" onClick={() => setAddingRule(!addingRule)}>{Icons.plus} Add Rule</button>
+        </div>
+        <div style={{ padding: "8px 16px 4px", fontSize: 12.5, color: "var(--text-tertiary)", lineHeight: 1.5 }}>
+          Define which types of calls get routed to which team members. The AI uses these rules to decide who to connect the caller to.
+        </div>
+        {addingRule && (
+          <div className="add-form-row" style={{ alignItems: "flex-end" }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 4, minWidth: 200 }}>
+              <span style={{ fontSize: 11, color: "var(--text-tertiary)", textTransform: "uppercase", letterSpacing: "0.5px" }}>Intent / Call Type</span>
+              <input className="form-input" placeholder="e.g. Logistics Coordination" value={ruleForm.intent_match} onChange={e => setRuleForm(p => ({ ...p, intent_match: e.target.value }))} />
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 4, minWidth: 180 }}>
+              <span style={{ fontSize: 11, color: "var(--text-tertiary)", textTransform: "uppercase", letterSpacing: "0.5px" }}>Route To</span>
+              <select className="form-input" value={ruleForm.route_to_id} onChange={e => setRuleForm(p => ({ ...p, route_to_id: e.target.value }))}>
+                <option value="">Select employee...</option>
+                {team.map(emp => (
+                  <option key={emp.id} value={emp.id}>
+                    {emp.first_name} {emp.last_name}{emp.phone ? "" : " ⚠ no phone"}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 4, minWidth: 120 }}>
+              <span style={{ fontSize: 11, color: "var(--text-tertiary)", textTransform: "uppercase", letterSpacing: "0.5px" }}>Priority</span>
+              <select className="form-input" value={ruleForm.priority} onChange={e => setRuleForm(p => ({ ...p, priority: e.target.value }))}>
+                <option value="high">High</option>
+                <option value="medium">Medium</option>
+                <option value="low">Low</option>
+              </select>
+            </div>
+            <button className="btn btn-sm btn-primary" onClick={addRule}>Add</button>
+            <button className="btn btn-sm" onClick={() => setAddingRule(false)}>Cancel</button>
+          </div>
+        )}
+        {rules.length === 0 ? (
+          <div className="empty-state"><p>No routing rules yet — add your first rule to start routing calls</p></div>
+        ) : (
+          <div className="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Intent / Call Type</th>
+                  <th>Routes To</th>
+                  <th>Priority</th>
+                  <th>Status</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                {rules.map(rule => {
+                  const employee = team.find(m => m.id === rule.route_to_id);
+                  return (
+                    <tr key={rule.id}>
+                      <td style={{ color: "var(--text-primary)", fontWeight: 500 }}>{rule.intent_match}</td>
+                      <td>
+                        {employee ? (
+                          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                            <div style={{ width: 24, height: 24, borderRadius: 6, background: "linear-gradient(135deg, var(--accent), #a29bfe)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 600, color: "white" }}>
+                              {initials(`${employee.first_name || ""} ${employee.last_name || ""}`)}
+                            </div>
+                            <div>
+                              <div style={{ fontSize: 13, color: "var(--text-primary)" }}>{employee.first_name} {employee.last_name}</div>
+                              {!employee.phone && <div style={{ fontSize: 11, color: "var(--orange)" }}>⚠ No phone number</div>}
+                            </div>
+                          </div>
+                        ) : <span style={{ color: "var(--text-tertiary)" }}>Unknown employee</span>}
+                      </td>
+                      <td>
+                        <span style={{ fontSize: 12, fontWeight: 600, color: PRIORITY_COLORS[rule.priority] || "var(--text-tertiary)", textTransform: "capitalize" }}>
+                          {rule.priority}
+                        </span>
+                      </td>
+                      <td>
+                        <div className="toggle-wrap" onClick={() => toggleRule(rule)}>
+                          <div className={`toggle ${rule.is_active ? "on" : ""}`}><div className="toggle-knob" /></div>
+                          <span className="toggle-label" style={{ fontSize: 12 }}>{rule.is_active ? "Active" : "Inactive"}</span>
+                        </div>
+                      </td>
+                      <td>
+                        <button className="btn btn-sm" style={{ color: "var(--red)" }} onClick={() => removeRule(rule.id)}>Remove</button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    </>
   );
 }
+
 
 // ─── INTEGRATIONS PAGE ───────────────────────────────────────
 function IntegrationsPage() {
