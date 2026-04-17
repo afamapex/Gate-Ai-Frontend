@@ -1536,7 +1536,7 @@ function SettingsPage() {
   const [companySaved,  setCompanySaved]  = useState(false);
 
   // Account state
-  const [accountForm,   setAccountForm]   = useState({ first_name: "", last_name: "", email: "" });
+  const [accountForm,   setAccountForm]   = useState({ first_name: "", last_name: "", email: "", phone: "" });
   const [savingAccount, setSavingAccount] = useState(false);
   const [accountSaved,  setAccountSaved]  = useState(false);
 
