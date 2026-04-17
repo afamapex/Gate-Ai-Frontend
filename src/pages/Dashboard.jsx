@@ -29,6 +29,7 @@ function normalizeCall(c) {
     confidence:  c.confidence_score ?? c.confidence   ?? 0,
     intent:      c.classification   || c.intent       || "Unknown",
     time:        c.started_at ? new Date(c.started_at).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }) : (c.created_at ? new Date(c.created_at).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }) : (c.time || "—")),
+    dateTime:    (() => { const d = c.started_at || c.created_at; if (!d) return "—"; return new Date(d).toLocaleString("en-US", { month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit" }); })(),
     duration:    c.duration_seconds != null ? fmtDuration(c.duration_seconds) : (c.duration || "0:00"),
     forwardedTo: c.forwarded_to     || c.forwardedTo  || null,
     summary:     c.summary          || "",
@@ -718,7 +719,7 @@ function CallDetailModal({ call, onClose, onWhitelist, onBlock }) {
           <div className="modal-body">
             <div className="modal-row"><span className="modal-label">Caller</span><span className="modal-value" style={{ fontWeight: 600 }}>{c.caller}{c.company ? ` — ${c.company}` : ""}</span></div>
             <div className="modal-row"><span className="modal-label">Phone</span><span className="modal-value" style={{ fontFamily: "var(--font-mono)", fontSize: 13 }}>{c.phone}</span></div>
-            <div className="modal-row"><span className="modal-label">Time</span><span className="modal-value">{c.time} · {c.duration}</span></div>
+            <div className="modal-row"><span className="modal-label">Time</span><span className="modal-value">{c.dateTime} · {c.duration}</span></div>
             <div className="modal-row">
               <span className="modal-label">Status</span>
               <span className="modal-value">
@@ -1059,21 +1060,34 @@ function CallLogPage({ onViewCall, initialFilter }) {
   const [loading,   setLoading]   = useState(true);
   const [filter,    setFilter]    = useState(initialFilter || "all");
   const [exporting, setExporting] = useState(false);
+  const [page,      setPage]      = useState(1);
+
+  const PAGE_SIZE = 20;
 
   useEffect(() => {
-    callsApi.list({ limit: 100, sort: "desc" })
+    callsApi.list({ limit: 500, sort: "desc" })
       .then(res => setCallList(res?.calls || res || []))
       .catch(console.error)
       .finally(() => setLoading(false));
   }, []);
 
-  const normalized = callList.map(normalizeCall);
-  const filtered = filter === "all" ? normalized : normalized.filter(c => c.status === filter);
+  // Reset to page 1 whenever the filter changes
+  useEffect(() => { setPage(1); }, [filter]);
 
-  function handleExport() {
+  const normalized = callList.map(normalizeCall);
+  const filtered   = filter === "all" ? normalized : normalized.filter(c => c.status === filter);
+  const pageCount  = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const paginated  = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
+  async function handleExport() {
     setExporting(true);
-    try { exportCallsCsv({ status: filter !== "all" ? filter : undefined }); }
-    finally { setTimeout(() => setExporting(false), 1500); }
+    try {
+      await exportCallsCsv({ status: filter !== "all" ? filter : undefined });
+    } catch (err) {
+      alert("Export failed: " + (err.message || "Unknown error"));
+    } finally {
+      setExporting(false);
+    }
   }
 
   return (
@@ -1092,41 +1106,83 @@ function CallLogPage({ onViewCall, initialFilter }) {
           </button>
         ))}
       </div>
+
       {loading ? <Spinner /> : filtered.length === 0 ? (
         <div className="empty-state"><p>No {filter !== "all" ? filter : ""} calls found</p></div>
       ) : (
         <>
           <div className="table-wrap desktop-table">
             <table>
-              <thead><tr><th>Caller</th><th>Company</th><th>Phone</th><th>Time</th><th>Duration</th><th>Status</th><th>Intent</th><th>Confidence</th><th>Routed To</th><th></th></tr></thead>
+              <thead>
+                <tr><th>Caller</th><th>Company</th><th>Phone</th><th>Date & Time</th><th>Duration</th><th>Status</th><th>Intent</th><th>Confidence</th><th>Routed To</th><th></th></tr>
+              </thead>
               <tbody>
-                {filtered.map((call, i) => (
-                  <tr key={call.id || i} onClick={() => onViewCall(callList[normalized.indexOf(call)] ?? callList[i])}>
-                    <td style={{ color: "var(--text-primary)", fontWeight: 500 }}>{call.caller}</td>
-                    <td>{call.company || <span style={{ color: "var(--text-tertiary)" }}>—</span>}</td>
-                    <td style={{ fontFamily: "var(--font-mono)", fontSize: 12 }}>{call.phone}</td>
-                    <td>{call.time}</td>
-                    <td style={{ fontFamily: "var(--font-mono)", fontSize: 12 }}>{call.duration}</td>
-                    <td><span className={`badge ${call.status === "forwarded" ? "badge-green" : call.status === "blocked" ? "badge-red" : "badge-orange"}`}>{call.status}</span></td>
-                    <td><span className="badge badge-ghost">{call.intent}</span></td>
-                    <td>
-                      <div className="confidence-bar-wrap" style={{ minWidth: 80 }}>
-                        <div className="confidence-bar" style={{ flex: 1 }}><div className="confidence-fill" style={{ width: `${call.confidence}%`, background: call.confidence >= 90 ? "var(--green)" : "var(--orange)" }} /></div>
-                        <span style={{ fontSize: 11, fontFamily: "var(--font-mono)", color: "var(--text-tertiary)" }}>{call.confidence}%</span>
-                      </div>
-                    </td>
-                    <td>{call.forwardedTo || <span style={{ color: "var(--text-tertiary)" }}>—</span>}</td>
-                    <td onClick={e => e.stopPropagation()}>
-                      <CallActionMenu call={callList[i]} onWhitelist={whitelistCaller} onBlock={blockCaller} onUnblock={unblockCaller} />
-                    </td>
-                  </tr>
-                ))}
+                {paginated.map((call, i) => {
+                  const rawIdx = normalized.indexOf(call);
+                  const rawCall = callList[rawIdx] ?? callList[(page - 1) * PAGE_SIZE + i];
+                  return (
+                    <tr key={call.id || i} onClick={() => onViewCall(rawCall)}>
+                      <td style={{ color: "var(--text-primary)", fontWeight: 500 }}>{call.caller}</td>
+                      <td>{call.company || <span style={{ color: "var(--text-tertiary)" }}>—</span>}</td>
+                      <td style={{ fontFamily: "var(--font-mono)", fontSize: 12 }}>{call.phone}</td>
+                      <td style={{ color: "var(--text-secondary)", fontSize: 12 }}>{call.dateTime}</td>
+                      <td style={{ fontFamily: "var(--font-mono)", fontSize: 12 }}>{call.duration}</td>
+                      <td><span className={`badge ${call.status === "forwarded" ? "badge-green" : call.status === "blocked" ? "badge-red" : "badge-orange"}`}>{call.status}</span></td>
+                      <td><span className="badge badge-ghost">{call.intent}</span></td>
+                      <td>
+                        <div className="confidence-bar-wrap" style={{ minWidth: 80 }}>
+                          <div className="confidence-bar" style={{ flex: 1 }}><div className="confidence-fill" style={{ width: `${call.confidence}%`, background: call.confidence >= 90 ? "var(--green)" : "var(--orange)" }} /></div>
+                          <span style={{ fontSize: 11, fontFamily: "var(--font-mono)", color: "var(--text-tertiary)" }}>{call.confidence}%</span>
+                        </div>
+                      </td>
+                      <td>{call.forwardedTo || <span style={{ color: "var(--text-tertiary)" }}>—</span>}</td>
+                      <td onClick={e => e.stopPropagation()}>
+                        <CallActionMenu call={rawCall} onWhitelist={whitelistCaller} onBlock={blockCaller} onUnblock={unblockCaller} />
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
+
           <div className="mobile-call-cards">
-            {filtered.map((call, i) => <MobileCallCard key={call.id || i} call={callList[i]} onView={onViewCall} />)}
+            {paginated.map((call, i) => {
+              const rawIdx = normalized.indexOf(call);
+              return <MobileCallCard key={call.id || i} call={callList[rawIdx]} onView={onViewCall} />;
+            })}
           </div>
+
+          {/* Pagination controls */}
+          {pageCount > 1 && (
+            <div style={{
+              display: "flex", alignItems: "center", justifyContent: "space-between",
+              padding: "12px 20px", borderTop: "1px solid var(--border)",
+            }}>
+              <span style={{ fontSize: 12, color: "var(--text-tertiary)" }}>
+                Showing {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, filtered.length)} of {filtered.length} calls
+              </span>
+              <div style={{ display: "flex", gap: 6 }}>
+                <button
+                  className="btn btn-sm"
+                  onClick={() => setPage(p => Math.max(1, p - 1))}
+                  disabled={page === 1}
+                >
+                  ← Previous
+                </button>
+                <span style={{ padding: "4px 10px", fontSize: 12, color: "var(--text-secondary)", alignSelf: "center" }}>
+                  Page {page} of {pageCount}
+                </span>
+                <button
+                  className="btn btn-sm"
+                  onClick={() => setPage(p => Math.min(pageCount, p + 1))}
+                  disabled={page === pageCount}
+                >
+                  Next →
+                </button>
+              </div>
+            </div>
+          )}
         </>
       )}
     </div>
@@ -1300,7 +1356,9 @@ function TeamPage() {
   const [adding,     setAdding]     = useState(false);
   const [editEmp,    setEditEmp]    = useState(null);
   const [savingEmp,  setSavingEmp]  = useState(false);
-  const [addingRule, setAddingRule] = useState(false);
+  const [addingRule,     setAddingRule]     = useState(false);
+  const [editingRuleId,  setEditingRuleId]  = useState(null);
+  const [editingIntent,  setEditingIntent]  = useState("");
   const [ruleForm,   setRuleForm]   = useState({ intent_match: "", route_to_id: "", priority: "medium" });
   const [form,       setForm]       = useState({ first_name: "", last_name: "", email: "", phone: "", extension: "", role: "employee" });
 
@@ -1361,6 +1419,15 @@ function TeamPage() {
     if (!confirm("Remove this routing rule?")) return;
     try { await routingApi.remove(id); setRules(prev => prev.filter(r => r.id !== id)); }
     catch (err) { alert(err.message); }
+  }
+
+  async function saveRuleIntent(ruleId) {
+    if (!editingIntent.trim()) return;
+    try {
+      await routingApi.update(ruleId, { intent_match: editingIntent.trim() });
+      setRules(prev => prev.map(r => r.id === ruleId ? { ...r, intent_match: editingIntent.trim() } : r));
+    } catch (err) { alert(err.message); }
+    finally { setEditingRuleId(null); setEditingIntent(""); }
   }
 
   async function toggleRule(rule) {
@@ -1450,23 +1517,52 @@ function TeamPage() {
         {team.length === 0 ? <div className="empty-state"><p>No team members yet — add your first employee above</p></div> : (
           <div className="employee-grid">
             {team.map((emp, i) => (
-              <div key={emp.id} className="employee-card" style={{ cursor: emp.role === "owner" ? "default" : "pointer" }} onClick={() => emp.role !== "owner" && setEditEmp({ ...emp })}>
-                <div className="emp-avatar" style={{ background: COLORS[i % COLORS.length] }}>{initials(`${emp.first_name || ""} ${emp.last_name || ""}`)}</div>
-                <div className="emp-info">
-                  <div className="emp-name">{emp.first_name} {emp.last_name}</div>
-                  <div className="emp-role">{emp.role}</div>
-                  {emp.phone
-                    ? <div className="emp-ext" style={{ color: "var(--green)", fontSize: 11 }}>📞 {emp.phone}</div>
-                    : <div className="emp-ext" style={{ color: "var(--orange)", fontSize: 11 }}>⚠ No phone — click to add</div>
-                  }
-                  {emp.role === "owner" && (
-                    <div style={{ fontSize: 10, color: "var(--text-tertiary)", marginTop: 2 }}>Edit in Settings</div>
-                  )}
-                  {emp.extension && <div className="emp-ext">Ext. {emp.extension}</div>}
+              <div
+                key={emp.id}
+                className="employee-card"
+                style={{ cursor: emp.role === "owner" ? "default" : "pointer" }}
+                onClick={() => emp.role !== "owner" && setEditEmp({ ...emp })}
+              >
+                {/* Avatar + status dot */}
+                <div style={{ position: "relative", flexShrink: 0 }}>
+                  <div className="emp-avatar" style={{ background: COLORS[i % COLORS.length], width: 44, height: 44, borderRadius: 10, fontSize: 14 }}>
+                    {initials(`${emp.first_name || ""} ${emp.last_name || ""}`)}
+                  </div>
+                  <div style={{
+                    position: "absolute", bottom: -1, right: -1,
+                    width: 11, height: 11, borderRadius: "50%",
+                    background: emp.phone ? "var(--green)" : "var(--orange)",
+                    border: "2px solid var(--bg-tertiary)",
+                  }} />
                 </div>
-                <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 6 }} onClick={e => e.stopPropagation()}>
-                  <div className="emp-status" style={{ background: emp.phone ? "var(--green)" : "var(--orange)" }} />
-                  <button className="btn btn-sm" style={{ color: "var(--red)", fontSize: 10, padding: "2px 7px" }} onClick={() => removeMember(emp.id)}>Remove</button>
+
+                {/* Info */}
+                <div className="emp-info" style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 14, fontWeight: 600, color: "var(--text-primary)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                    {emp.first_name} {emp.last_name}
+                  </div>
+                  <div style={{ fontSize: 11.5, color: "var(--text-tertiary)", marginTop: 2, textTransform: "capitalize" }}>
+                    {emp.role}{emp.extension ? ` · Ext. ${emp.extension}` : ""}
+                  </div>
+                  <div style={{ fontSize: 12, marginTop: 5, fontFamily: "var(--font-mono)" }}>
+                    {emp.phone
+                      ? <span style={{ color: "var(--green)" }}>{emp.phone}</span>
+                      : <span style={{ color: "var(--orange)" }}>No phone — {emp.role === "owner" ? "edit in Settings" : "click to add"}</span>
+                    }
+                  </div>
+                </div>
+
+                {/* Remove button — stops click-to-edit propagation */}
+                <div onClick={e => e.stopPropagation()}>
+                  {emp.role !== "owner" && (
+                    <button
+                      className="btn btn-sm"
+                      style={{ color: "var(--red)", fontSize: 11, padding: "3px 8px" }}
+                      onClick={() => removeMember(emp.id)}
+                    >
+                      Remove
+                    </button>
+                  )}
                 </div>
               </div>
             ))}
@@ -1531,7 +1627,24 @@ function TeamPage() {
                   const employee = team.find(m => m.id === rule.route_to_id);
                   return (
                     <tr key={rule.id}>
-                      <td style={{ color: "var(--text-primary)", fontWeight: 500 }}>{rule.intent_match}</td>
+                      <td style={{ color: "var(--text-primary)", fontWeight: 500 }}>
+                        {editingRuleId === rule.id ? (
+                          <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                            <input
+                              className="form-input"
+                              style={{ minWidth: 180, padding: "4px 10px", fontSize: 13 }}
+                              value={editingIntent}
+                              onChange={e => setEditingIntent(e.target.value)}
+                              onKeyDown={e => { if (e.key === "Enter") saveRuleIntent(rule.id); if (e.key === "Escape") { setEditingRuleId(null); setEditingIntent(""); } }}
+                              autoFocus
+                            />
+                            <button className="btn btn-sm btn-primary" style={{ padding: "3px 8px" }} onClick={() => saveRuleIntent(rule.id)}>Save</button>
+                            <button className="btn btn-sm" style={{ padding: "3px 8px" }} onClick={() => { setEditingRuleId(null); setEditingIntent(""); }}>Cancel</button>
+                          </div>
+                        ) : (
+                          rule.intent_match
+                        )}
+                      </td>
                       <td>
                         {employee ? (
                           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -1557,7 +1670,15 @@ function TeamPage() {
                         </div>
                       </td>
                       <td>
-                        <button className="btn btn-sm" style={{ color: "var(--red)" }} onClick={() => removeRule(rule.id)}>Remove</button>
+                        <div style={{ display: "flex", gap: 6 }}>
+                          <button
+                            className="btn btn-sm"
+                            onClick={() => { setEditingRuleId(rule.id); setEditingIntent(rule.intent_match); }}
+                          >
+                            Edit
+                          </button>
+                          <button className="btn btn-sm" style={{ color: "var(--red)" }} onClick={() => removeRule(rule.id)}>Remove</button>
+                        </div>
                       </td>
                     </tr>
                   );
