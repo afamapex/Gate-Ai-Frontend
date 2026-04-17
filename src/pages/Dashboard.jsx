@@ -1558,7 +1558,7 @@ function SettingsPage() {
       .catch(() => setNotifs({}))
       .finally(() => setLoading(false));
     if (company) setCompanyForm({ name: company.name || "", industry: company.industry || "", timezone: company.timezone || "" });
-    if (user)    setAccountForm({ first_name: user.first_name || "", last_name: user.last_name || "", email: user.email || "" });
+    if (user)    setAccountForm({ first_name: user.first_name || "", last_name: user.last_name || "", email: user.email || "", phone: user.phone || "" });
   }, []);
 
   async function saveCompany() {
