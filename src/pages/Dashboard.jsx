@@ -47,6 +47,12 @@ function initials(name) {
   return name.split(" ").map(p => p[0]).join("").toUpperCase().slice(0, 2);
 }
 
+// Simple sentence-case helper used in Settings
+function capitalize(str) {
+  if (!str) return "";
+  return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+}
+
 // ─── GATE AI LOGO SVG ────────────────────────────────────────
 function GateAILogo({ size = 32 }) {
   return (
@@ -96,6 +102,7 @@ const Icons = {
   download: (<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>),
   user: (<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>),
   creditCard: (<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>),
+  bot: (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/><line x1="8" y1="16" x2="8" y2="16"/><line x1="16" y1="16" x2="16" y2="16"/></svg>),
 };
 
 // ─── STYLES ──────────────────────────────────────────────────
@@ -338,31 +345,20 @@ tbody tr:last-child td { border-bottom: none; }
 
 /* Action dropdown */
 .action-menu-wrap { position: relative; display: inline-block; }
-.action-menu { position: absolute; right: 0; top: calc(100% + 4px); background: var(--bg-card); border: 1px solid var(--border-light); border-radius: var(--radius-md); width: 180px; box-shadow: var(--shadow-md); z-index: 50; overflow: hidden; animation: fadeIn 120ms ease; }
-.action-menu-item { display: flex; align-items: center; gap: 8px; padding: 9px 14px; font-size: 12.5px; color: var(--text-secondary); cursor: pointer; transition: all var(--transition); font-family: var(--font-sans); }
+.action-menu { position: absolute; right: 0; top: calc(100% + 4px); background: var(--bg-card); border: 1px solid var(--border-light); border-radius: var(--radius-md); min-width: 160px; box-shadow: var(--shadow-md); z-index: 50; overflow: hidden; animation: fadeIn 120ms ease; }
+.action-menu-item { padding: 9px 14px; font-size: 12.5px; color: var(--text-secondary); cursor: pointer; transition: all var(--transition); }
 .action-menu-item:hover { background: var(--bg-hover); color: var(--text-primary); }
 .action-menu-item.danger { color: var(--red); }
 .action-menu-item.danger:hover { background: var(--red-dim); }
 .action-menu-item.success { color: var(--green); }
 .action-menu-item.success:hover { background: var(--green-dim); }
 
-@media (max-width: 900px) {
-  .stats-grid { grid-template-columns: repeat(2, 1fr); }
-  .sidebar { position: fixed; left: 0; top: 0; bottom: 0; z-index: 50; transform: translateX(-100%); transition: transform 250ms ease; box-shadow: none; }
-  .sidebar.open { transform: translateX(0); box-shadow: 4px 0 24px rgba(0,0,0,0.5); }
+@media (max-width: 768px) {
+  .sidebar { position: fixed; left: -240px; top: 0; height: 100vh; transition: left 200ms ease; z-index: 50; }
+  .sidebar.open { left: 0; }
   .sidebar-overlay.visible { display: block; }
   .mobile-menu-btn { display: flex; }
-  .topbar-search { display: none; }
-  .topbar-title { font-size: 15px; }
-  .topbar { padding: 0 16px; }
-  .content { padding: 16px; }
-  .dashboard-bottom-grid { grid-template-columns: 1fr !important; }
-  .employee-grid { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }
-  .integrations-grid { grid-template-columns: 1fr; }
-}
-@media (max-width: 600px) {
-  .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
-  .stat-card { padding: 14px 16px; }
+  .stats-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
   .stat-value { font-size: 24px; }
   .content { padding: 12px; }
   .topbar { padding: 0 12px; height: 54px; min-height: 54px; }
@@ -579,6 +575,7 @@ function BillingBanner() {
     try {
       const res = await billingApi.checkout(company?.plan || "pro");
       if (res?.url) window.location.href = res.url;
+      else throw new Error("Could not open checkout. Please try again or contact hello@gate-ai.io");
     } catch (err) { alert(err.message); }
     finally { setLoading(false); }
   }
@@ -587,7 +584,8 @@ function BillingBanner() {
     setLoading(true);
     try {
       const res = await billingApi.portal();
-      if (res?.url) window.location.href = res.url;
+      if (res?.url) window.open(res.url, "_blank");
+      else throw new Error("Billing portal unavailable. Please contact hello@gate-ai.io for help with your subscription.");
     } catch (err) { alert(err.message); }
     finally { setLoading(false); }
   }
@@ -1213,7 +1211,7 @@ function TeamPage() {
   const [rules,      setRules]      = useState([]);
   const [loading,    setLoading]    = useState(true);
   const [adding,     setAdding]     = useState(false);
-  const [editEmp,    setEditEmp]    = useState(null); // employee being edited
+  const [editEmp,    setEditEmp]    = useState(null);
   const [savingEmp,  setSavingEmp]  = useState(false);
   const [addingRule, setAddingRule] = useState(false);
   const [ruleForm,   setRuleForm]   = useState({ intent_match: "", route_to_id: "", priority: "medium" });
@@ -1243,7 +1241,7 @@ function TeamPage() {
     if (!editEmp) return;
     setSavingEmp(true);
     try {
-      const updated = await usersApi.update(editEmp.id, {
+      await usersApi.update(editEmp.id, {
         first_name: editEmp.first_name,
         last_name:  editEmp.last_name,
         phone:      editEmp.phone,
@@ -1552,19 +1550,27 @@ function SettingsPage() {
   const [testBSent,    setTestBSent]    = useState(false);
   const [testFSent,    setTestFSent]    = useState(false);
 
+  // AI Assistant state
+  const [assistantName,    setAssistantName]    = useState("GATE-AI");
+  const [savingAssistant,  setSavingAssistant]  = useState(false);
+  const [assistantSaved,   setAssistantSaved]   = useState(false);
+
   useEffect(() => {
     notificationsApi.get()
       .then(res => setNotifs(res?.settings || res || {}))
       .catch(() => setNotifs({}))
       .finally(() => setLoading(false));
-    if (company) setCompanyForm({ name: company.name || "", industry: company.industry || "", timezone: company.timezone || "" });
-    if (user)    setAccountForm({ first_name: user.first_name || "", last_name: user.last_name || "", email: user.email || "", phone: user.phone || "" });
+    if (company) {
+      setCompanyForm({ name: company.name || "", industry: company.industry || "", timezone: company.timezone || "" });
+      setAssistantName(company.assistant_name || "GATE-AI");
+    }
+    if (user) setAccountForm({ first_name: user.first_name || "", last_name: user.last_name || "", email: user.email || "", phone: user.phone || "" });
   }, []);
 
   async function saveCompany() {
     setSavingCompany(true); setCompanySaved(false);
     try {
-      const updated = await settingsApi.update({ company_name: companyForm.name, industry: companyForm.industry, timezone: companyForm.timezone });
+      await settingsApi.update({ company_name: companyForm.name, industry: companyForm.industry, timezone: companyForm.timezone });
       const token = localStorage.getItem("gateai_token");
       if (token) {
         const me = await fetch(`${import.meta.env.VITE_API_URL || "https://gate-ai-backend-production.up.railway.app"}/api/auth/me`, { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json());
@@ -1579,7 +1585,12 @@ function SettingsPage() {
   async function saveAccount() {
     setSavingAccount(true); setAccountSaved(false);
     try {
-      await usersApi.update(user.id, { first_name: accountForm.first_name, last_name: accountForm.last_name, email: accountForm.email });
+      await usersApi.update(user.id, {
+        first_name: accountForm.first_name,
+        last_name:  accountForm.last_name,
+        email:      accountForm.email,
+        phone:      accountForm.phone,          // ← forwarding number for this owner/user
+      });
       const token = localStorage.getItem("gateai_token");
       login({ token, user: { ...user, ...accountForm }, company });
       setAccountSaved(true);
@@ -1610,8 +1621,40 @@ function SettingsPage() {
   }
 
   async function openBillingPortal() {
-    try { const res = await billingApi.portal(); if (res?.url) window.location.href = res.url; }
-    catch (err) { alert(err.message); }
+    try {
+      const res = await billingApi.portal();
+      if (res?.url) {
+        window.open(res.url, "_blank");
+      } else {
+        throw new Error("Billing portal unavailable — please email hello@gate-ai.io for subscription help.");
+      }
+    } catch (err) {
+      alert(err.message || "Could not open billing portal. Please email hello@gate-ai.io.");
+    }
+  }
+
+  async function saveAssistantName() {
+    if (!assistantName.trim()) return;
+    setSavingAssistant(true); setAssistantSaved(false);
+    try {
+      // Save name to company record + push update to Vapi
+      const token = localStorage.getItem("gateai_token");
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL || "https://gate-ai-backend-production.up.railway.app"}/api/settings/assistant-name`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ name: assistantName.trim() }),
+        }
+      );
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || "Failed to update assistant name");
+      }
+      setAssistantSaved(true);
+      setTimeout(() => setAssistantSaved(false), 3000);
+    } catch (err) { alert(err.message); }
+    finally { setSavingAssistant(false); }
   }
 
   async function sendTestBlocked() {
@@ -1639,11 +1682,12 @@ function SettingsPage() {
   const fieldStyle = { width: "100%", padding: "9px 14px", background: "var(--bg-secondary)", border: "1px solid var(--border)", borderRadius: "var(--radius-md)", fontFamily: "var(--font-sans)", fontSize: 13.5, color: "var(--text-primary)", outline: "none", transition: "border-color 180ms ease" };
   const labelStyle = { fontSize: 11, fontWeight: 600, color: "var(--text-tertiary)", textTransform: "uppercase", letterSpacing: 0.6, marginBottom: 6, display: "block" };
   const savedBadge = { fontSize: 12, color: "var(--green)", fontWeight: 500 };
+  const readonlyStyle = { ...fieldStyle, color: "var(--text-secondary)", cursor: "default" };
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
 
-      {/* Company Profile */}
+      {/* ── Company Profile ── */}
       <div className="section">
         <div className="section-header">
           <span className="section-title">Company Profile</span>
@@ -1656,7 +1700,8 @@ function SettingsPage() {
           </div>
           <div>
             <label style={labelStyle}>Plan</label>
-            <div style={{ ...fieldStyle, color: "var(--text-secondary)", cursor: "default" }}>{company?.plan || "starter"}</div>
+            {/* FIX: sentence-case the plan name */}
+            <div style={readonlyStyle}>{capitalize(company?.plan || "starter")}</div>
           </div>
           <div>
             <label style={labelStyle}>Industry</label>
@@ -1687,7 +1732,7 @@ function SettingsPage() {
         </div>
       </div>
 
-      {/* Account Details */}
+      {/* ── Account Details ── */}
       <div className="section">
         <div className="section-header">
           <span className="section-title">Account Details</span>
@@ -1706,13 +1751,32 @@ function SettingsPage() {
             <label style={labelStyle}>Email Address</label>
             <input type="email" style={fieldStyle} value={accountForm.email} onChange={e => setAccountForm(f => ({ ...f, email: e.target.value }))} onFocus={e => e.target.style.borderColor = "var(--accent)"} onBlur={e => e.target.style.borderColor = "var(--border)"} />
           </div>
+          {/* NEW: Forwarding phone number field */}
+          <div style={{ gridColumn: "1 / -1" }}>
+            <label style={labelStyle}>
+              Forwarding Phone Number
+              <span style={{ fontWeight: 400, color: "var(--accent-light)", marginLeft: 6, textTransform: "none", letterSpacing: 0 }}>← Gate AI forwards calls here</span>
+            </label>
+            <input
+              type="tel"
+              style={fieldStyle}
+              placeholder="+1 (555) 123-4567"
+              value={accountForm.phone}
+              onChange={e => setAccountForm(f => ({ ...f, phone: e.target.value }))}
+              onFocus={e => e.target.style.borderColor = "var(--accent)"}
+              onBlur={e => e.target.style.borderColor = "var(--border)"}
+            />
+            <div style={{ fontSize: 11.5, color: "var(--text-tertiary)", marginTop: 6 }}>
+              This is the number Gate AI will ring when a legitimate call is forwarded to you.
+            </div>
+          </div>
         </div>
         <div style={{ padding: "0 20px 20px", display: "flex", justifyContent: "flex-end" }}>
           <button className="btn btn-sm btn-primary" onClick={saveAccount} disabled={savingAccount}>{savingAccount ? "Saving..." : "Save changes"}</button>
         </div>
       </div>
 
-      {/* Change Password */}
+      {/* ── Change Password ── */}
       <div className="section">
         <div className="section-header">
           <span className="section-title">Change Password</span>
@@ -1740,19 +1804,61 @@ function SettingsPage() {
         </div>
       </div>
 
-      {/* Billing */}
+      {/* ── Billing & Subscription ── */}
       <div className="section">
         <div className="section-header"><span className="section-title">Billing & Subscription</span></div>
         <div style={{ padding: 20, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div>
-            <div style={{ fontSize: 13.5, fontWeight: 500 }}>Current plan: <span style={{ color: "var(--accent-light)", textTransform: "capitalize" }}>{company?.plan || "Starter"}</span></div>
-            <div style={{ fontSize: 12, color: "var(--text-tertiary)", marginTop: 4 }}>Manage your subscription, invoices, and payment method.</div>
+            <div style={{ fontSize: 13.5, fontWeight: 500 }}>
+              Current plan: <span style={{ color: "var(--accent-light)" }}>{capitalize(company?.plan || "starter")}</span>
+            </div>
+            <div style={{ fontSize: 12, color: "var(--text-tertiary)", marginTop: 4 }}>
+              Manage your subscription, invoices, and payment method via Stripe.
+            </div>
           </div>
           <button className="btn btn-sm btn-primary" onClick={openBillingPortal}>{Icons.creditCard} Manage billing</button>
         </div>
       </div>
 
-      {/* Notifications */}
+      {/* ── AI Assistant ── */}
+      <div className="section">
+        <div className="section-header">
+          <span className="section-title">AI Assistant</span>
+          {assistantSaved && <span style={savedBadge}>✓ Saved</span>}
+        </div>
+        <div style={{ padding: 20, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+          <div>
+            <label style={labelStyle}>Assistant Name</label>
+            <input
+              style={fieldStyle}
+              placeholder="GATE-AI"
+              value={assistantName}
+              onChange={e => setAssistantName(e.target.value)}
+              onFocus={e => e.target.style.borderColor = "var(--accent)"}
+              onBlur={e => e.target.style.borderColor = "var(--border)"}
+            />
+            <div style={{ fontSize: 11.5, color: "var(--text-tertiary)", marginTop: 6 }}>
+              The name your AI assistant uses when greeting callers.
+            </div>
+          </div>
+          <div>
+            <label style={labelStyle}>Gate AI Phone Number</label>
+            <div style={{ ...readonlyStyle, fontFamily: "var(--font-mono)", fontSize: 14 }}>
+              {company?.twilio_number || "+18337142521"}
+            </div>
+            <div style={{ fontSize: 11.5, color: "var(--text-tertiary)", marginTop: 6 }}>
+              This is the number your AI assistant answers calls on. To change it, contact support.
+            </div>
+          </div>
+        </div>
+        <div style={{ padding: "0 20px 20px", display: "flex", justifyContent: "flex-end" }}>
+          <button className="btn btn-sm btn-primary" onClick={saveAssistantName} disabled={savingAssistant}>
+            {savingAssistant ? "Saving..." : "Save assistant name"}
+          </button>
+        </div>
+      </div>
+
+      {/* ── Notification Preferences ── */}
       <div className="section">
         <div className="section-header"><span className="section-title">Notification Preferences</span></div>
         <div style={{ padding: 20, display: "flex", flexDirection: "column", gap: 16 }}>
