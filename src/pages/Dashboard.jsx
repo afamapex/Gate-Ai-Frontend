@@ -293,7 +293,7 @@ tbody tr:last-child td { border-bottom: none; }
 .integration-name { font-size: 14px; font-weight: 600; color: var(--text-primary); }
 .integration-desc { font-size: 12px; color: var(--text-tertiary); line-height: 1.5; }
 
-.employee-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; padding: 16px 20px; }
+.employee-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; padding: 16px 20px; }
 .employee-card { background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 16px; display: flex; align-items: center; gap: 12px; transition: all var(--transition); }
 .employee-card:hover { border-color: var(--border-light); }
 .emp-avatar { width: 38px; height: 38px; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; color: white; flex-shrink: 0; }
