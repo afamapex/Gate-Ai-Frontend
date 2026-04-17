@@ -1365,7 +1365,7 @@ function TeamPage() {
         {team.length === 0 ? <div className="empty-state"><p>No team members yet — add your first employee above</p></div> : (
           <div className="employee-grid">
             {team.map((emp, i) => (
-              <div key={emp.id} className="employee-card" style={{ cursor: "pointer" }} onClick={() => setEditEmp({ ...emp })}>
+              <div key={emp.id} className="employee-card" style={{ cursor: emp.role === "owner" ? "default" : "pointer" }} onClick={() => emp.role !== "owner" && setEditEmp({ ...emp })}>
                 <div className="emp-avatar" style={{ background: COLORS[i % COLORS.length] }}>{initials(`${emp.first_name || ""} ${emp.last_name || ""}`)}</div>
                 <div className="emp-info">
                   <div className="emp-name">{emp.first_name} {emp.last_name}</div>
@@ -1374,6 +1374,9 @@ function TeamPage() {
                     ? <div className="emp-ext" style={{ color: "var(--green)", fontSize: 11 }}>📞 {emp.phone}</div>
                     : <div className="emp-ext" style={{ color: "var(--orange)", fontSize: 11 }}>⚠ No phone — click to add</div>
                   }
+                  {emp.role === "owner" && (
+                    <div style={{ fontSize: 10, color: "var(--text-tertiary)", marginTop: 2 }}>Edit in Settings</div>
+                  )}
                   {emp.extension && <div className="emp-ext">Ext. {emp.extension}</div>}
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 6 }} onClick={e => e.stopPropagation()}>
