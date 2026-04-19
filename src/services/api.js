@@ -72,8 +72,10 @@ export const routing = {
 };
 
 export const settings = {
-  get:    ()     => get('/api/settings'),
-  update: (data) => patch('/api/settings', data),
+  get:           ()     => get('/api/settings/ai'),           // ai_settings (screening_email etc)
+  update:        (data) => put('/api/settings/ai', data),     // update ai_settings
+  getCompany:    ()     => get('/api/settings/company'),      // company profile
+  updateCompany: (data) => put('/api/settings/company', data),// update company profile
 };
 
 export const notifications = {
