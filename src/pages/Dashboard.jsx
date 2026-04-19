@@ -407,6 +407,7 @@ function Sidebar({ active, setActive, isOpen, onClose }) {
   const navItems = [
     { id: "dashboard",    icon: Icons.home,     label: "Dashboard" },
     { id: "calls",        icon: Icons.phone,    label: "Call Log" },
+    { id: "aiassistant",  icon: Icons.bot,      label: "AI Assistant" },
     { id: "screening",    icon: Icons.shield,   label: "Screening Rules" },
     { id: "team",         icon: Icons.users,    label: "Team & Routing" },
     { id: "integrations", icon: Icons.plug,     label: "Integrations" },
@@ -422,13 +423,13 @@ function Sidebar({ active, setActive, isOpen, onClose }) {
         </div>
         <div className="sidebar-nav">
           <div className="nav-section-label">Main</div>
-          {navItems.slice(0, 4).map(item => (
+          {navItems.slice(0, 5).map(item => (
             <div key={item.id} className={`nav-item ${active === item.id ? "active" : ""}`} onClick={() => { setActive(item.id); onClose(); }}>
               {item.icon}<span>{item.label}</span>
             </div>
           ))}
           <div className="nav-section-label">System</div>
-          {navItems.slice(4).map(item => (
+          {navItems.slice(5).map(item => (
             <div key={item.id} className={`nav-item ${active === item.id ? "active" : ""}`} onClick={() => { setActive(item.id); onClose(); }}>
               {item.icon}<span>{item.label}</span>
             </div>
@@ -447,6 +448,7 @@ function Sidebar({ active, setActive, isOpen, onClose }) {
 
 // ─── SEARCH ITEMS ────────────────────────────────────────────
 const SEARCH_ITEMS = [
+  { label: "AI Assistant",             page: "aiassistant", filter: null,        keywords: ["ai","assistant","jarvis","sphere","gate-ai","bot","live","status"] },
   { label: "Dashboard",                page: "dashboard",    filter: null,        keywords: ["home","overview","dashboard","main"] },
   { label: "Call Log",                 page: "calls",        filter: "all",       keywords: ["calls","log","history","all calls"] },
   { label: "Blocked calls",            page: "calls",        filter: "blocked",   keywords: ["blocked","spam","block","rejected"] },
@@ -2302,10 +2304,359 @@ function SettingsPage() {
   );
 }
 
+// ─── AI ASSISTANT PAGE ───────────────────────────────────────
+function AIAssistantPage() {
+  const { company } = useAuth();
+  const canvasRef   = useRef(null);
+  const animRef     = useRef(null);
+  const [stats, setStats] = useState({ blocked: 0, forwarded: 0, total: 0 });
+
+  const assistantName  = company?.assistant_name  || "GATE-AI";
+  const twilioNumber   = company?.twilio_number   || "+18337142521";
+
+  // Load today's call stats
+  useEffect(() => {
+    callsApi.list({ limit: 200, sort: "desc" }).then(res => {
+      const all = (res?.calls || res || []);
+      // Filter to today
+      const today = new Date(); today.setHours(0,0,0,0);
+      const todayCalls = all.filter(c => new Date(c.started_at || c.created_at) >= today);
+      setStats({
+        blocked:   todayCalls.filter(c => (c.call_status || c.status) === "blocked").length,
+        forwarded: todayCalls.filter(c => (c.call_status || c.status) === "forwarded").length,
+        total:     todayCalls.length,
+      });
+    }).catch(() => {});
+  }, []);
+
+  // Three.js sphere
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    // Dynamically load Three.js from CDN
+    const script = document.createElement("script");
+    script.src = "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js";
+    script.onload = () => initScene();
+    document.head.appendChild(script);
+
+    function initScene() {
+      const THREE = window.THREE;
+      if (!THREE) return;
+
+      const W = canvas.clientWidth  || 420;
+      const H = canvas.clientHeight || 420;
+
+      const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+      renderer.setPixelRatio(window.devicePixelRatio);
+      renderer.setSize(W, H);
+      renderer.setClearColor(0x000000, 0);
+
+      const scene  = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(45, W / H, 0.1, 1000);
+      camera.position.z = 3.2;
+
+      const accentCol  = new THREE.Color(0x6c5ce7);
+      const accentLight = new THREE.Color(0xa29bfe);
+      const dimCol     = new THREE.Color(0x2a2d40);
+
+      // ── Outer wireframe globe ──
+      const sphereGeo = new THREE.SphereGeometry(1.1, 28, 18);
+      const wireMat   = new THREE.MeshBasicMaterial({
+        color: 0x6c5ce7, wireframe: true, transparent: true, opacity: 0.18,
+      });
+      const wireGlobe = new THREE.Mesh(sphereGeo, wireMat);
+      scene.add(wireGlobe);
+
+      // ── Inner solid glow sphere ──
+      const innerGeo = new THREE.SphereGeometry(0.72, 48, 48);
+      const innerMat = new THREE.MeshPhongMaterial({
+        color: 0x0d0d1a,
+        emissive: new THREE.Color(0x2a1f6e),
+        emissiveIntensity: 0.6,
+        shininess: 80,
+        transparent: true,
+        opacity: 0.92,
+      });
+      const innerSphere = new THREE.Mesh(innerGeo, innerMat);
+      scene.add(innerSphere);
+
+      // ── Equatorial ring ──
+      const ring1Geo = new THREE.TorusGeometry(1.22, 0.008, 6, 120);
+      const ring1Mat = new THREE.MeshBasicMaterial({ color: 0x6c5ce7, transparent: true, opacity: 0.55 });
+      const ring1 = new THREE.Mesh(ring1Geo, ring1Mat);
+      ring1.rotation.x = Math.PI / 2;
+      scene.add(ring1);
+
+      // ── Tilted orbit ring ──
+      const ring2Geo = new THREE.TorusGeometry(1.38, 0.005, 6, 120);
+      const ring2Mat = new THREE.MeshBasicMaterial({ color: 0xa29bfe, transparent: true, opacity: 0.3 });
+      const ring2 = new THREE.Mesh(ring2Geo, ring2Mat);
+      ring2.rotation.x = Math.PI / 2.8;
+      ring2.rotation.z = 0.4;
+      scene.add(ring2);
+
+      // ── Orbiting dot on ring2 ──
+      const dotGeo = new THREE.SphereGeometry(0.028, 10, 10);
+      const dotMat = new THREE.MeshBasicMaterial({ color: 0xa29bfe });
+      const orbitDot = new THREE.Mesh(dotGeo, dotMat);
+      scene.add(orbitDot);
+
+      // ── Floating particles ──
+      const particleCount = 180;
+      const positions = new Float32Array(particleCount * 3);
+      for (let i = 0; i < particleCount; i++) {
+        const r     = 1.5 + Math.random() * 0.6;
+        const theta = Math.random() * Math.PI * 2;
+        const phi   = Math.acos(2 * Math.random() - 1);
+        positions[i * 3]     = r * Math.sin(phi) * Math.cos(theta);
+        positions[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
+        positions[i * 3 + 2] = r * Math.cos(phi);
+      }
+      const ptGeo = new THREE.BufferGeometry();
+      ptGeo.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+      const ptMat = new THREE.PointsMaterial({ color: 0x6c5ce7, size: 0.022, transparent: true, opacity: 0.7 });
+      const particles = new THREE.Points(ptGeo, ptMat);
+      scene.add(particles);
+
+      // ── Lights ──
+      scene.add(new THREE.AmbientLight(0x1a1040, 2));
+      const pLight = new THREE.PointLight(0x6c5ce7, 2.5, 8);
+      pLight.position.set(2, 2, 2);
+      scene.add(pLight);
+      const pLight2 = new THREE.PointLight(0xa29bfe, 1.5, 8);
+      pLight2.position.set(-2, -1, -2);
+      scene.add(pLight2);
+
+      // ── Animate ──
+      let t = 0;
+      function animate() {
+        animRef.current = requestAnimationFrame(animate);
+        t += 0.008;
+
+        wireGlobe.rotation.y  += 0.0025;
+        wireGlobe.rotation.x  += 0.0008;
+        innerSphere.rotation.y += 0.003;
+        particles.rotation.y  -= 0.001;
+        particles.rotation.x  += 0.0005;
+        ring1.rotation.z      += 0.004;
+        ring2.rotation.y      += 0.006;
+
+        // Orbiting dot traces ring2's path
+        const angle = t * 0.9;
+        const r2 = 1.38;
+        orbitDot.position.x = r2 * Math.cos(angle);
+        orbitDot.position.z = r2 * Math.sin(angle) * Math.cos(ring2.rotation.x);
+        orbitDot.position.y = r2 * Math.sin(angle) * Math.sin(ring2.rotation.x) * 0.5;
+
+        // Gentle pulse on inner sphere emissive
+        innerMat.emissiveIntensity = 0.5 + 0.2 * Math.sin(t * 1.8);
+
+        renderer.render(scene, camera);
+      }
+      animate();
+
+      // Handle resize
+      function onResize() {
+        const w = canvas.clientWidth;
+        const h = canvas.clientHeight;
+        camera.aspect = w / h;
+        camera.updateProjectionMatrix();
+        renderer.setSize(w, h);
+      }
+      window.addEventListener("resize", onResize);
+      animRef.current = { cleanup: () => { window.removeEventListener("resize", onResize); renderer.dispose(); } };
+    }
+
+    return () => {
+      if (animRef.current?.cleanup) animRef.current.cleanup();
+      if (typeof animRef.current === "number") cancelAnimationFrame(animRef.current);
+      document.head.removeChild(script);
+    };
+  }, []);
+
+  const statCard = (label, value, color) => (
+    <div style={{
+      background: "var(--bg-card)", border: "1px solid var(--border)",
+      borderRadius: "var(--radius-lg)", padding: "18px 20px",
+    }}>
+      <div style={{ fontSize: 11, fontWeight: 600, color: "var(--text-tertiary)", textTransform: "uppercase", letterSpacing: "0.6px", marginBottom: 8 }}>{label}</div>
+      <div style={{ fontSize: 32, fontWeight: 700, letterSpacing: "-1px", color: color || "var(--text-primary)" }}>{value}</div>
+    </div>
+  );
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+
+      {/* ── Split layout ── */}
+      <div style={{
+        display: "grid",
+        gridTemplateColumns: "420px 1fr",
+        gap: 24,
+        alignItems: "start",
+      }}
+        className="ai-assistant-grid"
+      >
+        {/* Left — sphere */}
+        <div style={{
+          background: "var(--bg-card)",
+          border: "1px solid var(--border)",
+          borderRadius: "var(--radius-xl)",
+          overflow: "hidden",
+          position: "relative",
+          aspectRatio: "1",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}>
+          {/* Ambient glow behind sphere */}
+          <div style={{
+            position: "absolute", inset: 0,
+            background: "radial-gradient(circle at 50% 50%, rgba(108,92,231,0.12) 0%, transparent 70%)",
+            pointerEvents: "none",
+          }} />
+
+          <canvas
+            ref={canvasRef}
+            style={{ width: "100%", height: "100%", display: "block" }}
+          />
+
+          {/* Assistant name overlay */}
+          <div style={{
+            position: "absolute",
+            bottom: 24, left: 0, right: 0,
+            textAlign: "center",
+            pointerEvents: "none",
+          }}>
+            <div style={{
+              display: "inline-flex", alignItems: "center", gap: 8,
+              background: "rgba(10,11,15,0.75)",
+              backdropFilter: "blur(8px)",
+              border: "1px solid var(--border-light)",
+              borderRadius: 30,
+              padding: "6px 18px",
+            }}>
+              <span className="status-dot" style={{ width: 7, height: 7 }} />
+              <span style={{ fontSize: 13, fontWeight: 700, letterSpacing: "0.1em", color: "var(--accent-light)" }}>
+                {assistantName}
+              </span>
+              <span style={{ fontSize: 11, color: "var(--text-tertiary)" }}>LIVE</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Right — info panels */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+
+          {/* Identity card */}
+          <div style={{
+            background: "var(--bg-card)", border: "1px solid var(--border)",
+            borderRadius: "var(--radius-lg)", padding: "20px",
+          }}>
+            <div style={{ fontSize: 11, fontWeight: 600, color: "var(--text-tertiary)", textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: 16 }}>
+              Assistant Identity
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span style={{ fontSize: 13, color: "var(--text-secondary)" }}>Name</span>
+                <span style={{ fontSize: 13.5, fontWeight: 600, color: "var(--accent-light)" }}>{assistantName}</span>
+              </div>
+              <div style={{ height: 1, background: "var(--border)" }} />
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span style={{ fontSize: 13, color: "var(--text-secondary)" }}>Phone Number</span>
+                <span style={{ fontSize: 13.5, fontWeight: 600, fontFamily: "var(--font-mono)", color: "var(--text-primary)" }}>{twilioNumber}</span>
+              </div>
+              <div style={{ height: 1, background: "var(--border)" }} />
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span style={{ fontSize: 13, color: "var(--text-secondary)" }}>Status</span>
+                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                  <span className="status-dot" />
+                  <span style={{ fontSize: 12.5, fontWeight: 600, color: "var(--green)" }}>Active — Answering Calls</span>
+                </div>
+              </div>
+              <div style={{ height: 1, background: "var(--border)" }} />
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span style={{ fontSize: 13, color: "var(--text-secondary)" }}>Powered by</span>
+                <span style={{ fontSize: 12.5, color: "var(--text-tertiary)" }}>Vapi · Claude · Twilio</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Today's stats */}
+          <div style={{
+            background: "var(--bg-card)", border: "1px solid var(--border)",
+            borderRadius: "var(--radius-lg)", padding: "20px",
+          }}>
+            <div style={{ fontSize: 11, fontWeight: 600, color: "var(--text-tertiary)", textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: 16 }}>
+              Today's Activity
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 }}>
+              {statCard("Total Calls",  stats.total,     "var(--accent-light)")}
+              {statCard("Blocked",      stats.blocked,   "var(--red)")}
+              {statCard("Forwarded",    stats.forwarded, "var(--green)")}
+            </div>
+          </div>
+
+          {/* What the AI does */}
+          <div style={{
+            background: "linear-gradient(135deg, rgba(108,92,231,0.08), rgba(162,155,254,0.04))",
+            border: "1px solid rgba(108,92,231,0.2)",
+            borderRadius: "var(--radius-lg)", padding: "20px",
+          }}>
+            <div style={{ fontSize: 11, fontWeight: 600, color: "var(--text-tertiary)", textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: 12 }}>
+              How it works
+            </div>
+            {[
+              ["📞", "Answers every inbound call instantly, 24/7"],
+              ["🛡️", "Screens for cold callers, spam, and robocalls"],
+              ["🧠", "Classifies intent using Claude AI"],
+              ["📡", "Routes legitimate calls to the right team member"],
+              ["📋", "Generates a summary of every call automatically"],
+            ].map(([icon, text], i) => (
+              <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "7px 0", borderBottom: i < 4 ? "1px solid rgba(108,92,231,0.1)" : "none" }}>
+                <span style={{ fontSize: 15, flexShrink: 0 }}>{icon}</span>
+                <span style={{ fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.4 }}>{text}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Rename assistant inline */}
+      <div style={{
+        background: "var(--bg-card)", border: "1px solid var(--border)",
+        borderRadius: "var(--radius-lg)", padding: "18px 20px",
+        display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap",
+      }}>
+        <div>
+          <div style={{ fontSize: 13.5, fontWeight: 600, color: "var(--text-primary)" }}>Rename your assistant</div>
+          <div style={{ fontSize: 12, color: "var(--text-tertiary)", marginTop: 3 }}>This is the name callers hear and that appears on this page.</div>
+        </div>
+        <button className="btn btn-sm btn-primary" onClick={() => {
+          // Navigate to settings — assistant name section is there
+          document.dispatchEvent(new CustomEvent("gateai:navigate", { detail: "settings" }));
+        }}>
+          Go to Settings →
+        </button>
+      </div>
+
+      {/* Mobile responsive style */}
+      <style>{`
+        @media (max-width: 768px) {
+          .ai-assistant-grid {
+            grid-template-columns: 1fr !important;
+          }
+        }
+      `}</style>
+    </div>
+  );
+}
+
 // ─── MAIN APP ────────────────────────────────────────────────
 const PAGE_TITLES = {
   dashboard:    "Dashboard",
   calls:        "Call Log",
+  aiassistant:  "AI Assistant",
   screening:    "Screening Rules",
   team:         "Team & Routing",
   integrations: "Integrations",
@@ -2338,6 +2689,13 @@ export default function Dashboard() {
   }, []);
   useWebSocket(handleWsMessage);
 
+  // Cross-component navigation (e.g. AI Assistant page → Settings)
+  useEffect(() => {
+    function onNav(e) { if (e.detail) { setActivePage(e.detail); } }
+    document.addEventListener("gateai:navigate", onNav);
+    return () => document.removeEventListener("gateai:navigate", onNav);
+  }, []);
+
   return (
     <>
       <style>{CSS}</style>
@@ -2350,6 +2708,7 @@ export default function Dashboard() {
           <div className="content">
             {activePage === "dashboard"    && <DashboardPage onViewCall={setSelectedCall} liveCalls={liveCalls} setActivePage={setActivePage} setCallLogFilter={setCallLogFilter} />}
             {activePage === "calls"        && <CallLogPage   onViewCall={setSelectedCall} initialFilter={callLogFilter} />}
+            {activePage === "aiassistant"  && <AIAssistantPage />}
             {activePage === "screening"    && <ScreeningPage />}
             {activePage === "team"         && <TeamPage />}
             {activePage === "integrations" && <IntegrationsPage />}
