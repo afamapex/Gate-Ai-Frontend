@@ -1962,8 +1962,13 @@ function SettingsPage() {
   const [testBSent,    setTestBSent]    = useState(false);
   const [testFSent,    setTestFSent]    = useState(false);
 
-  // AI Assistant state
-  const [assistantName,    setAssistantName]    = useState("GATE-AI");
+  // AI Assistant state — read from auth context first, then localStorage fallback
+  const lsAssistantKey = company?.id ? `gateai_assistant_name_${company.id}` : null;
+  const [assistantName,    setAssistantName]    = useState(
+    company?.assistant_name ||
+    (lsAssistantKey ? localStorage.getItem(lsAssistantKey) : null) ||
+    "GATE-AI"
+  );
   const [savingAssistant,  setSavingAssistant]  = useState(false);
   const [assistantSaved,   setAssistantSaved]   = useState(false);
 
@@ -1974,7 +1979,10 @@ function SettingsPage() {
       .finally(() => setLoading(false));
     if (company) {
       setCompanyForm({ name: company.name || "", industry: company.industry || "", timezone: company.timezone || "" });
-      setAssistantName(company.assistant_name || "GATE-AI");
+      // Assistant name: prefer auth context, then localStorage, then default
+      const lsKey = company.id ? `gateai_assistant_name_${company.id}` : null;
+      const savedName = company.assistant_name || (lsKey ? localStorage.getItem(lsKey) : null) || "GATE-AI";
+      setAssistantName(savedName);
     }
     if (user) setAccountForm({ first_name: user.first_name || "", last_name: user.last_name || "", email: user.email || "", phone: user.phone || "" });
   }, []);
@@ -2066,7 +2074,9 @@ function SettingsPage() {
         const data = await res.json().catch(() => ({}));
         throw new Error(data.error || "Failed to update assistant name");
       }
-      // Refresh auth context so the new name persists after reload
+      // Persist to localStorage so it survives refresh even if /me doesn't return it
+      if (company?.id) localStorage.setItem(`gateai_assistant_name_${company.id}`, assistantName.trim());
+      // Also refresh auth context in case /me does return assistant_name
       const me = await fetch(
         `${import.meta.env.VITE_API_URL || "https://gate-ai-backend-production.up.railway.app"}/api/auth/me`,
         { headers: { Authorization: `Bearer ${token}` } }
@@ -2320,8 +2330,9 @@ function AIAssistantPage() {
   const animRef   = useRef(null);
   const [stats, setStats] = useState({ blocked: 0, forwarded: 0, total: 0 });
 
-  const assistantName = company?.assistant_name || "GATE-AI";
-  const twilioNumber  = company?.twilio_number  || "+18337142521";
+  const lsAssistantKey  = company?.id ? `gateai_assistant_name_${company.id}` : null;
+  const assistantName   = company?.assistant_name || (lsAssistantKey ? localStorage.getItem(lsAssistantKey) : null) || "GATE-AI";
+  const twilioNumber    = company?.twilio_number  || "+18337142521";
 
   // Load today's call stats
   useEffect(() => {
