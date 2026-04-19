@@ -1982,11 +1982,15 @@ function SettingsPage() {
   async function saveCompany() {
     setSavingCompany(true); setCompanySaved(false);
     try {
-      await settingsApi.update({ company_name: companyForm.name, industry: companyForm.industry, timezone: companyForm.timezone });
+      await settingsApi.updateCompany({
+        name:     companyForm.name,
+        industry: companyForm.industry,
+        timezone: companyForm.timezone,
+      });
       const token = localStorage.getItem("gateai_token");
       if (token) {
         const me = await fetch(`${import.meta.env.VITE_API_URL || "https://gate-ai-backend-production.up.railway.app"}/api/auth/me`, { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json());
-        if (me.token || token) login({ token, user: me.user || user, company: me.company || company });
+        if (me.user || me.company) login({ token, user: me.user || user, company: me.company || company });
       }
       setCompanySaved(true);
       setTimeout(() => setCompanySaved(false), 3000);
@@ -2049,7 +2053,6 @@ function SettingsPage() {
     if (!assistantName.trim()) return;
     setSavingAssistant(true); setAssistantSaved(false);
     try {
-      // Save name to company record + push update to Vapi
       const token = localStorage.getItem("gateai_token");
       const res = await fetch(
         `${import.meta.env.VITE_API_URL || "https://gate-ai-backend-production.up.railway.app"}/api/settings/assistant-name`,
@@ -2063,6 +2066,12 @@ function SettingsPage() {
         const data = await res.json().catch(() => ({}));
         throw new Error(data.error || "Failed to update assistant name");
       }
+      // Refresh auth context so the new name persists after reload
+      const me = await fetch(
+        `${import.meta.env.VITE_API_URL || "https://gate-ai-backend-production.up.railway.app"}/api/auth/me`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      ).then(r => r.json());
+      if (me.user || me.company) login({ token, user: me.user || user, company: me.company || company });
       setAssistantSaved(true);
       setTimeout(() => setAssistantSaved(false), 3000);
     } catch (err) { alert(err.message); }
