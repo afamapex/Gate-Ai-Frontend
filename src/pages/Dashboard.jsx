@@ -404,12 +404,14 @@ function ConfirmModal({ title, message, confirmLabel = "Confirm", confirmStyle =
 
 // ─── SIDEBAR ─────────────────────────────────────────────────
 function Sidebar({ active, setActive, isOpen, onClose }) {
-  const navItems = [
+  const mainItems = [
     { id: "dashboard",    icon: Icons.home,     label: "Dashboard" },
     { id: "calls",        icon: Icons.phone,    label: "Call Log" },
-    { id: "aiassistant",  icon: Icons.bot,      label: "AI Assistant" },
     { id: "screening",    icon: Icons.shield,   label: "Screening Rules" },
     { id: "team",         icon: Icons.users,    label: "Team & Routing" },
+  ];
+  const systemItems = [
+    { id: "aiassistant",  icon: Icons.bot,      label: "AI Assistant" },
     { id: "integrations", icon: Icons.plug,     label: "Integrations" },
     { id: "settings",     icon: Icons.settings, label: "Settings" },
   ];
@@ -423,13 +425,13 @@ function Sidebar({ active, setActive, isOpen, onClose }) {
         </div>
         <div className="sidebar-nav">
           <div className="nav-section-label">Main</div>
-          {navItems.slice(0, 5).map(item => (
+          {mainItems.map(item => (
             <div key={item.id} className={`nav-item ${active === item.id ? "active" : ""}`} onClick={() => { setActive(item.id); onClose(); }}>
               {item.icon}<span>{item.label}</span>
             </div>
           ))}
           <div className="nav-section-label">System</div>
-          {navItems.slice(5).map(item => (
+          {systemItems.map(item => (
             <div key={item.id} className={`nav-item ${active === item.id ? "active" : ""}`} onClick={() => { setActive(item.id); onClose(); }}>
               {item.icon}<span>{item.label}</span>
             </div>
@@ -1978,10 +1980,17 @@ function SettingsPage() {
       .catch(() => setNotifs({}))
       .finally(() => setLoading(false));
     if (company) {
-      setCompanyForm({ name: company.name || "", industry: company.industry || "", timezone: company.timezone || "" });
-      // Assistant name: prefer auth context, then localStorage, then default
-      const lsKey = company.id ? `gateai_assistant_name_${company.id}` : null;
-      const savedName = company.assistant_name || (lsKey ? localStorage.getItem(lsKey) : null) || "GATE-AI";
+      // Merge auth context with any locally-persisted overrides
+      const lsKey    = company.id ? `gateai_company_${company.id}` : null;
+      const lsStored = lsKey ? JSON.parse(localStorage.getItem(lsKey) || "{}") : {};
+      setCompanyForm({
+        name:     lsStored.name     ?? company.name     ?? "",
+        industry: lsStored.industry ?? company.industry ?? "",
+        timezone: lsStored.timezone ?? company.timezone ?? "",
+      });
+      // Assistant name: prefer localStorage, then auth context, then default
+      const lsNameKey = company.id ? `gateai_assistant_name_${company.id}` : null;
+      const savedName = (lsNameKey ? localStorage.getItem(lsNameKey) : null) || company.assistant_name || "GATE-AI";
       setAssistantName(savedName);
     }
     if (user) setAccountForm({ first_name: user.first_name || "", last_name: user.last_name || "", email: user.email || "", phone: user.phone || "" });
@@ -1995,6 +2004,18 @@ function SettingsPage() {
         industry: companyForm.industry,
         timezone: companyForm.timezone,
       });
+      // Persist to localStorage so changes survive refresh
+      // even if /api/auth/me doesn't return updated company fields
+      if (company?.id) {
+        const lsKey = `gateai_company_${company.id}`;
+        const stored = JSON.parse(localStorage.getItem(lsKey) || "{}");
+        localStorage.setItem(lsKey, JSON.stringify({
+          ...stored,
+          name:     companyForm.name,
+          industry: companyForm.industry,
+          timezone: companyForm.timezone,
+        }));
+      }
       const token = localStorage.getItem("gateai_token");
       if (token) {
         const me = await fetch(`${import.meta.env.VITE_API_URL || "https://gate-ai-backend-production.up.railway.app"}/api/auth/me`, { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json());
