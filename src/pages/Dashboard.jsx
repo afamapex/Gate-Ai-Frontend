@@ -2307,12 +2307,336 @@ function SettingsPage() {
 // ─── AI ASSISTANT PAGE ───────────────────────────────────────
 function AIAssistantPage() {
   const { company } = useAuth();
-  const canvasRef   = useRef(null);
-  const animRef     = useRef(null);
+  const canvasRef = useRef(null);
+  const animRef   = useRef(null);
   const [stats, setStats] = useState({ blocked: 0, forwarded: 0, total: 0 });
 
-  const assistantName  = company?.assistant_name  || "GATE-AI";
-  const twilioNumber   = company?.twilio_number   || "+18337142521";
+  const assistantName = company?.assistant_name || "GATE-AI";
+  const twilioNumber  = company?.twilio_number  || "+18337142521";
+
+  // Load today's call stats
+  useEffect(() => {
+    callsApi.list({ limit: 200, sort: "desc" }).then(res => {
+      const all = res?.calls || res || [];
+      const today = new Date(); today.setHours(0, 0, 0, 0);
+      const todayCalls = all.filter(c => new Date(c.started_at || c.created_at) >= today);
+      setStats({
+        blocked:   todayCalls.filter(c => (c.call_status || c.status) === "blocked").length,
+        forwarded: todayCalls.filter(c => (c.call_status || c.status) === "forwarded").length,
+        total:     todayCalls.length,
+      });
+    }).catch(() => {});
+  }, []);
+
+  // 2D JARVIS HUD canvas
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    let frameId;
+    let t = 0;
+
+    function resize() {
+      const size = canvas.parentElement?.clientWidth || 420;
+      canvas.width  = size;
+      canvas.height = size;
+    }
+    resize();
+    window.addEventListener("resize", resize);
+
+    function draw() {
+      const W = canvas.width;
+      const H = canvas.height;
+      const cx = W / 2;
+      const cy = H / 2;
+      const base = Math.min(W, H) * 0.46; // base radius
+
+      ctx.clearRect(0, 0, W, H);
+
+      // ── Background glow ──
+      const grd = ctx.createRadialGradient(cx, cy, base * 0.1, cx, cy, base * 1.1);
+      grd.addColorStop(0,   "rgba(108,92,231,0.10)");
+      grd.addColorStop(0.5, "rgba(108,92,231,0.04)");
+      grd.addColorStop(1,   "rgba(0,0,0,0)");
+      ctx.fillStyle = grd;
+      ctx.fillRect(0, 0, W, H);
+
+      function drawRing({ radius, tickCount, tickLen, tickGap, lineWidth, color, alpha, rotation, arcGaps }) {
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.rotate(rotation);
+        ctx.globalAlpha = alpha;
+        ctx.strokeStyle = color;
+        ctx.lineWidth   = lineWidth;
+
+        // Full ring (slightly transparent base)
+        ctx.beginPath();
+        ctx.arc(0, 0, radius, 0, Math.PI * 2);
+        ctx.globalAlpha = alpha * 0.25;
+        ctx.stroke();
+
+        // Arc segments (gaps cut out for JARVIS look)
+        ctx.globalAlpha = alpha;
+        if (arcGaps) {
+          arcGaps.forEach(([start, end]) => {
+            ctx.beginPath();
+            ctx.arc(0, 0, radius, start, end);
+            ctx.stroke();
+          });
+        }
+
+        // Tick marks
+        if (tickCount) {
+          for (let i = 0; i < tickCount; i++) {
+            const angle  = (i / tickCount) * Math.PI * 2;
+            const skip   = tickGap && (i % tickGap === 0);
+            const len    = skip ? tickLen * 1.8 : tickLen;
+            const outerR = radius + len / 2;
+            const innerR = radius - len / 2;
+            ctx.beginPath();
+            ctx.moveTo(Math.cos(angle) * innerR, Math.sin(angle) * innerR);
+            ctx.lineTo(Math.cos(angle) * outerR, Math.sin(angle) * outerR);
+            ctx.globalAlpha = skip ? alpha : alpha * 0.5;
+            ctx.lineWidth   = skip ? lineWidth * 1.5 : lineWidth * 0.8;
+            ctx.stroke();
+          }
+        }
+
+        ctx.restore();
+      }
+
+      // ── Outermost ring — slow CW rotation, tick marks ──
+      drawRing({
+        radius: base * 0.98, tickCount: 120, tickLen: base * 0.025, tickGap: 10,
+        lineWidth: 1.2, color: "#6c5ce7", alpha: 0.55, rotation: t * 0.18,
+        arcGaps: [
+          [0.05, Math.PI * 0.45],
+          [Math.PI * 0.52, Math.PI * 1.05],
+          [Math.PI * 1.12, Math.PI * 1.65],
+          [Math.PI * 1.72, Math.PI * 2 - 0.05],
+        ],
+      });
+
+      // ── Second ring — CCW, dotted segments ──
+      drawRing({
+        radius: base * 0.84, tickCount: 72, tickLen: base * 0.02, tickGap: 8,
+        lineWidth: 1.0, color: "#a29bfe", alpha: 0.45, rotation: -t * 0.28,
+        arcGaps: [
+          [0.2, Math.PI * 0.7],
+          [Math.PI * 0.8, Math.PI * 1.4],
+          [Math.PI * 1.5, Math.PI * 2 - 0.2],
+        ],
+      });
+
+      // ── Third ring — faster CW ──
+      drawRing({
+        radius: base * 0.70, tickCount: 48, tickLen: base * 0.018, tickGap: 6,
+        lineWidth: 1.2, color: "#6c5ce7", alpha: 0.50, rotation: t * 0.42,
+        arcGaps: [
+          [0.3, Math.PI * 0.9],
+          [Math.PI * 1.0, Math.PI * 1.7],
+          [Math.PI * 1.85, Math.PI * 2 - 0.15],
+        ],
+      });
+
+      // ── Inner circle — solid glow ring ──
+      ctx.save();
+      ctx.translate(cx, cy);
+      const pulse = 0.82 + 0.04 * Math.sin(t * 2.2);
+      ctx.globalAlpha = 0.65;
+      ctx.strokeStyle = "#a29bfe";
+      ctx.lineWidth   = 1.5;
+      ctx.beginPath();
+      ctx.arc(0, 0, base * 0.54 * pulse, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // Inner glow fill
+      const igrd = ctx.createRadialGradient(0, 0, 0, 0, 0, base * 0.54);
+      igrd.addColorStop(0,   "rgba(108,92,231,0.18)");
+      igrd.addColorStop(0.6, "rgba(108,92,231,0.08)");
+      igrd.addColorStop(1,   "rgba(108,92,231,0.01)");
+      ctx.globalAlpha = 1;
+      ctx.fillStyle   = igrd;
+      ctx.beginPath();
+      ctx.arc(0, 0, base * 0.54, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+
+      // ── Orbiting bright dot on ring 2 ──
+      ctx.save();
+      ctx.translate(cx, cy);
+      const dotAngle = t * 1.1;
+      const dotR     = base * 0.84;
+      const dx = Math.cos(dotAngle) * dotR;
+      const dy = Math.sin(dotAngle) * dotR;
+      const dotGlow = ctx.createRadialGradient(dx, dy, 0, dx, dy, base * 0.055);
+      dotGlow.addColorStop(0,   "rgba(162,155,254,0.95)");
+      dotGlow.addColorStop(0.4, "rgba(108,92,231,0.5)");
+      dotGlow.addColorStop(1,   "rgba(108,92,231,0)");
+      ctx.fillStyle   = dotGlow;
+      ctx.globalAlpha = 1;
+      ctx.beginPath();
+      ctx.arc(dx, dy, base * 0.055, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+
+      // ── Second orbiting dot on ring 3, opposite phase ──
+      ctx.save();
+      ctx.translate(cx, cy);
+      const dot2Angle = -t * 1.6 + Math.PI;
+      const dot2R     = base * 0.70;
+      const d2x = Math.cos(dot2Angle) * dot2R;
+      const d2y = Math.sin(dot2Angle) * dot2R;
+      ctx.fillStyle   = "#6c5ce7";
+      ctx.globalAlpha = 0.8;
+      ctx.beginPath();
+      ctx.arc(d2x, d2y, base * 0.025, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+
+      // ── Assistant name in centre ──
+      const fontSize = Math.max(13, base * 0.13);
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.globalAlpha = 0.9 + 0.1 * Math.sin(t * 1.5);
+      ctx.fillStyle   = "#a29bfe";
+      ctx.font        = `700 ${fontSize}px 'JetBrains Mono', monospace`;
+      ctx.textAlign   = "center";
+      ctx.textBaseline = "middle";
+      // Subtle text glow
+      ctx.shadowColor  = "#6c5ce7";
+      ctx.shadowBlur   = 18;
+      ctx.fillText(assistantName, 0, 0);
+      // Sub-label
+      ctx.shadowBlur   = 0;
+      ctx.globalAlpha  = 0.4;
+      ctx.fillStyle    = "#8b8fa3";
+      ctx.font         = `500 ${fontSize * 0.42}px 'DM Sans', sans-serif`;
+      ctx.fillText("AI RECEPTIONIST", 0, fontSize * 0.85);
+      ctx.restore();
+
+      t += 0.012;
+      frameId = requestAnimationFrame(draw);
+    }
+
+    draw();
+
+    return () => {
+      cancelAnimationFrame(frameId);
+      window.removeEventListener("resize", resize);
+    };
+  }, [assistantName]);
+
+  const statCard = (label, value, color) => (
+    <div style={{
+      background: "var(--bg-card)", border: "1px solid var(--border)",
+      borderRadius: "var(--radius-lg)", padding: "18px 20px",
+    }}>
+      <div style={{ fontSize: 11, fontWeight: 600, color: "var(--text-tertiary)", textTransform: "uppercase", letterSpacing: "0.6px", marginBottom: 8 }}>{label}</div>
+      <div style={{ fontSize: 32, fontWeight: 700, letterSpacing: "-1px", color: color || "var(--text-primary)" }}>{value}</div>
+    </div>
+  );
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "420px 1fr", gap: 24, alignItems: "start" }} className="ai-assistant-grid">
+
+        {/* Left — HUD canvas */}
+        <div style={{
+          background: "var(--bg-card)", border: "1px solid var(--border)",
+          borderRadius: "var(--radius-xl)", overflow: "hidden",
+          position: "relative", aspectRatio: "1",
+        }}>
+          <canvas ref={canvasRef} style={{ width: "100%", height: "100%", display: "block" }} />
+          {/* Live badge */}
+          <div style={{ position: "absolute", bottom: 20, left: 0, right: 0, textAlign: "center", pointerEvents: "none" }}>
+            <div style={{
+              display: "inline-flex", alignItems: "center", gap: 8,
+              background: "rgba(10,11,15,0.80)", backdropFilter: "blur(8px)",
+              border: "1px solid var(--border-light)", borderRadius: 30, padding: "6px 18px",
+            }}>
+              <span className="status-dot" style={{ width: 7, height: 7 }} />
+              <span style={{ fontSize: 13, fontWeight: 700, letterSpacing: "0.12em", color: "var(--accent-light)" }}>{assistantName}</span>
+              <span style={{ fontSize: 11, color: "var(--text-tertiary)" }}>LIVE</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Right — info panels */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+
+          <div style={{ background: "var(--bg-card)", border: "1px solid var(--border)", borderRadius: "var(--radius-lg)", padding: "20px" }}>
+            <div style={{ fontSize: 11, fontWeight: 600, color: "var(--text-tertiary)", textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: 16 }}>Assistant Identity</div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              {[
+                ["Name",       <span style={{ color: "var(--accent-light)", fontWeight: 600 }}>{assistantName}</span>],
+                ["Phone Number", <span style={{ fontFamily: "var(--font-mono)", fontSize: 13.5, fontWeight: 600 }}>{twilioNumber}</span>],
+                ["Status",     <span style={{ display:"flex", alignItems:"center", gap:6 }}><span className="status-dot"/><span style={{ color:"var(--green)", fontWeight:600, fontSize:12.5 }}>Active — Answering Calls</span></span>],
+                ["Powered by", <span style={{ color:"var(--text-tertiary)", fontSize:12.5 }}>Vapi · Claude · Twilio</span>],
+              ].map(([label, val], i, arr) => (
+                <div key={label}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <span style={{ fontSize: 13, color: "var(--text-secondary)" }}>{label}</span>
+                    <span>{val}</span>
+                  </div>
+                  {i < arr.length - 1 && <div style={{ height: 1, background: "var(--border)", marginTop: 12 }} />}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div style={{ background: "var(--bg-card)", border: "1px solid var(--border)", borderRadius: "var(--radius-lg)", padding: "20px" }}>
+            <div style={{ fontSize: 11, fontWeight: 600, color: "var(--text-tertiary)", textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: 16 }}>Today's Activity</div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 }}>
+              {statCard("Total Calls",  stats.total,     "var(--accent-light)")}
+              {statCard("Blocked",      stats.blocked,   "var(--red)")}
+              {statCard("Forwarded",    stats.forwarded, "var(--green)")}
+            </div>
+          </div>
+
+          <div style={{
+            background: "linear-gradient(135deg, rgba(108,92,231,0.08), rgba(162,155,254,0.04))",
+            border: "1px solid rgba(108,92,231,0.2)", borderRadius: "var(--radius-lg)", padding: "20px",
+          }}>
+            <div style={{ fontSize: 11, fontWeight: 600, color: "var(--text-tertiary)", textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: 12 }}>How it works</div>
+            {[
+              ["📞", "Answers every inbound call instantly, 24/7"],
+              ["🛡️", "Screens for cold callers, spam, and robocalls"],
+              ["🧠", "Classifies intent using Claude AI"],
+              ["📡", "Routes legitimate calls to the right team member"],
+              ["📋", "Generates a summary of every call automatically"],
+            ].map(([icon, text], i) => (
+              <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "7px 0", borderBottom: i < 4 ? "1px solid rgba(108,92,231,0.1)" : "none" }}>
+                <span style={{ fontSize: 15, flexShrink: 0 }}>{icon}</span>
+                <span style={{ fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.4 }}>{text}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div style={{
+        background: "var(--bg-card)", border: "1px solid var(--border)",
+        borderRadius: "var(--radius-lg)", padding: "18px 20px",
+        display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap",
+      }}>
+        <div>
+          <div style={{ fontSize: 13.5, fontWeight: 600, color: "var(--text-primary)" }}>Rename your assistant</div>
+          <div style={{ fontSize: 12, color: "var(--text-tertiary)", marginTop: 3 }}>This is the name callers hear and that appears on this page.</div>
+        </div>
+        <button className="btn btn-sm btn-primary" onClick={() => document.dispatchEvent(new CustomEvent("gateai:navigate", { detail: "settings" }))}>
+          Go to Settings →
+        </button>
+      </div>
+
+      <style>{`
+        @media (max-width: 768px) {
+          .ai-assistant-grid { grid-template-columns: 1fr !important; }
+        }
+      `}</style>
+    </div>
+  );
+}
 
   // Load today's call stats
   useEffect(() => {
