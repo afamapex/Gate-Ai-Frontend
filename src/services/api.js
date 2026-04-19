@@ -91,7 +91,9 @@ export const billing = {
 
 export async function exportCallsCsv(params = {}) {
   const token = getToken();
-  const q = new URLSearchParams(params).toString();
+  // Strip keys with undefined/null values so they don't become ?status=undefined
+  const clean = Object.fromEntries(Object.entries(params).filter(([, v]) => v != null));
+  const q = new URLSearchParams(clean).toString();
   const res = await fetch(`${BASE}/api/calls/export${q ? '?' + q : ''}`, {
     headers: { Authorization: `Bearer ${token}` },
   });
