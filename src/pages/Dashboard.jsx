@@ -1953,6 +1953,7 @@ function SettingsPage() {
   const [accountSaved,  setAccountSaved]  = useState(false);
 
   // Password state
+  const [showPwModal,  setShowPwModal]  = useState(false);
   const [pwForm,    setPwForm]    = useState({ current_password: "", new_password: "", confirm_password: "" });
   const [savingPw,  setSavingPw]  = useState(false);
   const [pwError,   setPwError]   = useState("");
@@ -1964,13 +1965,8 @@ function SettingsPage() {
   const [testBSent,    setTestBSent]    = useState(false);
   const [testFSent,    setTestFSent]    = useState(false);
 
-  // AI Assistant state — read from auth context first, then localStorage fallback
-  const lsAssistantKey = company?.id ? `gateai_assistant_name_${company.id}` : null;
-  const [assistantName,    setAssistantName]    = useState(
-    company?.assistant_name ||
-    (lsAssistantKey ? localStorage.getItem(lsAssistantKey) : null) ||
-    "GATE-AI"
-  );
+  // AI Assistant state
+  const [assistantName,    setAssistantName]    = useState(company?.assistant_name || "GATE-AI");
   const [savingAssistant,  setSavingAssistant]  = useState(false);
   const [assistantSaved,   setAssistantSaved]   = useState(false);
 
@@ -1980,18 +1976,8 @@ function SettingsPage() {
       .catch(() => setNotifs({}))
       .finally(() => setLoading(false));
     if (company) {
-      // Merge auth context with any locally-persisted overrides
-      const lsKey    = company.id ? `gateai_company_${company.id}` : null;
-      const lsStored = lsKey ? JSON.parse(localStorage.getItem(lsKey) || "{}") : {};
-      setCompanyForm({
-        name:     lsStored.name     ?? company.name     ?? "",
-        industry: lsStored.industry ?? company.industry ?? "",
-        timezone: lsStored.timezone ?? company.timezone ?? "",
-      });
-      // Assistant name: prefer localStorage, then auth context, then default
-      const lsNameKey = company.id ? `gateai_assistant_name_${company.id}` : null;
-      const savedName = (lsNameKey ? localStorage.getItem(lsNameKey) : null) || company.assistant_name || "GATE-AI";
-      setAssistantName(savedName);
+      setCompanyForm({ name: company.name || "", industry: company.industry || "", timezone: company.timezone || "" });
+      setAssistantName(company.assistant_name || "GATE-AI");
     }
     if (user) setAccountForm({ first_name: user.first_name || "", last_name: user.last_name || "", email: user.email || "", phone: user.phone || "" });
   }, []);
@@ -2004,18 +1990,6 @@ function SettingsPage() {
         industry: companyForm.industry,
         timezone: companyForm.timezone,
       });
-      // Persist to localStorage so changes survive refresh
-      // even if /api/auth/me doesn't return updated company fields
-      if (company?.id) {
-        const lsKey = `gateai_company_${company.id}`;
-        const stored = JSON.parse(localStorage.getItem(lsKey) || "{}");
-        localStorage.setItem(lsKey, JSON.stringify({
-          ...stored,
-          name:     companyForm.name,
-          industry: companyForm.industry,
-          timezone: companyForm.timezone,
-        }));
-      }
       const token = localStorage.getItem("gateai_token");
       if (token) {
         const me = await fetch(`${import.meta.env.VITE_API_URL || "https://gate-ai-backend-production.up.railway.app"}/api/auth/me`, { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json());
@@ -2054,7 +2028,7 @@ function SettingsPage() {
       await usersApi.update(user.id, { current_password: pwForm.current_password, password: pwForm.new_password });
       setPwForm({ current_password: "", new_password: "", confirm_password: "" });
       setPwSaved(true);
-      setTimeout(() => setPwSaved(false), 3000);
+      setTimeout(() => { setPwSaved(false); setShowPwModal(false); }, 2000);
     } catch (err) { setPwError(err.message); }
     finally { setSavingPw(false); }
   }
@@ -2095,9 +2069,7 @@ function SettingsPage() {
         const data = await res.json().catch(() => ({}));
         throw new Error(data.error || "Failed to update assistant name");
       }
-      // Persist to localStorage so it survives refresh even if /me doesn't return it
-      if (company?.id) localStorage.setItem(`gateai_assistant_name_${company.id}`, assistantName.trim());
-      // Also refresh auth context in case /me does return assistant_name
+      // Refresh auth context so the new name persists
       const me = await fetch(
         `${import.meta.env.VITE_API_URL || "https://gate-ai-backend-production.up.railway.app"}/api/auth/me`,
         { headers: { Authorization: `Bearer ${token}` } }
@@ -2228,31 +2200,46 @@ function SettingsPage() {
         </div>
       </div>
 
-      {/* ── Change Password ── */}
+      {/* ── Change Password Modal ── */}
+      {showPwModal && (
+        <div className="modal-overlay" onClick={() => { setShowPwModal(false); setPwForm({ current_password: "", new_password: "", confirm_password: "" }); setPwError(""); }}>
+          <div className="modal modal-sm" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <span className="modal-title">Change Password</span>
+              <button className="modal-close" onClick={() => { setShowPwModal(false); setPwForm({ current_password: "", new_password: "", confirm_password: "" }); setPwError(""); }}>{Icons.x}</button>
+            </div>
+            <div className="modal-body" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+              {pwError && <div style={{ background: "var(--red-dim)", border: "1px solid rgba(255,107,107,0.3)", borderRadius: "var(--radius-md)", padding: "10px 14px", fontSize: 13, color: "var(--red)" }}>{pwError}</div>}
+              {pwSaved && <div style={{ background: "var(--green-dim)", border: "1px solid rgba(0,214,143,0.3)", borderRadius: "var(--radius-md)", padding: "10px 14px", fontSize: 13, color: "var(--green)" }}>✓ Password updated successfully</div>}
+              <div>
+                <label style={labelStyle}>Current Password</label>
+                <input type="password" style={fieldStyle} placeholder="Enter current password" value={pwForm.current_password} onChange={e => setPwForm(f => ({ ...f, current_password: e.target.value }))} onFocus={e => e.target.style.borderColor = "var(--accent)"} onBlur={e => e.target.style.borderColor = "var(--border)"} />
+              </div>
+              <div>
+                <label style={labelStyle}>New Password</label>
+                <input type="password" style={fieldStyle} placeholder="Min. 8 characters" value={pwForm.new_password} onChange={e => setPwForm(f => ({ ...f, new_password: e.target.value }))} onFocus={e => e.target.style.borderColor = "var(--accent)"} onBlur={e => e.target.style.borderColor = "var(--border)"} />
+              </div>
+              <div>
+                <label style={labelStyle}>Confirm New Password</label>
+                <input type="password" style={fieldStyle} placeholder="Repeat new password" value={pwForm.confirm_password} onChange={e => setPwForm(f => ({ ...f, confirm_password: e.target.value }))} onFocus={e => e.target.style.borderColor = "var(--accent)"} onBlur={e => e.target.style.borderColor = "var(--border)"} />
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="btn btn-sm" onClick={() => { setShowPwModal(false); setPwForm({ current_password: "", new_password: "", confirm_password: "" }); setPwError(""); }}>Cancel</button>
+              <button className="btn btn-sm btn-primary" onClick={savePassword} disabled={savingPw}>{savingPw ? "Updating..." : "Update password"}</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Change Password card ── */}
       <div className="section">
         <div className="section-header">
           <span className="section-title">Change Password</span>
-          {pwSaved && <span style={savedBadge}>✓ Password updated</span>}
         </div>
-        <div style={{ padding: 20, display: "flex", flexDirection: "column", gap: 14 }}>
-          {pwError && <div style={{ background: "var(--red-dim)", border: "1px solid rgba(255,107,107,0.3)", borderRadius: "var(--radius-md)", padding: "10px 14px", fontSize: 13, color: "var(--red)" }}>{pwError}</div>}
-          <div>
-            <label style={labelStyle}>Current Password</label>
-            <input type="password" style={fieldStyle} placeholder="Enter current password" value={pwForm.current_password} onChange={e => setPwForm(f => ({ ...f, current_password: e.target.value }))} onFocus={e => e.target.style.borderColor = "var(--accent)"} onBlur={e => e.target.style.borderColor = "var(--border)"} />
-          </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
-            <div>
-              <label style={labelStyle}>New Password</label>
-              <input type="password" style={fieldStyle} placeholder="Min. 8 characters" value={pwForm.new_password} onChange={e => setPwForm(f => ({ ...f, new_password: e.target.value }))} onFocus={e => e.target.style.borderColor = "var(--accent)"} onBlur={e => e.target.style.borderColor = "var(--border)"} />
-            </div>
-            <div>
-              <label style={labelStyle}>Confirm New Password</label>
-              <input type="password" style={fieldStyle} placeholder="Repeat new password" value={pwForm.confirm_password} onChange={e => setPwForm(f => ({ ...f, confirm_password: e.target.value }))} onFocus={e => e.target.style.borderColor = "var(--accent)"} onBlur={e => e.target.style.borderColor = "var(--border)"} />
-            </div>
-          </div>
-          <div style={{ display: "flex", justifyContent: "flex-end" }}>
-            <button className="btn btn-sm btn-primary" onClick={savePassword} disabled={savingPw}>{savingPw ? "Updating..." : "Update password"}</button>
-          </div>
+        <div style={{ padding: 20, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <div style={{ fontSize: 13, color: "var(--text-tertiary)" }}>Update your account password to keep your account secure.</div>
+          <button className="btn btn-sm btn-primary" onClick={() => setShowPwModal(true)}>Change password</button>
         </div>
       </div>
 
@@ -2351,8 +2338,7 @@ function AIAssistantPage() {
   const animRef   = useRef(null);
   const [stats, setStats] = useState({ blocked: 0, forwarded: 0, total: 0 });
 
-  const lsAssistantKey  = company?.id ? `gateai_assistant_name_${company.id}` : null;
-  const assistantName   = company?.assistant_name || (lsAssistantKey ? localStorage.getItem(lsAssistantKey) : null) || "GATE-AI";
+  const assistantName   = company?.assistant_name || "GATE-AI";
   const twilioNumber    = company?.twilio_number  || "+18337142521";
 
   // Load today's call stats
@@ -2679,6 +2665,266 @@ function AIAssistantPage() {
   );
 }
 
+// ─── HELP CHAT WIDGET ────────────────────────────────────────
+function HelpChatWidget() {
+  const { company, user } = useAuth();
+  const BASE = import.meta.env.VITE_API_URL || "https://gate-ai-backend-production.up.railway.app";
+  const assistantName = company?.assistant_name || "GATE-AI";
+
+  const [open,       setOpen]       = useState(false);
+  const [messages,   setMessages]   = useState([
+    { role: "assistant", content: `Hi! I'm ${assistantName}, your Gate AI support assistant. How can I help you today?` }
+  ]);
+  const [input,      setInput]      = useState("");
+  const [sending,    setSending]    = useState(false);
+  const [escalating, setEscalating] = useState(false);
+  const [escalated,  setEscalated]  = useState(false);
+  const [showEscForm, setShowEscForm] = useState(false);
+  const [escForm,    setEscForm]    = useState({ name: `${user?.first_name || ""} ${user?.last_name || ""}`.trim(), email: user?.email || "", issue: "" });
+  const [pendingImage, setPendingImage] = useState(null); // { data: base64, type: mime }
+  const bottomRef  = useRef(null);
+  const fileRef    = useRef(null);
+
+  useEffect(() => {
+    if (open) bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, open]);
+
+  // Reset greeting if assistant name changes
+  useEffect(() => {
+    setMessages([{ role: "assistant", content: `Hi! I'm ${assistantName}, your Gate AI support assistant. How can I help you today?` }]);
+  }, [assistantName]);
+
+  async function sendMessage() {
+    const text = input.trim();
+    if (!text && !pendingImage) return;
+    setSending(true);
+
+    const userMsg = { role: "user", content: text || "What do you see in this image?", ...(pendingImage ? { image: pendingImage.data, imageType: pendingImage.type } : {}) };
+    const updated = [...messages, userMsg];
+    setMessages(updated);
+    setInput("");
+    setPendingImage(null);
+
+    try {
+      const res = await fetch(`${BASE}/api/help/chat`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: updated, assistantName, companyName: company?.name }),
+      });
+      const data = await res.json();
+      setMessages(prev => [...prev, { role: "assistant", content: data.reply || "Sorry, I couldn't process that." }]);
+    } catch {
+      setMessages(prev => [...prev, { role: "assistant", content: "Sorry, I'm having trouble connecting. Please try again." }]);
+    } finally {
+      setSending(false);
+    }
+  }
+
+  async function handleEscalate() {
+    if (!escForm.issue.trim()) return;
+    setEscalating(true);
+    const transcript = messages.map(m => `${m.role === "assistant" ? assistantName : "You"}: ${m.content}`).join("\n");
+    try {
+      await fetch(`${BASE}/api/help/escalate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...escForm, transcript, companyName: company?.name, assistantName }),
+      });
+      setEscalated(true);
+      setShowEscForm(false);
+      setMessages(prev => [...prev, { role: "assistant", content: "✓ Your request has been sent to the Gate AI support team at hello@gate-ai.io. We'll get back to you as soon as possible!" }]);
+    } catch {
+      alert("Failed to send. Please email hello@gate-ai.io directly.");
+    } finally { setEscalating(false); }
+  }
+
+  function handleImageUpload(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const base64 = reader.result.split(",")[1];
+      setPendingImage({ data: base64, type: file.type });
+    };
+    reader.readAsDataURL(file);
+    e.target.value = "";
+  }
+
+  const bubbleStyle = (role) => ({
+    maxWidth: "82%",
+    padding: "10px 14px",
+    borderRadius: role === "user" ? "16px 16px 4px 16px" : "16px 16px 16px 4px",
+    fontSize: 13.5,
+    lineHeight: 1.55,
+    background: role === "user" ? "#6c5ce7" : "#f0f0f5",
+    color: role === "user" ? "white" : "#1a1a2e",
+    alignSelf: role === "user" ? "flex-end" : "flex-start",
+    wordBreak: "break-word",
+  });
+
+  return (
+    <>
+      {/* Floating button */}
+      <div
+        onClick={() => setOpen(v => !v)}
+        style={{
+          position: "fixed", bottom: 24, right: 24, zIndex: 999,
+          width: 52, height: 52, borderRadius: "50%",
+          background: "linear-gradient(135deg, #6c5ce7, #a29bfe)",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          cursor: "pointer", boxShadow: "0 4px 20px rgba(108,92,231,0.45)",
+          transition: "transform 200ms ease, box-shadow 200ms ease",
+        }}
+        onMouseEnter={e => { e.currentTarget.style.transform = "scale(1.08)"; e.currentTarget.style.boxShadow = "0 6px 24px rgba(108,92,231,0.6)"; }}
+        onMouseLeave={e => { e.currentTarget.style.transform = "scale(1)"; e.currentTarget.style.boxShadow = "0 4px 20px rgba(108,92,231,0.45)"; }}
+        title="Help & Support"
+      >
+        {open ? (
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        ) : (
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        )}
+      </div>
+
+      {/* Chat panel */}
+      {open && (
+        <div style={{
+          position: "fixed", bottom: 88, right: 24, zIndex: 998,
+          width: 360, maxHeight: 520,
+          background: "white", borderRadius: 16,
+          boxShadow: "0 8px 40px rgba(0,0,0,0.18), 0 2px 8px rgba(0,0,0,0.1)",
+          display: "flex", flexDirection: "column", overflow: "hidden",
+          animation: "slideUp 200ms ease",
+        }}>
+          {/* Header */}
+          <div style={{
+            padding: "14px 16px", background: "linear-gradient(135deg, #6c5ce7, #a29bfe)",
+            display: "flex", alignItems: "center", gap: 10,
+          }}>
+            <div style={{
+              width: 34, height: 34, borderRadius: "50%",
+              background: "rgba(255,255,255,0.2)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              fontSize: 16,
+            }}>🤖</div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: "white" }}>{assistantName}</div>
+              <div style={{ fontSize: 11.5, color: "rgba(255,255,255,0.8)", display: "flex", alignItems: "center", gap: 5 }}>
+                <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#00d68f", display: "inline-block" }} />
+                Gate AI Support
+              </div>
+            </div>
+            {!escalated && (
+              <button
+                onClick={() => setShowEscForm(v => !v)}
+                style={{ background: "rgba(255,255,255,0.18)", border: "none", borderRadius: 8, padding: "5px 10px", fontSize: 11.5, color: "white", cursor: "pointer", fontFamily: "var(--font-sans)" }}
+                title="Talk to a human"
+              >
+                👤 Agent
+              </button>
+            )}
+          </div>
+
+          {/* Escalation form */}
+          {showEscForm && (
+            <div style={{ padding: "12px 14px", background: "#f8f7ff", borderBottom: "1px solid #e8e5ff" }}>
+              <div style={{ fontSize: 12.5, fontWeight: 600, color: "#4a4a6a", marginBottom: 8 }}>Connect with a Gate AI agent</div>
+              <input
+                style={{ width: "100%", padding: "7px 10px", borderRadius: 8, border: "1px solid #d0cdf0", fontSize: 13, marginBottom: 6, color: "#1a1a2e", fontFamily: "inherit", outline: "none" }}
+                placeholder="Your name"
+                value={escForm.name}
+                onChange={e => setEscForm(f => ({ ...f, name: e.target.value }))}
+              />
+              <input
+                style={{ width: "100%", padding: "7px 10px", borderRadius: 8, border: "1px solid #d0cdf0", fontSize: 13, marginBottom: 6, color: "#1a1a2e", fontFamily: "inherit", outline: "none" }}
+                placeholder="Your email"
+                value={escForm.email}
+                onChange={e => setEscForm(f => ({ ...f, email: e.target.value }))}
+              />
+              <textarea
+                style={{ width: "100%", padding: "7px 10px", borderRadius: 8, border: "1px solid #d0cdf0", fontSize: 13, color: "#1a1a2e", fontFamily: "inherit", resize: "none", outline: "none", minHeight: 60 }}
+                placeholder="Briefly describe your issue..."
+                value={escForm.issue}
+                onChange={e => setEscForm(f => ({ ...f, issue: e.target.value }))}
+              />
+              <div style={{ display: "flex", gap: 6, marginTop: 6 }}>
+                <button onClick={() => setShowEscForm(false)} style={{ flex: 1, padding: "7px", borderRadius: 8, border: "1px solid #d0cdf0", background: "white", fontSize: 12.5, cursor: "pointer", color: "#6c6c8a" }}>Cancel</button>
+                <button onClick={handleEscalate} disabled={escalating} style={{ flex: 2, padding: "7px", borderRadius: 8, border: "none", background: "#6c5ce7", color: "white", fontSize: 12.5, fontWeight: 600, cursor: "pointer" }}>
+                  {escalating ? "Sending..." : "Send to Agent"}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Messages */}
+          <div style={{ flex: 1, overflowY: "auto", padding: "14px 12px", display: "flex", flexDirection: "column", gap: 10, background: "white" }}>
+            {messages.map((m, i) => (
+              <div key={i} style={{ display: "flex", flexDirection: "column", alignItems: m.role === "user" ? "flex-end" : "flex-start" }}>
+                {m.image && (
+                  <img src={`data:${m.imageType};base64,${m.image}`} alt="uploaded" style={{ maxWidth: 180, borderRadius: 10, marginBottom: 4, alignSelf: m.role === "user" ? "flex-end" : "flex-start" }} />
+                )}
+                <div style={bubbleStyle(m.role)}>{m.content}</div>
+              </div>
+            ))}
+            {sending && (
+              <div style={{ alignSelf: "flex-start", display: "flex", gap: 4, padding: "10px 14px", background: "#f0f0f5", borderRadius: "16px 16px 16px 4px" }}>
+                {[0,1,2].map(i => <div key={i} style={{ width: 7, height: 7, borderRadius: "50%", background: "#a29bfe", animation: `bounce 1s ease ${i * 0.2}s infinite` }} />)}
+              </div>
+            )}
+            <div ref={bottomRef} />
+          </div>
+
+          {/* Image preview */}
+          {pendingImage && (
+            <div style={{ padding: "6px 12px", background: "#f8f7ff", borderTop: "1px solid #e8e5ff", display: "flex", alignItems: "center", gap: 8 }}>
+              <img src={`data:${pendingImage.type};base64,${pendingImage.data}`} alt="preview" style={{ height: 36, borderRadius: 6 }} />
+              <span style={{ fontSize: 12, color: "#6c6c8a", flex: 1 }}>Image ready to send</span>
+              <button onClick={() => setPendingImage(null)} style={{ background: "none", border: "none", cursor: "pointer", color: "#ff6b6b", fontSize: 16 }}>×</button>
+            </div>
+          )}
+
+          {/* Input bar */}
+          <div style={{ padding: "10px 12px", borderTop: "1px solid #f0f0f5", display: "flex", gap: 8, alignItems: "flex-end", background: "white" }}>
+            <input type="file" ref={fileRef} accept="image/*" style={{ display: "none" }} onChange={handleImageUpload} />
+            <button
+              onClick={() => fileRef.current?.click()}
+              style={{ width: 34, height: 34, borderRadius: 8, border: "1px solid #e0ddf0", background: "white", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: "#a29bfe" }}
+              title="Attach image"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            </button>
+            <input
+              style={{ flex: 1, padding: "8px 12px", borderRadius: 10, border: "1px solid #e0ddf0", fontSize: 13.5, outline: "none", fontFamily: "inherit", color: "#1a1a2e", background: "white" }}
+              placeholder="Ask a question..."
+              value={input}
+              onChange={e => setInput(e.target.value)}
+              onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}
+              onFocus={e => e.target.style.borderColor = "#6c5ce7"}
+              onBlur={e => e.target.style.borderColor = "#e0ddf0"}
+            />
+            <button
+              onClick={sendMessage}
+              disabled={sending || (!input.trim() && !pendingImage)}
+              style={{
+                width: 34, height: 34, borderRadius: 8, border: "none",
+                background: (sending || (!input.trim() && !pendingImage)) ? "#e0ddf0" : "#6c5ce7",
+                cursor: (sending || (!input.trim() && !pendingImage)) ? "not-allowed" : "pointer",
+                display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+                transition: "background 150ms ease",
+              }}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            </button>
+          </div>
+
+          {/* Bounce animation for typing dots */}
+          <style>{`@keyframes bounce { 0%,80%,100%{transform:translateY(0)} 40%{transform:translateY(-6px)} }`}</style>
+        </div>
+      )}
+    </>
+  );
+}
+
 // ─── MAIN APP ────────────────────────────────────────────────
 const PAGE_TITLES = {
   dashboard:    "Dashboard",
@@ -2750,6 +2996,7 @@ export default function Dashboard() {
             onBlock={blockCaller}
           />
         )}
+        <HelpChatWidget />
       </div>
     </>
   );
