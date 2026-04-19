@@ -1695,38 +1695,240 @@ function TeamPage() {
 
 // ─── INTEGRATIONS PAGE ───────────────────────────────────────
 function IntegrationsPage() {
+  const { company } = useAuth();
+  const [activeModal, setActiveModal] = useState(null); // integration name
+
+  // Slack state
+  const [slackWebhook,   setSlackWebhook]   = useState("");
+  const [slackSaving,    setSlackSaving]    = useState(false);
+  const [slackSaved,     setSlackSaved]     = useState(false);
+  const [slackEnabled,   setSlackEnabled]   = useState(false);
+
+  // Load existing Slack config on mount
+  useEffect(() => {
+    notificationsApi.get().then(res => {
+      const s = res?.settings || res || {};
+      setSlackWebhook(s.slack_webhook_url || "");
+      setSlackEnabled(!!s.slack_enabled);
+    }).catch(() => {});
+  }, []);
+
+  async function saveSlack() {
+    setSlackSaving(true); setSlackSaved(false);
+    try {
+      await notificationsApi.update({ slack_webhook_url: slackWebhook, slack_enabled: slackEnabled });
+      setSlackSaved(true);
+      setTimeout(() => setSlackSaved(false), 3000);
+    } catch (err) { alert(err.message); }
+    finally { setSlackSaving(false); }
+  }
+
+  async function disconnectSlack() {
+    if (!confirm("Disconnect Slack? You will stop receiving Slack notifications.")) return;
+    try {
+      await notificationsApi.update({ slack_webhook_url: "", slack_enabled: false });
+      setSlackWebhook(""); setSlackEnabled(false);
+      setActiveModal(null);
+    } catch (err) { alert(err.message); }
+  }
+
   const integrations = [
-    { name: "Twilio",          file: "twilio.png",          desc: "VoIP telephony, SIP trunking, programmable voice — the backbone of your phone system.",        color: "#f22f46", connected: true },
-    { name: "OpenPhone",       file: "openphone.png",       desc: "Business phone system with shared numbers, team inboxes, and CRM integration.",                color: "#5865f2", connected: false },
-    { name: "Talkroute",       file: "talkroute.png",       desc: "Virtual phone system with call forwarding, voicemail, and auto-attendant.",                    color: "#00b894", connected: false },
-    { name: "Avaya",           file: "avaya.png",           desc: "Enterprise communications platform with advanced call center capabilities.",                   color: "#cc0000", connected: false },
-    { name: "Slack",           file: "slack.png",           desc: "Deliver call summaries, blocked-call alerts, and screening reports to channels.",             color: "#e01e5a", connected: true },
-    { name: "Microsoft Teams", file: "microsoft-teams.png", desc: "Push call notifications and summaries directly into Teams channels.",                         color: "#5059c9", connected: false },
-    { name: "Email (SMTP)",    file: "email.webp",          desc: "Send call summaries and daily digests via email to employees and admins.",                    color: "#ffa94d", connected: true },
-    { name: "Zapier",          file: "zapier.webp",         desc: "Connect Gate AI to 5000+ apps with custom automation workflows.",                             color: "#ff4a00", connected: false },
+    { name: "Twilio",          file: "twilio.png",          desc: "VoIP telephony, SIP trunking, programmable voice — the backbone of your Gate AI phone system.", color: "#f22f46", connected: true },
+    { name: "Slack",           file: "slack.png",           desc: "Deliver call summaries, blocked-call alerts, and screening reports to your Slack channels.",     color: "#e01e5a", connected: !!slackWebhook },
+    { name: "Email (SMTP)",    file: "email.webp",          desc: "Send call summaries and daily digests via email to employees and admins.",                       color: "#ffa94d", connected: true },
+    { name: "OpenPhone",       file: "openphone.png",       desc: "Business phone system with shared numbers, team inboxes, and CRM integration.",                  color: "#5865f2", connected: false },
+    { name: "Microsoft Teams", file: "microsoft-teams.png", desc: "Push call notifications and summaries directly into Teams channels.",                            color: "#5059c9", connected: false },
+    { name: "Zapier",          file: "zapier.webp",         desc: "Connect Gate AI to 5000+ apps with custom automation workflows.",                                color: "#ff4a00", connected: false },
+    { name: "Talkroute",       file: "talkroute.png",       desc: "Virtual phone system with call forwarding, voicemail, and auto-attendant.",                      color: "#00b894", connected: false },
+    { name: "Avaya",           file: "avaya.png",           desc: "Enterprise communications platform with advanced call center capabilities.",                     color: "#cc0000", connected: false },
   ];
+
+  const modalStyle = { padding: "20px 22px", display: "flex", flexDirection: "column", gap: 16 };
+  const labelStyle = { fontSize: 11, fontWeight: 600, color: "var(--text-tertiary)", textTransform: "uppercase", letterSpacing: 0.6, marginBottom: 6, display: "block" };
+  const fieldStyle = { width: "100%", padding: "9px 14px", background: "var(--bg-secondary)", border: "1px solid var(--border)", borderRadius: "var(--radius-md)", fontFamily: "var(--font-sans)", fontSize: 13.5, color: "var(--text-primary)", outline: "none" };
+
   return (
-    <div className="section">
-      <div className="section-header">
-        <span className="section-title">Integrations & Plugins</span>
-        <span style={{ fontSize: 12, color: "var(--text-tertiary)" }}>{integrations.filter(i => i.connected).length} connected</span>
-      </div>
-      <div className="integrations-grid">
-        {integrations.map((int, i) => (
-          <div key={i} className="integration-card">
-            <div className="integration-top">
-              <div className="integration-icon" style={{ background: int.color + "20" }}>
-                <img src={`/images/integrations/${int.file}`} alt={int.name} style={{width:"26px",height:"26px",objectFit:"contain",borderRadius:"4px"}} />
+    <>
+      <div className="section">
+        <div className="section-header">
+          <span className="section-title">Integrations & Plugins</span>
+          <span style={{ fontSize: 12, color: "var(--text-tertiary)" }}>{integrations.filter(i => i.connected).length} connected</span>
+        </div>
+        <div className="integrations-grid">
+          {integrations.map((int, i) => (
+            <div key={i} className="integration-card">
+              <div className="integration-top">
+                <div className="integration-icon" style={{ background: int.color + "20" }}>
+                  <img src={`/images/integrations/${int.file}`} alt={int.name} style={{ width: "26px", height: "26px", objectFit: "contain", borderRadius: "4px" }} />
+                </div>
+                <span className={`badge ${int.connected ? "badge-green" : "badge-ghost"}`}>{int.connected ? "Connected" : "Available"}</span>
               </div>
-              <span className={`badge ${int.connected ? "badge-green" : "badge-ghost"}`}>{int.connected ? "Connected" : "Available"}</span>
+              <div className="integration-name">{int.name}</div>
+              <div className="integration-desc">{int.desc}</div>
+              <button
+                className={`btn btn-sm ${int.connected ? "" : "btn-primary"}`}
+                style={{ alignSelf: "flex-start", marginTop: 4 }}
+                onClick={() => setActiveModal(int.name)}
+              >
+                {int.connected ? "Configure" : "Connect"}
+              </button>
             </div>
-            <div className="integration-name">{int.name}</div>
-            <div className="integration-desc">{int.desc}</div>
-            <button className={`btn btn-sm ${int.connected ? "" : "btn-primary"}`} style={{ alignSelf: "flex-start", marginTop: 4 }}>{int.connected ? "Configure" : "Connect"}</button>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
-    </div>
+
+      {/* ── Twilio Modal ── */}
+      {activeModal === "Twilio" && (
+        <div className="modal-overlay" onClick={() => setActiveModal(null)}>
+          <div className="modal modal-sm" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <span className="modal-title">Twilio — Phone System</span>
+              <button className="modal-close" onClick={() => setActiveModal(null)}>{Icons.x}</button>
+            </div>
+            <div style={modalStyle}>
+              <div style={{ background: "var(--green-dim)", border: "1px solid rgba(0,214,143,0.2)", borderRadius: "var(--radius-md)", padding: "10px 14px", fontSize: 13, color: "var(--green)" }}>
+                ✓ Twilio is active and handling all inbound calls
+              </div>
+              <div>
+                <label style={labelStyle}>Gate AI Phone Number</label>
+                <div style={{ ...fieldStyle, color: "var(--text-secondary)", fontFamily: "var(--font-mono)", fontSize: 14 }}>
+                  {company?.twilio_number || "+18337142521"}
+                </div>
+              </div>
+              <div>
+                <label style={labelStyle}>Account</label>
+                <div style={{ ...fieldStyle, color: "var(--text-secondary)" }}>Managed by Gate AI — contact support to change your number</div>
+              </div>
+              <div style={{ fontSize: 12, color: "var(--text-tertiary)", lineHeight: 1.6 }}>
+                Twilio is the telephony backbone of Gate AI. Your phone number, call routing, and voice AI are all managed through this integration. To update your number or account settings, contact <span style={{ color: "var(--accent-light)" }}>hello@gate-ai.io</span>.
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="btn btn-sm" onClick={() => setActiveModal(null)}>Close</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Slack Modal ── */}
+      {activeModal === "Slack" && (
+        <div className="modal-overlay" onClick={() => setActiveModal(null)}>
+          <div className="modal modal-sm" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <span className="modal-title">Slack Notifications</span>
+              <button className="modal-close" onClick={() => setActiveModal(null)}>{Icons.x}</button>
+            </div>
+            <div style={modalStyle}>
+              <div style={{ fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.6 }}>
+                Paste your Slack Incoming Webhook URL below. Gate AI will post blocked and forwarded call alerts to that channel in real time.
+              </div>
+              <div style={{ fontSize: 12, color: "var(--text-tertiary)", background: "var(--bg-tertiary)", borderRadius: "var(--radius-md)", padding: "10px 14px", lineHeight: 1.6 }}>
+                To get a webhook URL: go to <span style={{ color: "var(--accent-light)" }}>api.slack.com/apps</span> → Create an app → Incoming Webhooks → Activate → Add New Webhook to Workspace.
+              </div>
+              <div>
+                <label style={labelStyle}>Webhook URL</label>
+                <input
+                  style={fieldStyle}
+                  placeholder="https://hooks.slack.com/services/..."
+                  value={slackWebhook}
+                  onChange={e => setSlackWebhook(e.target.value)}
+                  onFocus={e => e.target.style.borderColor = "var(--accent)"}
+                  onBlur={e => e.target.style.borderColor = "var(--border)"}
+                />
+              </div>
+              <ToggleSetting
+                label="Enable Slack alerts"
+                desc="Send blocked and forwarded call notifications to Slack"
+                value={slackEnabled}
+                onChange={v => setSlackEnabled(v)}
+              />
+            </div>
+            <div className="modal-footer">
+              {slackWebhook && (
+                <button className="btn btn-sm" style={{ color: "var(--red)", marginRight: "auto" }} onClick={disconnectSlack}>
+                  Disconnect
+                </button>
+              )}
+              <button className="btn btn-sm" onClick={() => setActiveModal(null)}>Cancel</button>
+              <button className="btn btn-sm btn-primary" onClick={saveSlack} disabled={slackSaving}>
+                {slackSaved ? "✓ Saved!" : slackSaving ? "Saving…" : "Save"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Email Modal ── */}
+      {activeModal === "Email (SMTP)" && (
+        <div className="modal-overlay" onClick={() => setActiveModal(null)}>
+          <div className="modal modal-sm" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <span className="modal-title">Email Notifications</span>
+              <button className="modal-close" onClick={() => setActiveModal(null)}>{Icons.x}</button>
+            </div>
+            <div style={modalStyle}>
+              <div style={{ background: "var(--green-dim)", border: "1px solid rgba(0,214,143,0.2)", borderRadius: "var(--radius-md)", padding: "10px 14px", fontSize: 13, color: "var(--green)" }}>
+                ✓ Email delivery is active via SendGrid
+              </div>
+              <div>
+                <label style={labelStyle}>Sending Address</label>
+                <div style={{ ...fieldStyle, color: "var(--text-secondary)", fontFamily: "var(--font-mono)", fontSize: 13 }}>
+                  notifications@gate-ai.io
+                </div>
+              </div>
+              <div style={{ fontSize: 12, color: "var(--text-tertiary)", lineHeight: 1.6 }}>
+                Email notifications are sent via SendGrid to the addresses configured under each team member and your account email. To manage which emails are sent, go to <strong style={{ color: "var(--text-secondary)" }}>Settings → Notification Preferences</strong>.
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="btn btn-sm" onClick={() => setActiveModal(null)}>Close</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Coming Soon Modal (all other integrations) ── */}
+      {activeModal && !["Twilio", "Slack", "Email (SMTP)"].includes(activeModal) && (
+        <div className="modal-overlay" onClick={() => setActiveModal(null)}>
+          <div className="modal modal-sm" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <span className="modal-title">{activeModal}</span>
+              <button className="modal-close" onClick={() => setActiveModal(null)}>{Icons.x}</button>
+            </div>
+            <div style={modalStyle}>
+              <div style={{
+                display: "flex", flexDirection: "column", alignItems: "center",
+                padding: "20px 0", gap: 14, textAlign: "center",
+              }}>
+                <div style={{
+                  width: 52, height: 52, borderRadius: 14,
+                  background: "var(--accent-dim)", border: "1px solid var(--accent-glow)",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                }}>
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--accent-light)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+                  </svg>
+                </div>
+                <div>
+                  <div style={{ fontSize: 15, fontWeight: 600, color: "var(--text-primary)", marginBottom: 8 }}>
+                    {activeModal} — Coming Soon
+                  </div>
+                  <div style={{ fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.7, maxWidth: 300 }}>
+                    This integration is on our roadmap. We'll notify you by email when it's available.
+                  </div>
+                </div>
+                <div style={{ fontSize: 12, color: "var(--text-tertiary)", marginTop: 4 }}>
+                  Want to request early access? Email <span style={{ color: "var(--accent-light)" }}>hello@gate-ai.io</span>
+                </div>
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="btn btn-sm btn-primary" onClick={() => setActiveModal(null)}>Got it</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 
