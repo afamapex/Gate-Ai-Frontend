@@ -72,10 +72,10 @@ export const routing = {
 };
 
 export const settings = {
-  get:           ()     => get('/api/settings/ai'),           // ai_settings (screening_email etc)
-  update:        (data) => put('/api/settings/ai', data),     // update ai_settings
-  getCompany:    ()     => get('/api/settings/company'),      // company profile
-  updateCompany: (data) => put('/api/settings/company', data),// update company profile
+  get:      ()     => get('/api/settings'),
+  update:   (data) => patch('/api/settings', data),
+  updateAi: (data) => put('/api/settings/ai', data),
+  getAi:    ()     => get('/api/settings/ai'),
 };
 
 export const notifications = {
@@ -91,25 +91,13 @@ export const billing = {
   portal:   ()     => post('/api/billing/portal'),
 };
 
-export async function exportCallsCsv(params = {}) {
+export function exportCallsCsv(params = {}) {
   const token = getToken();
-  // Strip keys with undefined/null values so they don't become ?status=undefined
-  const clean = Object.fromEntries(Object.entries(params).filter(([, v]) => v != null));
-  const q = new URLSearchParams(clean).toString();
-  const res = await fetch(`${BASE}/api/calls/export${q ? '?' + q : ''}`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  if (!res.ok) {
-    const data = await res.json().catch(() => ({}));
-    throw new Error(data.error || `Export failed: ${res.status}`);
-  }
-  const blob = await res.blob();
-  const url  = URL.createObjectURL(blob);
-  const a    = document.createElement('a');
-  a.href     = url;
+  const q = new URLSearchParams({ ...params, format: 'csv', token }).toString();
+  const a = document.createElement('a');
+  a.href = `${BASE}/api/calls/export?${q}`;
   a.download = `gate-ai-calls-${new Date().toISOString().slice(0, 10)}.csv`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
-  URL.revokeObjectURL(url);
 }
