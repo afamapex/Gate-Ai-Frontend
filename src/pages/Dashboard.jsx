@@ -1194,6 +1194,33 @@ function CallLogPage({ onViewCall, initialFilter }) {
 }
 
 // ─── SCREENING PAGE ──────────────────────────────────────────
+// Extracted so useState is never called inside .map()
+function ScreeningModeOption({ opt, isActive, disabled, onSelect }) {
+  const [showInfo, setShowInfo] = useState(false);
+  return (
+    <div onClick={onSelect} style={{ border: `2px solid ${isActive ? opt.color : "var(--border)"}`, borderRadius: 10, padding: "12px 16px", cursor: disabled ? "wait" : "pointer", background: isActive ? `${opt.color}14` : "var(--surface)", transition: "all 0.15s", display: "flex", alignItems: "flex-start", gap: 12 }}>
+      <div style={{ width: 18, height: 18, borderRadius: "50%", flexShrink: 0, marginTop: 2, border: `2px solid ${isActive ? opt.color : "var(--text-tertiary)"}`, background: isActive ? opt.color : "transparent", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        {isActive && <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#fff" }} />}
+      </div>
+      <div style={{ flex: 1 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <span style={{ fontWeight: 600, fontSize: 14, color: isActive ? opt.color : "var(--text-primary)" }}>{opt.label}</span>
+          <div style={{ position: "relative", display: "inline-flex" }}>
+            <span onClick={e => { e.stopPropagation(); setShowInfo(v => !v); }} style={{ width: 16, height: 16, borderRadius: "50%", background: "var(--text-tertiary)", color: "#fff", fontSize: 10, fontWeight: 700, cursor: "pointer", display: "inline-flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>i</span>
+            {showInfo && (
+              <div onClick={e => e.stopPropagation()} style={{ position: "absolute", left: 0, top: 22, zIndex: 100, background: "var(--surface-raised)", border: "1px solid var(--border)", borderRadius: 8, padding: "10px 14px", width: 260, fontSize: 12, color: "var(--text-secondary)", lineHeight: 1.5, boxShadow: "0 4px 16px rgba(0,0,0,0.3)" }}>
+                {opt.info}
+                <div onClick={() => setShowInfo(false)} style={{ marginTop: 8, fontSize: 11, color: opt.color, cursor: "pointer", fontWeight: 600 }}>Close</div>
+              </div>
+            )}
+          </div>
+        </div>
+        <div style={{ fontSize: 12, color: "var(--text-tertiary)", marginTop: 3 }}>{opt.sub}</div>
+      </div>
+    </div>
+  );
+}
+
 function ScreeningPage() {
   const [ptList,   setPtList]   = useState([]);
   const [wlList,   setWlList]   = useState([]);
@@ -1364,35 +1391,18 @@ function ScreeningPage() {
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                 {[
-                  { value: "relaxed",    label: "Relaxed",    color: "#20c997", sub: "Fewest questions — most calls get through",            info: "Forwards calls whenever a caller names someone or gives any business reason. Only blocks clear sales pitches. Best for companies that prioritise accessibility and expect mostly legitimate callers." },
-                  { value: "moderate",   label: "Moderate",   color: "#6c5ce7", sub: "Balanced — recommended for most businesses",            info: "Requires both a name and a business reason before transferring. Asks one question if context is missing. Blocks anyone who reveals they are selling or pitching. The recommended default for most businesses." },
-                  { value: "aggressive", label: "Aggressive", color: "#e84393", sub: "Most thorough — fewest unwanted calls get through",     info: "Requires a specific employee name AND a clear operational reason before any transfer. Blocks callers who are vague after two questions. Best for companies receiving very high cold call volumes." },
-                ].map(opt => {
-                  const isActive = screeningMode === opt.value;
-                  const [showInfo, setShowInfo] = React.useState(false);
-                  return (
-                    <div key={opt.value} onClick={() => !savingMode && saveScreeningMode(opt.value)} style={{ border: `2px solid ${isActive ? opt.color : "var(--border)"}`, borderRadius: 10, padding: "12px 16px", cursor: savingMode ? "wait" : "pointer", background: isActive ? `${opt.color}14` : "var(--surface)", transition: "all 0.15s", display: "flex", alignItems: "flex-start", gap: 12 }}>
-                      <div style={{ width: 18, height: 18, borderRadius: "50%", flexShrink: 0, marginTop: 2, border: `2px solid ${isActive ? opt.color : "var(--text-tertiary)"}`, background: isActive ? opt.color : "transparent", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                        {isActive && <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#fff" }} />}
-                      </div>
-                      <div style={{ flex: 1 }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                          <span style={{ fontWeight: 600, fontSize: 14, color: isActive ? opt.color : "var(--text-primary)" }}>{opt.label}</span>
-                          <div style={{ position: "relative", display: "inline-flex" }}>
-                            <span onClick={e => { e.stopPropagation(); setShowInfo(v => !v); }} style={{ width: 16, height: 16, borderRadius: "50%", background: "var(--text-tertiary)", color: "#fff", fontSize: 10, fontWeight: 700, cursor: "pointer", display: "inline-flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>i</span>
-                            {showInfo && (
-                              <div onClick={e => e.stopPropagation()} style={{ position: "absolute", left: 0, top: 22, zIndex: 100, background: "var(--surface-raised)", border: "1px solid var(--border)", borderRadius: 8, padding: "10px 14px", width: 260, fontSize: 12, color: "var(--text-secondary)", lineHeight: 1.5, boxShadow: "0 4px 16px rgba(0,0,0,0.3)" }}>
-                                {opt.info}
-                                <div onClick={() => setShowInfo(false)} style={{ marginTop: 8, fontSize: 11, color: opt.color, cursor: "pointer", fontWeight: 600 }}>Close</div>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                        <div style={{ fontSize: 12, color: "var(--text-tertiary)", marginTop: 3 }}>{opt.sub}</div>
-                      </div>
-                    </div>
-                  );
-                })}
+                  { value: "relaxed",    label: "Relaxed",    color: "#20c997", sub: "Fewest questions — most calls get through",         info: "Forwards calls whenever a caller names someone or gives any business reason. Only blocks clear sales pitches. Best for companies that prioritise accessibility and expect mostly legitimate callers." },
+                  { value: "moderate",   label: "Moderate",   color: "#6c5ce7", sub: "Balanced — recommended for most businesses",         info: "Requires both a name and a business reason before transferring. Asks one question if context is missing. Blocks anyone who reveals they are selling or pitching. The recommended default for most businesses." },
+                  { value: "aggressive", label: "Aggressive", color: "#e84393", sub: "Most thorough — fewest unwanted calls get through",  info: "Requires a specific employee name AND a clear operational reason before any transfer. Blocks callers who are vague after two questions. Best for companies receiving very high cold call volumes." },
+                ].map(opt => (
+                  <ScreeningModeOption
+                    key={opt.value}
+                    opt={opt}
+                    isActive={screeningMode === opt.value}
+                    disabled={savingMode}
+                    onSelect={() => !savingMode && saveScreeningMode(opt.value)}
+                  />
+                ))}
               </div>
               {savingMode && <div style={{ fontSize: 12, color: "var(--text-tertiary)", marginTop: 10 }}>Saving…</div>}
             </div>
