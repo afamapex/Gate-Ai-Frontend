@@ -29,7 +29,6 @@ function normalizeCall(c) {
     confidence:  c.confidence_score ?? c.confidence   ?? 0,
     intent:      c.classification   || c.intent       || "Unknown",
     time:        c.started_at ? new Date(c.started_at).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }) : (c.created_at ? new Date(c.created_at).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }) : (c.time || "—")),
-    dateTime:    (() => { const d = c.started_at || c.created_at; if (!d) return "—"; return new Date(d).toLocaleString("en-US", { month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit" }); })(),
     duration:    c.duration_seconds != null ? fmtDuration(c.duration_seconds) : (c.duration || "0:00"),
     forwardedTo: c.forwarded_to     || c.forwardedTo  || null,
     summary:     c.summary          || "",
@@ -46,12 +45,6 @@ function fmtDuration(secs) {
 function initials(name) {
   if (!name) return "?";
   return name.split(" ").map(p => p[0]).join("").toUpperCase().slice(0, 2);
-}
-
-// Simple sentence-case helper used in Settings
-function capitalize(str) {
-  if (!str) return "";
-  return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 }
 
 // ─── GATE AI LOGO SVG ────────────────────────────────────────
@@ -103,7 +96,6 @@ const Icons = {
   download: (<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>),
   user: (<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>),
   creditCard: (<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>),
-  bot: (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/><line x1="8" y1="16" x2="8" y2="16"/><line x1="16" y1="16" x2="16" y2="16"/></svg>),
 };
 
 // ─── STYLES ──────────────────────────────────────────────────
@@ -346,20 +338,31 @@ tbody tr:last-child td { border-bottom: none; }
 
 /* Action dropdown */
 .action-menu-wrap { position: relative; display: inline-block; }
-.action-menu { position: absolute; right: 0; top: calc(100% + 4px); background: var(--bg-card); border: 1px solid var(--border-light); border-radius: var(--radius-md); min-width: 160px; box-shadow: var(--shadow-md); z-index: 50; overflow: hidden; animation: fadeIn 120ms ease; }
-.action-menu-item { padding: 9px 14px; font-size: 12.5px; color: var(--text-secondary); cursor: pointer; transition: all var(--transition); }
+.action-menu { position: absolute; right: 0; top: calc(100% + 4px); background: var(--bg-card); border: 1px solid var(--border-light); border-radius: var(--radius-md); width: 180px; box-shadow: var(--shadow-md); z-index: 50; overflow: hidden; animation: fadeIn 120ms ease; }
+.action-menu-item { display: flex; align-items: center; gap: 8px; padding: 9px 14px; font-size: 12.5px; color: var(--text-secondary); cursor: pointer; transition: all var(--transition); font-family: var(--font-sans); }
 .action-menu-item:hover { background: var(--bg-hover); color: var(--text-primary); }
 .action-menu-item.danger { color: var(--red); }
 .action-menu-item.danger:hover { background: var(--red-dim); }
 .action-menu-item.success { color: var(--green); }
 .action-menu-item.success:hover { background: var(--green-dim); }
 
-@media (max-width: 768px) {
-  .sidebar { position: fixed; left: -240px; top: 0; height: 100vh; transition: left 200ms ease; z-index: 50; }
-  .sidebar.open { left: 0; }
+@media (max-width: 900px) {
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  .sidebar { position: fixed; left: 0; top: 0; bottom: 0; z-index: 50; transform: translateX(-100%); transition: transform 250ms ease; box-shadow: none; }
+  .sidebar.open { transform: translateX(0); box-shadow: 4px 0 24px rgba(0,0,0,0.5); }
   .sidebar-overlay.visible { display: block; }
   .mobile-menu-btn { display: flex; }
-  .stats-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .topbar-search { display: none; }
+  .topbar-title { font-size: 15px; }
+  .topbar { padding: 0 16px; }
+  .content { padding: 16px; }
+  .dashboard-bottom-grid { grid-template-columns: 1fr !important; }
+  .employee-grid { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }
+  .integrations-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 600px) {
+  .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .stat-card { padding: 14px 16px; }
   .stat-value { font-size: 24px; }
   .content { padding: 12px; }
   .topbar { padding: 0 12px; height: 54px; min-height: 54px; }
@@ -404,14 +407,11 @@ function ConfirmModal({ title, message, confirmLabel = "Confirm", confirmStyle =
 
 // ─── SIDEBAR ─────────────────────────────────────────────────
 function Sidebar({ active, setActive, isOpen, onClose }) {
-  const mainItems = [
+  const navItems = [
     { id: "dashboard",    icon: Icons.home,     label: "Dashboard" },
     { id: "calls",        icon: Icons.phone,    label: "Call Log" },
     { id: "screening",    icon: Icons.shield,   label: "Screening Rules" },
     { id: "team",         icon: Icons.users,    label: "Team & Routing" },
-  ];
-  const systemItems = [
-    { id: "aiassistant",  icon: Icons.bot,      label: "AI Assistant" },
     { id: "integrations", icon: Icons.plug,     label: "Integrations" },
     { id: "settings",     icon: Icons.settings, label: "Settings" },
   ];
@@ -425,13 +425,13 @@ function Sidebar({ active, setActive, isOpen, onClose }) {
         </div>
         <div className="sidebar-nav">
           <div className="nav-section-label">Main</div>
-          {mainItems.map(item => (
+          {navItems.slice(0, 4).map(item => (
             <div key={item.id} className={`nav-item ${active === item.id ? "active" : ""}`} onClick={() => { setActive(item.id); onClose(); }}>
               {item.icon}<span>{item.label}</span>
             </div>
           ))}
           <div className="nav-section-label">System</div>
-          {systemItems.map(item => (
+          {navItems.slice(4).map(item => (
             <div key={item.id} className={`nav-item ${active === item.id ? "active" : ""}`} onClick={() => { setActive(item.id); onClose(); }}>
               {item.icon}<span>{item.label}</span>
             </div>
@@ -448,51 +448,14 @@ function Sidebar({ active, setActive, isOpen, onClose }) {
   );
 }
 
-// ─── SEARCH ITEMS ────────────────────────────────────────────
-const SEARCH_ITEMS = [
-  { label: "AI Assistant",             page: "aiassistant", filter: null,        keywords: ["ai","assistant","jarvis","sphere","gate-ai","bot","live","status"] },
-  { label: "Dashboard",                page: "dashboard",    filter: null,        keywords: ["home","overview","dashboard","main"] },
-  { label: "Call Log",                 page: "calls",        filter: "all",       keywords: ["calls","log","history","all calls"] },
-  { label: "Blocked calls",            page: "calls",        filter: "blocked",   keywords: ["blocked","spam","block","rejected"] },
-  { label: "Forwarded calls",          page: "calls",        filter: "forwarded", keywords: ["forwarded","connected","routed"] },
-  { label: "Screened calls",           page: "calls",        filter: "screened",  keywords: ["screened","flagged","pending"] },
-  { label: "Screening Rules",          page: "screening",    filter: null,        keywords: ["screen","patterns","rules","keywords","block list"] },
-  { label: "Whitelist / VIP",          page: "screening",    filter: null,        keywords: ["whitelist","vip","allow","bypass","contact"] },
-  { label: "Team & Routing",           page: "team",         filter: null,        keywords: ["team","routing","employees","members","staff"] },
-  { label: "Integrations",             page: "integrations", filter: null,        keywords: ["integrations","slack","twilio","connect","zapier","teams"] },
-  { label: "Settings",                 page: "settings",     filter: null,        keywords: ["settings","preferences","account","profile"] },
-  { label: "Account Details",          page: "settings",     filter: null,        keywords: ["account","name","email","phone","forwarding"] },
-  { label: "Billing & Subscription",   page: "settings",     filter: null,        keywords: ["billing","subscription","plan","payment","invoice","stripe"] },
-  { label: "Notification Preferences", page: "settings",     filter: null,        keywords: ["notifications","alerts","email alerts","slack alerts","weekly"] },
-  { label: "AI Assistant",             page: "settings",     filter: null,        keywords: ["assistant","ai","gate-ai","name","vapi"] },
-  { label: "Change Password",          page: "settings",     filter: null,        keywords: ["password","security","change password"] },
-];
-
 // ─── TOPBAR ──────────────────────────────────────────────────
-function Topbar({ title, onMenuToggle, setActivePage, onSearchNavigate }) {
+function Topbar({ title, onMenuToggle, setActivePage }) {
   const { user, logout } = useAuth();
-  const [showMenu,    setShowMenu]    = useState(false);
-  const [showNotif,   setShowNotif]   = useState(false);
-  const [notifCalls,  setNotifCalls]  = useState([]);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [showSearch,  setShowSearch]  = useState(false);
-  const menuRef   = useRef(null);
-  const notifRef  = useRef(null);
-  const searchRef = useRef(null);
-
-  // Filter suggestions as user types
-  const q = searchQuery.trim().toLowerCase();
-  const suggestions = q.length < 1 ? [] : SEARCH_ITEMS.filter(item =>
-    item.label.toLowerCase().includes(q) ||
-    item.keywords.some(k => k.includes(q))
-  ).slice(0, 6);
-
-  function handleSearchSelect(item) {
-    setSearchQuery("");
-    setShowSearch(false);
-    if (onSearchNavigate) onSearchNavigate(item.page, item.filter);
-    else setActivePage(item.page);
-  }
+  const [showMenu,  setShowMenu]  = useState(false);
+  const [showNotif, setShowNotif] = useState(false);
+  const [notifCalls, setNotifCalls] = useState([]);
+  const menuRef  = useRef(null);
+  const notifRef = useRef(null);
 
   const avatarText = user ? initials(`${user.first_name || ""} ${user.last_name || ""}`) : "?";
 
@@ -508,7 +471,6 @@ function Topbar({ title, onMenuToggle, setActivePage, onSearchNavigate }) {
     function handleClick(e) {
       if (menuRef.current && !menuRef.current.contains(e.target)) setShowMenu(false);
       if (notifRef.current && !notifRef.current.contains(e.target)) setShowNotif(false);
-      if (searchRef.current && !searchRef.current.contains(e.target)) setShowSearch(false);
     }
     document.addEventListener("mousedown", handleClick);
     return () => document.removeEventListener("mousedown", handleClick);
@@ -531,47 +493,7 @@ function Topbar({ title, onMenuToggle, setActivePage, onSearchNavigate }) {
         <div className="live-indicator"><span className="live-dot" /> Live</div>
       </div>
       <div className="topbar-right">
-        <div className="topbar-search" ref={searchRef} style={{ position: "relative" }}>
-          {Icons.search}
-          <input
-            placeholder="Search pages, settings..."
-            value={searchQuery}
-            onChange={e => { setSearchQuery(e.target.value); setShowSearch(true); }}
-            onFocus={() => setShowSearch(true)}
-            onKeyDown={e => {
-              if (e.key === "Escape") { setShowSearch(false); setSearchQuery(""); }
-              if (e.key === "Enter" && suggestions.length > 0) handleSearchSelect(suggestions[0]);
-            }}
-          />
-          {showSearch && suggestions.length > 0 && (
-            <div style={{
-              position: "absolute", top: "calc(100% + 6px)", left: 0, right: 0,
-              background: "var(--bg-card)", border: "1px solid var(--border-light)",
-              borderRadius: "var(--radius-md)", boxShadow: "var(--shadow-lg)",
-              zIndex: 300, overflow: "hidden", minWidth: 220,
-            }}>
-              {suggestions.map((item, i) => (
-                <div
-                  key={i}
-                  onClick={() => handleSearchSelect(item)}
-                  style={{
-                    padding: "9px 14px", fontSize: 13, color: "var(--text-secondary)",
-                    cursor: "pointer", display: "flex", alignItems: "center", gap: 8,
-                    borderBottom: i < suggestions.length - 1 ? "1px solid var(--border)" : "none",
-                    transition: "background 150ms ease",
-                  }}
-                  onMouseEnter={e => e.currentTarget.style.background = "var(--bg-hover)"}
-                  onMouseLeave={e => e.currentTarget.style.background = "transparent"}
-                >
-                  <span style={{ color: "var(--text-tertiary)", fontSize: 11 }}>
-                    {item.page.charAt(0).toUpperCase() + item.page.slice(1)}
-                  </span>
-                  <span style={{ color: "var(--text-primary)", fontWeight: 500 }}>{item.label}</span>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+        <div className="topbar-search">{Icons.search}<input placeholder="Search calls, contacts..." /></div>
 
         {/* Notifications bell */}
         <div ref={notifRef} style={{ position: "relative" }}>
@@ -628,9 +550,9 @@ function Topbar({ title, onMenuToggle, setActivePage, onSearchNavigate }) {
 }
 
 // ─── STAT CARD ───────────────────────────────────────────────
-function StatCard({ label, value, icon, iconBg, change, changeDir, onClick }) {
+function StatCard({ label, value, icon, iconBg, change, changeDir }) {
   return (
-    <div className="stat-card" onClick={onClick} style={{ cursor: onClick ? "pointer" : "default" }}>
+    <div className="stat-card">
       <div className="stat-header">
         <span className="stat-label">{label}</span>
         <div className="stat-icon" style={{ background: iconBg }}>{icon}</div>
@@ -657,7 +579,6 @@ function BillingBanner() {
     try {
       const res = await billingApi.checkout(company?.plan || "pro");
       if (res?.url) window.location.href = res.url;
-      else throw new Error("Could not open checkout. Please try again or contact hello@gate-ai.io");
     } catch (err) { alert(err.message); }
     finally { setLoading(false); }
   }
@@ -666,8 +587,7 @@ function BillingBanner() {
     setLoading(true);
     try {
       const res = await billingApi.portal();
-      if (res?.url) window.open(res.url, "_blank");
-      else throw new Error("Billing portal unavailable. Please contact hello@gate-ai.io for help with your subscription.");
+      if (res?.url) window.location.href = res.url;
     } catch (err) { alert(err.message); }
     finally { setLoading(false); }
   }
@@ -723,7 +643,7 @@ function CallDetailModal({ call, onClose, onWhitelist, onBlock }) {
           <div className="modal-body">
             <div className="modal-row"><span className="modal-label">Caller</span><span className="modal-value" style={{ fontWeight: 600 }}>{c.caller}{c.company ? ` — ${c.company}` : ""}</span></div>
             <div className="modal-row"><span className="modal-label">Phone</span><span className="modal-value" style={{ fontFamily: "var(--font-mono)", fontSize: 13 }}>{c.phone}</span></div>
-            <div className="modal-row"><span className="modal-label">Time</span><span className="modal-value">{c.dateTime} · {c.duration}</span></div>
+            <div className="modal-row"><span className="modal-label">Time</span><span className="modal-value">{c.time} · {c.duration}</span></div>
             <div className="modal-row">
               <span className="modal-label">Status</span>
               <span className="modal-value">
@@ -928,7 +848,7 @@ async function unblockCaller(call) {
 }
 
 // ─── DASHBOARD PAGE ──────────────────────────────────────────
-function DashboardPage({ onViewCall, liveCalls, setActivePage, setCallLogFilter }) {
+function DashboardPage({ onViewCall, liveCalls, setActivePage }) {
   const [callList, setCallList] = useState([]);
   const [ptList,   setPtList]   = useState([]);
   const [teamList, setTeamList] = useState([]);
@@ -965,14 +885,10 @@ function DashboardPage({ onViewCall, liveCalls, setActivePage, setCallLogFilter 
 
       <BillingBanner />
       <div className="stats-grid">
-        <StatCard label="Total Calls Today" value={total} icon={Icons.phone} iconBg="var(--accent-dim)" change={total > 0 ? `${total} calls` : "No calls yet"} changeDir="up"
-          onClick={() => { setActivePage("calls"); setCallLogFilter("all"); }} />
-        <StatCard label="Blocked / Spam" value={blocked} icon={Icons.ban} iconBg="var(--red-dim)" change={total > 0 ? `${Math.round(blocked/total*100)}% of calls` : "0% of calls"} changeDir="down"
-          onClick={() => { setActivePage("calls"); setCallLogFilter("blocked"); }} />
-        <StatCard label="Forwarded" value={forwarded} icon={Icons.forward} iconBg="var(--green-dim)" change={forwarded > 0 ? "Connected" : "None yet"} changeDir="up"
-          onClick={() => { setActivePage("calls"); setCallLogFilter("forwarded"); }} />
-        <StatCard label="Flagged / Screened" value={screened} icon={Icons.eye} iconBg="var(--orange-dim)" change="Pending review" changeDir={null}
-          onClick={() => { setActivePage("calls"); setCallLogFilter("screened"); }} />
+        <StatCard label="Total Calls Today" value={total} icon={Icons.phone} iconBg="var(--accent-dim)" change={total > 0 ? `${total} calls` : "No calls yet"} changeDir="up" />
+        <StatCard label="Blocked / Spam" value={blocked} icon={Icons.ban} iconBg="var(--red-dim)" change={total > 0 ? `${Math.round(blocked/total*100)}% of calls` : "0% of calls"} changeDir="down" />
+        <StatCard label="Forwarded" value={forwarded} icon={Icons.forward} iconBg="var(--green-dim)" change={forwarded > 0 ? "Connected" : "None yet"} changeDir="up" />
+        <StatCard label="Flagged / Screened" value={screened} icon={Icons.eye} iconBg="var(--orange-dim)" change="Pending review" changeDir={null} />
       </div>
 
       <div className="section">
@@ -1012,11 +928,8 @@ function DashboardPage({ onViewCall, liveCalls, setActivePage, setCallLogFilter 
       </div>
 
       <div className="dashboard-bottom-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-        <div className="section" style={{ cursor: "pointer" }} onClick={() => setActivePage("screening")}>
-          <div className="section-header">
-            <span className="section-title">Top Blocked Patterns</span>
-            <span style={{ fontSize: 11, color: "var(--text-tertiary)" }}>View all →</span>
-          </div>
+        <div className="section">
+          <div className="section-header"><span className="section-title">Top Blocked Patterns</span></div>
           <div style={{ padding: 16 }}>
             {ptList.length === 0 ? (
               <div style={{ color: "var(--text-tertiary)", fontSize: 13, padding: "8px 0" }}>No blocked patterns configured yet</div>
@@ -1031,11 +944,8 @@ function DashboardPage({ onViewCall, liveCalls, setActivePage, setCallLogFilter 
             ))}
           </div>
         </div>
-        <div className="section" style={{ cursor: "pointer" }} onClick={() => setActivePage("team")}>
-          <div className="section-header">
-            <span className="section-title">Active Team Members</span>
-            <span style={{ fontSize: 11, color: "var(--text-tertiary)" }}>View all →</span>
-          </div>
+        <div className="section">
+          <div className="section-header"><span className="section-title">Active Team Members</span></div>
           <div style={{ padding: 16 }}>
             {teamList.length === 0 ? (
               <div style={{ color: "var(--text-tertiary)", fontSize: 13, padding: "8px 0" }}>No team members added yet</div>
@@ -1059,39 +969,26 @@ function DashboardPage({ onViewCall, liveCalls, setActivePage, setCallLogFilter 
 }
 
 // ─── CALL LOG PAGE ───────────────────────────────────────────
-function CallLogPage({ onViewCall, initialFilter }) {
+function CallLogPage({ onViewCall }) {
   const [callList,  setCallList]  = useState([]);
   const [loading,   setLoading]   = useState(true);
-  const [filter,    setFilter]    = useState(initialFilter || "all");
+  const [filter,    setFilter]    = useState("all");
   const [exporting, setExporting] = useState(false);
-  const [page,      setPage]      = useState(1);
-
-  const PAGE_SIZE = 20;
 
   useEffect(() => {
-    callsApi.list({ limit: 500, sort: "desc" })
+    callsApi.list({ limit: 100, sort: "desc" })
       .then(res => setCallList(res?.calls || res || []))
       .catch(console.error)
       .finally(() => setLoading(false));
   }, []);
 
-  // Reset to page 1 whenever the filter changes
-  useEffect(() => { setPage(1); }, [filter]);
-
   const normalized = callList.map(normalizeCall);
-  const filtered   = filter === "all" ? normalized : normalized.filter(c => c.status === filter);
-  const pageCount  = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-  const paginated  = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const filtered = filter === "all" ? normalized : normalized.filter(c => c.status === filter);
 
-  async function handleExport() {
+  function handleExport() {
     setExporting(true);
-    try {
-      await exportCallsCsv({ status: filter !== "all" ? filter : undefined });
-    } catch (err) {
-      alert("Export failed: " + (err.message || "Unknown error"));
-    } finally {
-      setExporting(false);
-    }
+    try { exportCallsCsv({ status: filter !== "all" ? filter : undefined }); }
+    finally { setTimeout(() => setExporting(false), 1500); }
   }
 
   return (
@@ -1110,83 +1007,41 @@ function CallLogPage({ onViewCall, initialFilter }) {
           </button>
         ))}
       </div>
-
       {loading ? <Spinner /> : filtered.length === 0 ? (
         <div className="empty-state"><p>No {filter !== "all" ? filter : ""} calls found</p></div>
       ) : (
         <>
           <div className="table-wrap desktop-table">
             <table>
-              <thead>
-                <tr><th>Caller</th><th>Company</th><th>Phone</th><th>Date & Time</th><th>Duration</th><th>Status</th><th>Intent</th><th>Confidence</th><th>Routed To</th><th></th></tr>
-              </thead>
+              <thead><tr><th>Caller</th><th>Company</th><th>Phone</th><th>Time</th><th>Duration</th><th>Status</th><th>Intent</th><th>Confidence</th><th>Routed To</th><th></th></tr></thead>
               <tbody>
-                {paginated.map((call, i) => {
-                  const rawIdx = normalized.indexOf(call);
-                  const rawCall = callList[rawIdx] ?? callList[(page - 1) * PAGE_SIZE + i];
-                  return (
-                    <tr key={call.id || i} onClick={() => onViewCall(rawCall)}>
-                      <td style={{ color: "var(--text-primary)", fontWeight: 500 }}>{call.caller}</td>
-                      <td>{call.company || <span style={{ color: "var(--text-tertiary)" }}>—</span>}</td>
-                      <td style={{ fontFamily: "var(--font-mono)", fontSize: 12 }}>{call.phone}</td>
-                      <td style={{ color: "var(--text-secondary)", fontSize: 12 }}>{call.dateTime}</td>
-                      <td style={{ fontFamily: "var(--font-mono)", fontSize: 12 }}>{call.duration}</td>
-                      <td><span className={`badge ${call.status === "forwarded" ? "badge-green" : call.status === "blocked" ? "badge-red" : "badge-orange"}`}>{call.status}</span></td>
-                      <td><span className="badge badge-ghost">{call.intent}</span></td>
-                      <td>
-                        <div className="confidence-bar-wrap" style={{ minWidth: 80 }}>
-                          <div className="confidence-bar" style={{ flex: 1 }}><div className="confidence-fill" style={{ width: `${call.confidence}%`, background: call.confidence >= 90 ? "var(--green)" : "var(--orange)" }} /></div>
-                          <span style={{ fontSize: 11, fontFamily: "var(--font-mono)", color: "var(--text-tertiary)" }}>{call.confidence}%</span>
-                        </div>
-                      </td>
-                      <td>{call.forwardedTo || <span style={{ color: "var(--text-tertiary)" }}>—</span>}</td>
-                      <td onClick={e => e.stopPropagation()}>
-                        <CallActionMenu call={rawCall} onWhitelist={whitelistCaller} onBlock={blockCaller} onUnblock={unblockCaller} />
-                      </td>
-                    </tr>
-                  );
-                })}
+                {filtered.map((call, i) => (
+                  <tr key={call.id || i} onClick={() => onViewCall(callList[normalized.indexOf(call)] ?? callList[i])}>
+                    <td style={{ color: "var(--text-primary)", fontWeight: 500 }}>{call.caller}</td>
+                    <td>{call.company || <span style={{ color: "var(--text-tertiary)" }}>—</span>}</td>
+                    <td style={{ fontFamily: "var(--font-mono)", fontSize: 12 }}>{call.phone}</td>
+                    <td>{call.time}</td>
+                    <td style={{ fontFamily: "var(--font-mono)", fontSize: 12 }}>{call.duration}</td>
+                    <td><span className={`badge ${call.status === "forwarded" ? "badge-green" : call.status === "blocked" ? "badge-red" : "badge-orange"}`}>{call.status}</span></td>
+                    <td><span className="badge badge-ghost">{call.intent}</span></td>
+                    <td>
+                      <div className="confidence-bar-wrap" style={{ minWidth: 80 }}>
+                        <div className="confidence-bar" style={{ flex: 1 }}><div className="confidence-fill" style={{ width: `${call.confidence}%`, background: call.confidence >= 90 ? "var(--green)" : "var(--orange)" }} /></div>
+                        <span style={{ fontSize: 11, fontFamily: "var(--font-mono)", color: "var(--text-tertiary)" }}>{call.confidence}%</span>
+                      </div>
+                    </td>
+                    <td>{call.forwardedTo || <span style={{ color: "var(--text-tertiary)" }}>—</span>}</td>
+                    <td onClick={e => e.stopPropagation()}>
+                      <CallActionMenu call={callList[i]} onWhitelist={whitelistCaller} onBlock={blockCaller} onUnblock={unblockCaller} />
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
-
           <div className="mobile-call-cards">
-            {paginated.map((call, i) => {
-              const rawIdx = normalized.indexOf(call);
-              return <MobileCallCard key={call.id || i} call={callList[rawIdx]} onView={onViewCall} />;
-            })}
+            {filtered.map((call, i) => <MobileCallCard key={call.id || i} call={callList[i]} onView={onViewCall} />)}
           </div>
-
-          {/* Pagination controls */}
-          {pageCount > 1 && (
-            <div style={{
-              display: "flex", alignItems: "center", justifyContent: "space-between",
-              padding: "12px 20px", borderTop: "1px solid var(--border)",
-            }}>
-              <span style={{ fontSize: 12, color: "var(--text-tertiary)" }}>
-                Showing {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, filtered.length)} of {filtered.length} calls
-              </span>
-              <div style={{ display: "flex", gap: 6 }}>
-                <button
-                  className="btn btn-sm"
-                  onClick={() => setPage(p => Math.max(1, p - 1))}
-                  disabled={page === 1}
-                >
-                  ← Previous
-                </button>
-                <span style={{ padding: "4px 10px", fontSize: 12, color: "var(--text-secondary)", alignSelf: "center" }}>
-                  Page {page} of {pageCount}
-                </span>
-                <button
-                  className="btn btn-sm"
-                  onClick={() => setPage(p => Math.min(pageCount, p + 1))}
-                  disabled={page === pageCount}
-                >
-                  Next →
-                </button>
-              </div>
-            </div>
-          )}
         </>
       )}
     </div>
@@ -1205,14 +1060,18 @@ function ScreeningPage() {
   const [wlForm,   setWlForm]   = useState({ name: "", company_name: "", phone_number: "", tag: "Client" });
   const [scrEmail, setScrEmail] = useState("");
   const [savingEmail, setSavingEmail] = useState(false);
+  const [screeningMode, setScreeningMode] = useState("moderate");
+  const [savingMode, setSavingMode] = useState(false);
+  const [modeSaved, setModeSaved] = useState(false);
   const [notifSettings, setNotifSettings] = useState({});
 
   useEffect(() => {
-    Promise.all([patternsApi.list(), whitelistApi.list(), settingsApi.get(), notificationsApi.get()])
-      .then(([pt, wl, sett, notif]) => {
+    Promise.all([patternsApi.list(), whitelistApi.list(), settingsApi.get(), notificationsApi.get(), settingsApi.getAi()])
+      .then(([pt, wl, sett, notif, aiSett]) => {
         setPtList(pt?.patterns || pt || []);
         setWlList(wl?.contacts || wl || []);
         setScrEmail(sett?.screening_email || "");
+        setScreeningMode(aiSett?.screening_mode || sett?.screening_mode || "moderate");
         setNotifSettings(notif?.settings || notif || {});
       }).catch(console.error).finally(() => setLoading(false));
   }, []);
@@ -1242,6 +1101,16 @@ function ScreeningPage() {
     try { await settingsApi.update({ screening_email: scrEmail }); }
     catch (err) { alert(err.message); }
     finally { setSavingEmail(false); }
+  }
+  async function saveScreeningMode(mode) {
+    setScreeningMode(mode);
+    setSavingMode(true); setModeSaved(false);
+    try {
+      await settingsApi.updateAi({ screening_mode: mode });
+      setModeSaved(true);
+      setTimeout(() => setModeSaved(false), 2000);
+    } catch (err) { alert(err.message); }
+    finally { setSavingMode(false); }
   }
   async function toggleNotif(key) {
     const updated = { ...notifSettings, [key]: !notifSettings[key] };
@@ -1338,6 +1207,117 @@ function ScreeningPage() {
               </div>
             </div>
           </div>
+
+          <div className="section" style={{ marginBottom: 0 }}>
+            <div className="section-header">
+              <span className="section-title">Screening Intensity</span>
+              {modeSaved && <span style={{ fontSize: 12, color: "var(--accent)", fontWeight: 500 }}>✓ Saved</span>}
+            </div>
+            <div style={{ padding: 20 }}>
+              <div style={{ fontSize: 13, color: "var(--text-tertiary)", marginBottom: 16 }}>
+                Controls how aggressively your AI screens inbound calls. Takes effect on the very next call.
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                {[
+                  {
+                    value: "relaxed",
+                    label: "Relaxed",
+                    desc: "Forwards calls whenever a caller names someone or gives any business reason. Only blocks clear sales pitches. Best for companies that prioritise accessibility and expect mostly legitimate callers.",
+                    color: "#20c997",
+                  },
+                  {
+                    value: "moderate",
+                    label: "Moderate",
+                    desc: "Requires both a name and a business reason before transferring. Asks one question if context is missing. Blocks anyone who reveals they are selling or pitching. The recommended default for most businesses.",
+                    color: "#6c5ce7",
+                  },
+                  {
+                    value: "aggressive",
+                    label: "Aggressive",
+                    desc: "Requires a specific employee name AND a clear operational reason before any transfer. Blocks callers who are vague after two questions. Best for companies receiving very high cold call volumes.",
+                    color: "#e84393",
+                  },
+                ].map(opt => {
+                  const isActive = screeningMode === opt.value;
+                  const [showInfo, setShowInfo] = React.useState(false);
+                  return (
+                    <div
+                      key={opt.value}
+                      onClick={() => !savingMode && saveScreeningMode(opt.value)}
+                      style={{
+                        border: `2px solid ${isActive ? opt.color : "var(--border)"}`,
+                        borderRadius: 10,
+                        padding: "12px 16px",
+                        cursor: savingMode ? "wait" : "pointer",
+                        background: isActive ? `${opt.color}12` : "var(--surface)",
+                        transition: "all 0.15s",
+                        display: "flex",
+                        alignItems: "flex-start",
+                        gap: 12,
+                      }}
+                    >
+                      {/* Radio dot */}
+                      <div style={{
+                        width: 18, height: 18, borderRadius: "50%", flexShrink: 0, marginTop: 2,
+                        border: `2px solid ${isActive ? opt.color : "var(--text-tertiary)"}`,
+                        background: isActive ? opt.color : "transparent",
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                      }}>
+                        {isActive && <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#fff" }} />}
+                      </div>
+
+                      <div style={{ flex: 1 }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                          <span style={{ fontWeight: 600, fontSize: 14, color: isActive ? opt.color : "var(--text-primary)" }}>
+                            {opt.label}
+                          </span>
+                          {/* Info tooltip */}
+                          <div style={{ position: "relative", display: "inline-flex" }}>
+                            <span
+                              onClick={e => { e.stopPropagation(); setShowInfo(v => !v); }}
+                              style={{
+                                width: 16, height: 16, borderRadius: "50%",
+                                background: "var(--text-tertiary)", color: "#fff",
+                                fontSize: 10, fontWeight: 700, cursor: "pointer",
+                                display: "inline-flex", alignItems: "center", justifyContent: "center",
+                                flexShrink: 0,
+                              }}
+                            >i</span>
+                            {showInfo && (
+                              <div
+                                onClick={e => e.stopPropagation()}
+                                style={{
+                                  position: "absolute", left: 0, top: 22, zIndex: 100,
+                                  background: "var(--surface-raised)", border: "1px solid var(--border)",
+                                  borderRadius: 8, padding: "10px 14px", width: 260,
+                                  fontSize: 12, color: "var(--text-secondary)", lineHeight: 1.5,
+                                  boxShadow: "0 4px 16px rgba(0,0,0,0.3)",
+                                }}
+                              >
+                                {opt.desc}
+                                <div
+                                  onClick={() => setShowInfo(false)}
+                                  style={{ marginTop: 8, fontSize: 11, color: opt.color, cursor: "pointer", fontWeight: 600 }}
+                                >
+                                  Close
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        <div style={{ fontSize: 12, color: "var(--text-tertiary)", marginTop: 3 }}>
+                          {opt.value === "relaxed" && "Fewest questions — most calls get through"}
+                          {opt.value === "moderate" && "Balanced — recommended for most businesses"}
+                          {opt.value === "aggressive" && "Most thorough — fewest unwanted calls"}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              {savingMode && <div style={{ fontSize: 12, color: "var(--text-tertiary)", marginTop: 10 }}>Saving…</div>}
+            </div>
+          </div>
           <div className="section" style={{ marginBottom: 0 }}>
             <div className="section-header"><span className="section-title">Notification Settings</span></div>
             <div style={{ padding: 20, display: "flex", flexDirection: "column", gap: 18 }}>
@@ -1358,11 +1338,9 @@ function TeamPage() {
   const [rules,      setRules]      = useState([]);
   const [loading,    setLoading]    = useState(true);
   const [adding,     setAdding]     = useState(false);
-  const [editEmp,    setEditEmp]    = useState(null);
+  const [editEmp,    setEditEmp]    = useState(null); // employee being edited
   const [savingEmp,  setSavingEmp]  = useState(false);
-  const [addingRule,     setAddingRule]     = useState(false);
-  const [editingRuleId,  setEditingRuleId]  = useState(null);
-  const [editingIntent,  setEditingIntent]  = useState("");
+  const [addingRule, setAddingRule] = useState(false);
   const [ruleForm,   setRuleForm]   = useState({ intent_match: "", route_to_id: "", priority: "medium" });
   const [form,       setForm]       = useState({ first_name: "", last_name: "", email: "", phone: "", extension: "", role: "employee" });
 
@@ -1390,7 +1368,7 @@ function TeamPage() {
     if (!editEmp) return;
     setSavingEmp(true);
     try {
-      await usersApi.update(editEmp.id, {
+      const updated = await usersApi.update(editEmp.id, {
         first_name: editEmp.first_name,
         last_name:  editEmp.last_name,
         phone:      editEmp.phone,
@@ -1423,15 +1401,6 @@ function TeamPage() {
     if (!confirm("Remove this routing rule?")) return;
     try { await routingApi.remove(id); setRules(prev => prev.filter(r => r.id !== id)); }
     catch (err) { alert(err.message); }
-  }
-
-  async function saveRuleIntent(ruleId) {
-    if (!editingIntent.trim()) return;
-    try {
-      await routingApi.update(ruleId, { intent_match: editingIntent.trim() });
-      setRules(prev => prev.map(r => r.id === ruleId ? { ...r, intent_match: editingIntent.trim() } : r));
-    } catch (err) { alert(err.message); }
-    finally { setEditingRuleId(null); setEditingIntent(""); }
   }
 
   async function toggleRule(rule) {
@@ -1521,52 +1490,23 @@ function TeamPage() {
         {team.length === 0 ? <div className="empty-state"><p>No team members yet — add your first employee above</p></div> : (
           <div className="employee-grid">
             {team.map((emp, i) => (
-              <div
-                key={emp.id}
-                className="employee-card"
-                style={{ cursor: emp.role === "owner" ? "default" : "pointer" }}
-                onClick={() => emp.role !== "owner" && setEditEmp({ ...emp })}
-              >
-                {/* Avatar + status dot */}
-                <div style={{ position: "relative", flexShrink: 0 }}>
-                  <div className="emp-avatar" style={{ background: COLORS[i % COLORS.length], width: 44, height: 44, borderRadius: 10, fontSize: 14 }}>
-                    {initials(`${emp.first_name || ""} ${emp.last_name || ""}`)}
-                  </div>
-                  <div style={{
-                    position: "absolute", bottom: -1, right: -1,
-                    width: 11, height: 11, borderRadius: "50%",
-                    background: emp.phone ? "var(--green)" : "var(--orange)",
-                    border: "2px solid var(--bg-tertiary)",
-                  }} />
-                </div>
-
-                {/* Info */}
-                <div className="emp-info" style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 14, fontWeight: 600, color: "var(--text-primary)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                    {emp.first_name} {emp.last_name}
-                  </div>
-                  <div style={{ fontSize: 11.5, color: "var(--text-tertiary)", marginTop: 2, textTransform: "capitalize" }}>
-                    {emp.role}{emp.extension ? ` · Ext. ${emp.extension}` : ""}
-                  </div>
-                  <div style={{ fontSize: 12, marginTop: 5, fontFamily: "var(--font-mono)" }}>
-                    {emp.phone
-                      ? <span style={{ color: "var(--green)" }}>{emp.phone}</span>
-                      : <span style={{ color: "var(--orange)" }}>No phone — {emp.role === "owner" ? "edit in Settings" : "click to add"}</span>
-                    }
-                  </div>
-                </div>
-
-                {/* Remove button — stops click-to-edit propagation */}
-                <div onClick={e => e.stopPropagation()}>
-                  {emp.role !== "owner" && (
-                    <button
-                      className="btn btn-sm"
-                      style={{ color: "var(--red)", fontSize: 11, padding: "3px 8px" }}
-                      onClick={() => removeMember(emp.id)}
-                    >
-                      Remove
-                    </button>
+              <div key={emp.id} className="employee-card" style={{ cursor: emp.role === "owner" ? "default" : "pointer" }} onClick={() => emp.role !== "owner" && setEditEmp({ ...emp })}>
+                <div className="emp-avatar" style={{ background: COLORS[i % COLORS.length] }}>{initials(`${emp.first_name || ""} ${emp.last_name || ""}`)}</div>
+                <div className="emp-info">
+                  <div className="emp-name">{emp.first_name} {emp.last_name}</div>
+                  <div className="emp-role">{emp.role}</div>
+                  {emp.phone
+                    ? <div className="emp-ext" style={{ color: "var(--green)", fontSize: 11 }}>📞 {emp.phone}</div>
+                    : <div className="emp-ext" style={{ color: "var(--orange)", fontSize: 11 }}>⚠ No phone — click to add</div>
+                  }
+                  {emp.role === "owner" && (
+                    <div style={{ fontSize: 10, color: "var(--text-tertiary)", marginTop: 2 }}>Edit in Settings</div>
                   )}
+                  {emp.extension && <div className="emp-ext">Ext. {emp.extension}</div>}
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 6 }} onClick={e => e.stopPropagation()}>
+                  <div className="emp-status" style={{ background: emp.phone ? "var(--green)" : "var(--orange)" }} />
+                  <button className="btn btn-sm" style={{ color: "var(--red)", fontSize: 10, padding: "2px 7px" }} onClick={() => removeMember(emp.id)}>Remove</button>
                 </div>
               </div>
             ))}
@@ -1631,24 +1571,7 @@ function TeamPage() {
                   const employee = team.find(m => m.id === rule.route_to_id);
                   return (
                     <tr key={rule.id}>
-                      <td style={{ color: "var(--text-primary)", fontWeight: 500 }}>
-                        {editingRuleId === rule.id ? (
-                          <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
-                            <input
-                              className="form-input"
-                              style={{ minWidth: 180, padding: "4px 10px", fontSize: 13 }}
-                              value={editingIntent}
-                              onChange={e => setEditingIntent(e.target.value)}
-                              onKeyDown={e => { if (e.key === "Enter") saveRuleIntent(rule.id); if (e.key === "Escape") { setEditingRuleId(null); setEditingIntent(""); } }}
-                              autoFocus
-                            />
-                            <button className="btn btn-sm btn-primary" style={{ padding: "3px 8px" }} onClick={() => saveRuleIntent(rule.id)}>Save</button>
-                            <button className="btn btn-sm" style={{ padding: "3px 8px" }} onClick={() => { setEditingRuleId(null); setEditingIntent(""); }}>Cancel</button>
-                          </div>
-                        ) : (
-                          rule.intent_match
-                        )}
-                      </td>
+                      <td style={{ color: "var(--text-primary)", fontWeight: 500 }}>{rule.intent_match}</td>
                       <td>
                         {employee ? (
                           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -1674,15 +1597,7 @@ function TeamPage() {
                         </div>
                       </td>
                       <td>
-                        <div style={{ display: "flex", gap: 6 }}>
-                          <button
-                            className="btn btn-sm"
-                            onClick={() => { setEditingRuleId(rule.id); setEditingIntent(rule.intent_match); }}
-                          >
-                            Edit
-                          </button>
-                          <button className="btn btn-sm" style={{ color: "var(--red)" }} onClick={() => removeRule(rule.id)}>Remove</button>
-                        </div>
+                        <button className="btn btn-sm" style={{ color: "var(--red)" }} onClick={() => removeRule(rule.id)}>Remove</button>
                       </td>
                     </tr>
                   );
@@ -1699,240 +1614,38 @@ function TeamPage() {
 
 // ─── INTEGRATIONS PAGE ───────────────────────────────────────
 function IntegrationsPage() {
-  const { company } = useAuth();
-  const [activeModal, setActiveModal] = useState(null); // integration name
-
-  // Slack state
-  const [slackWebhook,   setSlackWebhook]   = useState("");
-  const [slackSaving,    setSlackSaving]    = useState(false);
-  const [slackSaved,     setSlackSaved]     = useState(false);
-  const [slackEnabled,   setSlackEnabled]   = useState(false);
-
-  // Load existing Slack config on mount
-  useEffect(() => {
-    notificationsApi.get().then(res => {
-      const s = res?.settings || res || {};
-      setSlackWebhook(s.slack_webhook_url || "");
-      setSlackEnabled(!!s.slack_enabled);
-    }).catch(() => {});
-  }, []);
-
-  async function saveSlack() {
-    setSlackSaving(true); setSlackSaved(false);
-    try {
-      await notificationsApi.update({ slack_webhook_url: slackWebhook, slack_enabled: slackEnabled });
-      setSlackSaved(true);
-      setTimeout(() => setSlackSaved(false), 3000);
-    } catch (err) { alert(err.message); }
-    finally { setSlackSaving(false); }
-  }
-
-  async function disconnectSlack() {
-    if (!confirm("Disconnect Slack? You will stop receiving Slack notifications.")) return;
-    try {
-      await notificationsApi.update({ slack_webhook_url: "", slack_enabled: false });
-      setSlackWebhook(""); setSlackEnabled(false);
-      setActiveModal(null);
-    } catch (err) { alert(err.message); }
-  }
-
   const integrations = [
-    { name: "Twilio",          file: "twilio.png",          desc: "VoIP telephony, SIP trunking, programmable voice — the backbone of your Gate AI phone system.", color: "#f22f46", connected: true },
-    { name: "Slack",           file: "slack.png",           desc: "Deliver call summaries, blocked-call alerts, and screening reports to your Slack channels.",     color: "#e01e5a", connected: !!slackWebhook },
-    { name: "Email (SMTP)",    file: "email.webp",          desc: "Send call summaries and daily digests via email to employees and admins.",                       color: "#ffa94d", connected: true },
-    { name: "OpenPhone",       file: "openphone.png",       desc: "Business phone system with shared numbers, team inboxes, and CRM integration.",                  color: "#5865f2", connected: false },
-    { name: "Microsoft Teams", file: "microsoft-teams.png", desc: "Push call notifications and summaries directly into Teams channels.",                            color: "#5059c9", connected: false },
-    { name: "Zapier",          file: "zapier.webp",         desc: "Connect Gate AI to 5000+ apps with custom automation workflows.",                                color: "#ff4a00", connected: false },
-    { name: "Talkroute",       file: "talkroute.png",       desc: "Virtual phone system with call forwarding, voicemail, and auto-attendant.",                      color: "#00b894", connected: false },
-    { name: "Avaya",           file: "avaya.png",           desc: "Enterprise communications platform with advanced call center capabilities.",                     color: "#cc0000", connected: false },
+    { name: "Twilio",          file: "twilio.png",          desc: "VoIP telephony, SIP trunking, programmable voice — the backbone of your phone system.",        color: "#f22f46", connected: true },
+    { name: "OpenPhone",       file: "openphone.png",       desc: "Business phone system with shared numbers, team inboxes, and CRM integration.",                color: "#5865f2", connected: false },
+    { name: "Talkroute",       file: "talkroute.png",       desc: "Virtual phone system with call forwarding, voicemail, and auto-attendant.",                    color: "#00b894", connected: false },
+    { name: "Avaya",           file: "avaya.png",           desc: "Enterprise communications platform with advanced call center capabilities.",                   color: "#cc0000", connected: false },
+    { name: "Slack",           file: "slack.png",           desc: "Deliver call summaries, blocked-call alerts, and screening reports to channels.",             color: "#e01e5a", connected: true },
+    { name: "Microsoft Teams", file: "microsoft-teams.png", desc: "Push call notifications and summaries directly into Teams channels.",                         color: "#5059c9", connected: false },
+    { name: "Email (SMTP)",    file: "email.webp",          desc: "Send call summaries and daily digests via email to employees and admins.",                    color: "#ffa94d", connected: true },
+    { name: "Zapier",          file: "zapier.webp",         desc: "Connect Gate AI to 5000+ apps with custom automation workflows.",                             color: "#ff4a00", connected: false },
   ];
-
-  const modalStyle = { padding: "20px 22px", display: "flex", flexDirection: "column", gap: 16 };
-  const labelStyle = { fontSize: 11, fontWeight: 600, color: "var(--text-tertiary)", textTransform: "uppercase", letterSpacing: 0.6, marginBottom: 6, display: "block" };
-  const fieldStyle = { width: "100%", padding: "9px 14px", background: "var(--bg-secondary)", border: "1px solid var(--border)", borderRadius: "var(--radius-md)", fontFamily: "var(--font-sans)", fontSize: 13.5, color: "var(--text-primary)", outline: "none" };
-
   return (
-    <>
-      <div className="section">
-        <div className="section-header">
-          <span className="section-title">Integrations & Plugins</span>
-          <span style={{ fontSize: 12, color: "var(--text-tertiary)" }}>{integrations.filter(i => i.connected).length} connected</span>
-        </div>
-        <div className="integrations-grid">
-          {integrations.map((int, i) => (
-            <div key={i} className="integration-card">
-              <div className="integration-top">
-                <div className="integration-icon" style={{ background: int.color + "20" }}>
-                  <img src={`/images/integrations/${int.file}`} alt={int.name} style={{ width: "26px", height: "26px", objectFit: "contain", borderRadius: "4px" }} />
-                </div>
-                <span className={`badge ${int.connected ? "badge-green" : "badge-ghost"}`}>{int.connected ? "Connected" : "Available"}</span>
-              </div>
-              <div className="integration-name">{int.name}</div>
-              <div className="integration-desc">{int.desc}</div>
-              <button
-                className={`btn btn-sm ${int.connected ? "" : "btn-primary"}`}
-                style={{ alignSelf: "flex-start", marginTop: 4 }}
-                onClick={() => setActiveModal(int.name)}
-              >
-                {int.connected ? "Configure" : "Connect"}
-              </button>
-            </div>
-          ))}
-        </div>
+    <div className="section">
+      <div className="section-header">
+        <span className="section-title">Integrations & Plugins</span>
+        <span style={{ fontSize: 12, color: "var(--text-tertiary)" }}>{integrations.filter(i => i.connected).length} connected</span>
       </div>
-
-      {/* ── Twilio Modal ── */}
-      {activeModal === "Twilio" && (
-        <div className="modal-overlay" onClick={() => setActiveModal(null)}>
-          <div className="modal modal-sm" onClick={e => e.stopPropagation()}>
-            <div className="modal-header">
-              <span className="modal-title">Twilio — Phone System</span>
-              <button className="modal-close" onClick={() => setActiveModal(null)}>{Icons.x}</button>
+      <div className="integrations-grid">
+        {integrations.map((int, i) => (
+          <div key={i} className="integration-card">
+            <div className="integration-top">
+              <div className="integration-icon" style={{ background: int.color + "20" }}>
+                <img src={`/images/integrations/${int.file}`} alt={int.name} style={{width:"26px",height:"26px",objectFit:"contain",borderRadius:"4px"}} />
+              </div>
+              <span className={`badge ${int.connected ? "badge-green" : "badge-ghost"}`}>{int.connected ? "Connected" : "Available"}</span>
             </div>
-            <div style={modalStyle}>
-              <div style={{ background: "var(--green-dim)", border: "1px solid rgba(0,214,143,0.2)", borderRadius: "var(--radius-md)", padding: "10px 14px", fontSize: 13, color: "var(--green)" }}>
-                ✓ Twilio is active and handling all inbound calls
-              </div>
-              <div>
-                <label style={labelStyle}>Gate AI Phone Number</label>
-                <div style={{ ...fieldStyle, color: "var(--text-secondary)", fontFamily: "var(--font-mono)", fontSize: 14 }}>
-                  {company?.twilio_number || "+18337142521"}
-                </div>
-              </div>
-              <div>
-                <label style={labelStyle}>Account</label>
-                <div style={{ ...fieldStyle, color: "var(--text-secondary)" }}>Managed by Gate AI — contact support to change your number</div>
-              </div>
-              <div style={{ fontSize: 12, color: "var(--text-tertiary)", lineHeight: 1.6 }}>
-                Twilio is the telephony backbone of Gate AI. Your phone number, call routing, and voice AI are all managed through this integration. To update your number or account settings, contact <span style={{ color: "var(--accent-light)" }}>hello@gate-ai.io</span>.
-              </div>
-            </div>
-            <div className="modal-footer">
-              <button className="btn btn-sm" onClick={() => setActiveModal(null)}>Close</button>
-            </div>
+            <div className="integration-name">{int.name}</div>
+            <div className="integration-desc">{int.desc}</div>
+            <button className={`btn btn-sm ${int.connected ? "" : "btn-primary"}`} style={{ alignSelf: "flex-start", marginTop: 4 }}>{int.connected ? "Configure" : "Connect"}</button>
           </div>
-        </div>
-      )}
-
-      {/* ── Slack Modal ── */}
-      {activeModal === "Slack" && (
-        <div className="modal-overlay" onClick={() => setActiveModal(null)}>
-          <div className="modal modal-sm" onClick={e => e.stopPropagation()}>
-            <div className="modal-header">
-              <span className="modal-title">Slack Notifications</span>
-              <button className="modal-close" onClick={() => setActiveModal(null)}>{Icons.x}</button>
-            </div>
-            <div style={modalStyle}>
-              <div style={{ fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.6 }}>
-                Paste your Slack Incoming Webhook URL below. Gate AI will post blocked and forwarded call alerts to that channel in real time.
-              </div>
-              <div style={{ fontSize: 12, color: "var(--text-tertiary)", background: "var(--bg-tertiary)", borderRadius: "var(--radius-md)", padding: "10px 14px", lineHeight: 1.6 }}>
-                To get a webhook URL: go to <span style={{ color: "var(--accent-light)" }}>api.slack.com/apps</span> → Create an app → Incoming Webhooks → Activate → Add New Webhook to Workspace.
-              </div>
-              <div>
-                <label style={labelStyle}>Webhook URL</label>
-                <input
-                  style={fieldStyle}
-                  placeholder="https://hooks.slack.com/services/..."
-                  value={slackWebhook}
-                  onChange={e => setSlackWebhook(e.target.value)}
-                  onFocus={e => e.target.style.borderColor = "var(--accent)"}
-                  onBlur={e => e.target.style.borderColor = "var(--border)"}
-                />
-              </div>
-              <ToggleSetting
-                label="Enable Slack alerts"
-                desc="Send blocked and forwarded call notifications to Slack"
-                value={slackEnabled}
-                onChange={v => setSlackEnabled(v)}
-              />
-            </div>
-            <div className="modal-footer">
-              {slackWebhook && (
-                <button className="btn btn-sm" style={{ color: "var(--red)", marginRight: "auto" }} onClick={disconnectSlack}>
-                  Disconnect
-                </button>
-              )}
-              <button className="btn btn-sm" onClick={() => setActiveModal(null)}>Cancel</button>
-              <button className="btn btn-sm btn-primary" onClick={saveSlack} disabled={slackSaving}>
-                {slackSaved ? "✓ Saved!" : slackSaving ? "Saving…" : "Save"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ── Email Modal ── */}
-      {activeModal === "Email (SMTP)" && (
-        <div className="modal-overlay" onClick={() => setActiveModal(null)}>
-          <div className="modal modal-sm" onClick={e => e.stopPropagation()}>
-            <div className="modal-header">
-              <span className="modal-title">Email Notifications</span>
-              <button className="modal-close" onClick={() => setActiveModal(null)}>{Icons.x}</button>
-            </div>
-            <div style={modalStyle}>
-              <div style={{ background: "var(--green-dim)", border: "1px solid rgba(0,214,143,0.2)", borderRadius: "var(--radius-md)", padding: "10px 14px", fontSize: 13, color: "var(--green)" }}>
-                ✓ Email delivery is active via SendGrid
-              </div>
-              <div>
-                <label style={labelStyle}>Sending Address</label>
-                <div style={{ ...fieldStyle, color: "var(--text-secondary)", fontFamily: "var(--font-mono)", fontSize: 13 }}>
-                  notifications@gate-ai.io
-                </div>
-              </div>
-              <div style={{ fontSize: 12, color: "var(--text-tertiary)", lineHeight: 1.6 }}>
-                Email notifications are sent via SendGrid to the addresses configured under each team member and your account email. To manage which emails are sent, go to <strong style={{ color: "var(--text-secondary)" }}>Settings → Notification Preferences</strong>.
-              </div>
-            </div>
-            <div className="modal-footer">
-              <button className="btn btn-sm" onClick={() => setActiveModal(null)}>Close</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ── Coming Soon Modal (all other integrations) ── */}
-      {activeModal && !["Twilio", "Slack", "Email (SMTP)"].includes(activeModal) && (
-        <div className="modal-overlay" onClick={() => setActiveModal(null)}>
-          <div className="modal modal-sm" onClick={e => e.stopPropagation()}>
-            <div className="modal-header">
-              <span className="modal-title">{activeModal}</span>
-              <button className="modal-close" onClick={() => setActiveModal(null)}>{Icons.x}</button>
-            </div>
-            <div style={modalStyle}>
-              <div style={{
-                display: "flex", flexDirection: "column", alignItems: "center",
-                padding: "20px 0", gap: 14, textAlign: "center",
-              }}>
-                <div style={{
-                  width: 52, height: 52, borderRadius: 14,
-                  background: "var(--accent-dim)", border: "1px solid var(--accent-glow)",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                }}>
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--accent-light)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-                  </svg>
-                </div>
-                <div>
-                  <div style={{ fontSize: 15, fontWeight: 600, color: "var(--text-primary)", marginBottom: 8 }}>
-                    {activeModal} — Coming Soon
-                  </div>
-                  <div style={{ fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.7, maxWidth: 300 }}>
-                    This integration is on our roadmap. We'll notify you by email when it's available.
-                  </div>
-                </div>
-                <div style={{ fontSize: 12, color: "var(--text-tertiary)", marginTop: 4 }}>
-                  Want to request early access? Email <span style={{ color: "var(--accent-light)" }}>hello@gate-ai.io</span>
-                </div>
-              </div>
-            </div>
-            <div className="modal-footer">
-              <button className="btn btn-sm btn-primary" onClick={() => setActiveModal(null)}>Got it</button>
-            </div>
-          </div>
-        </div>
-      )}
-    </>
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -1953,7 +1666,6 @@ function SettingsPage() {
   const [accountSaved,  setAccountSaved]  = useState(false);
 
   // Password state
-  const [showPwModal,  setShowPwModal]  = useState(false);
   const [pwForm,    setPwForm]    = useState({ current_password: "", new_password: "", confirm_password: "" });
   const [savingPw,  setSavingPw]  = useState(false);
   const [pwError,   setPwError]   = useState("");
@@ -1965,35 +1677,23 @@ function SettingsPage() {
   const [testBSent,    setTestBSent]    = useState(false);
   const [testFSent,    setTestFSent]    = useState(false);
 
-  // AI Assistant state
-  const [assistantName,    setAssistantName]    = useState(company?.assistant_name || "GATE-AI");
-  const [savingAssistant,  setSavingAssistant]  = useState(false);
-  const [assistantSaved,   setAssistantSaved]   = useState(false);
-
   useEffect(() => {
     notificationsApi.get()
       .then(res => setNotifs(res?.settings || res || {}))
       .catch(() => setNotifs({}))
       .finally(() => setLoading(false));
-    if (company) {
-      setCompanyForm({ name: company.name || "", industry: company.industry || "", timezone: company.timezone || "" });
-      setAssistantName(company.assistant_name || "GATE-AI");
-    }
-    if (user) setAccountForm({ first_name: user.first_name || "", last_name: user.last_name || "", email: user.email || "", phone: user.phone || "" });
+    if (company) setCompanyForm({ name: company.name || "", industry: company.industry || "", timezone: company.timezone || "" });
+    if (user)    setAccountForm({ first_name: user.first_name || "", last_name: user.last_name || "", email: user.email || "", phone: user.phone || "" });
   }, []);
 
   async function saveCompany() {
     setSavingCompany(true); setCompanySaved(false);
     try {
-      await settingsApi.updateCompany({
-        name:     companyForm.name,
-        industry: companyForm.industry,
-        timezone: companyForm.timezone,
-      });
+      const updated = await settingsApi.update({ company_name: companyForm.name, industry: companyForm.industry, timezone: companyForm.timezone });
       const token = localStorage.getItem("gateai_token");
       if (token) {
         const me = await fetch(`${import.meta.env.VITE_API_URL || "https://gate-ai-backend-production.up.railway.app"}/api/auth/me`, { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json());
-        if (me.user || me.company) login({ token, user: me.user || user, company: me.company || company });
+        if (me.token || token) login({ token, user: me.user || user, company: me.company || company });
       }
       setCompanySaved(true);
       setTimeout(() => setCompanySaved(false), 3000);
@@ -2004,12 +1704,7 @@ function SettingsPage() {
   async function saveAccount() {
     setSavingAccount(true); setAccountSaved(false);
     try {
-      await usersApi.update(user.id, {
-        first_name: accountForm.first_name,
-        last_name:  accountForm.last_name,
-        email:      accountForm.email,
-        phone:      accountForm.phone,          // ← forwarding number for this owner/user
-      });
+      await usersApi.update(user.id, { first_name: accountForm.first_name, last_name: accountForm.last_name, email: accountForm.email });
       const token = localStorage.getItem("gateai_token");
       login({ token, user: { ...user, ...accountForm }, company });
       setAccountSaved(true);
@@ -2028,7 +1723,7 @@ function SettingsPage() {
       await usersApi.update(user.id, { current_password: pwForm.current_password, password: pwForm.new_password });
       setPwForm({ current_password: "", new_password: "", confirm_password: "" });
       setPwSaved(true);
-      setTimeout(() => { setPwSaved(false); setShowPwModal(false); }, 2000);
+      setTimeout(() => setPwSaved(false), 3000);
     } catch (err) { setPwError(err.message); }
     finally { setSavingPw(false); }
   }
@@ -2040,45 +1735,8 @@ function SettingsPage() {
   }
 
   async function openBillingPortal() {
-    try {
-      const res = await billingApi.portal();
-      if (res?.url) {
-        window.open(res.url, "_blank");
-      } else {
-        throw new Error("Billing portal unavailable — please email hello@gate-ai.io for subscription help.");
-      }
-    } catch (err) {
-      alert(err.message || "Could not open billing portal. Please email hello@gate-ai.io.");
-    }
-  }
-
-  async function saveAssistantName() {
-    if (!assistantName.trim()) return;
-    setSavingAssistant(true); setAssistantSaved(false);
-    try {
-      const token = localStorage.getItem("gateai_token");
-      const res = await fetch(
-        `${import.meta.env.VITE_API_URL || "https://gate-ai-backend-production.up.railway.app"}/api/settings/assistant-name`,
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-          body: JSON.stringify({ name: assistantName.trim() }),
-        }
-      );
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || "Failed to update assistant name");
-      }
-      // Refresh auth context so the new name persists
-      const me = await fetch(
-        `${import.meta.env.VITE_API_URL || "https://gate-ai-backend-production.up.railway.app"}/api/auth/me`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      ).then(r => r.json());
-      if (me.user || me.company) login({ token, user: me.user || user, company: me.company || company });
-      setAssistantSaved(true);
-      setTimeout(() => setAssistantSaved(false), 3000);
-    } catch (err) { alert(err.message); }
-    finally { setSavingAssistant(false); }
+    try { const res = await billingApi.portal(); if (res?.url) window.location.href = res.url; }
+    catch (err) { alert(err.message); }
   }
 
   async function sendTestBlocked() {
@@ -2106,12 +1764,11 @@ function SettingsPage() {
   const fieldStyle = { width: "100%", padding: "9px 14px", background: "var(--bg-secondary)", border: "1px solid var(--border)", borderRadius: "var(--radius-md)", fontFamily: "var(--font-sans)", fontSize: 13.5, color: "var(--text-primary)", outline: "none", transition: "border-color 180ms ease" };
   const labelStyle = { fontSize: 11, fontWeight: 600, color: "var(--text-tertiary)", textTransform: "uppercase", letterSpacing: 0.6, marginBottom: 6, display: "block" };
   const savedBadge = { fontSize: 12, color: "var(--green)", fontWeight: 500 };
-  const readonlyStyle = { ...fieldStyle, color: "var(--text-secondary)", cursor: "default" };
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
 
-      {/* ── Company Profile ── */}
+      {/* Company Profile */}
       <div className="section">
         <div className="section-header">
           <span className="section-title">Company Profile</span>
@@ -2124,8 +1781,7 @@ function SettingsPage() {
           </div>
           <div>
             <label style={labelStyle}>Plan</label>
-            {/* FIX: sentence-case the plan name */}
-            <div style={readonlyStyle}>{capitalize(company?.plan || "starter")}</div>
+            <div style={{ ...fieldStyle, color: "var(--text-secondary)", cursor: "default" }}>{company?.plan || "starter"}</div>
           </div>
           <div>
             <label style={labelStyle}>Industry</label>
@@ -2156,7 +1812,7 @@ function SettingsPage() {
         </div>
       </div>
 
-      {/* ── Account Details ── */}
+      {/* Account Details */}
       <div className="section">
         <div className="section-header">
           <span className="section-title">Account Details</span>
@@ -2175,129 +1831,53 @@ function SettingsPage() {
             <label style={labelStyle}>Email Address</label>
             <input type="email" style={fieldStyle} value={accountForm.email} onChange={e => setAccountForm(f => ({ ...f, email: e.target.value }))} onFocus={e => e.target.style.borderColor = "var(--accent)"} onBlur={e => e.target.style.borderColor = "var(--border)"} />
           </div>
-          {/* NEW: Forwarding phone number field */}
-          <div style={{ gridColumn: "1 / -1" }}>
-            <label style={labelStyle}>
-              Forwarding Phone Number
-              <span style={{ fontWeight: 400, color: "var(--accent-light)", marginLeft: 6, textTransform: "none", letterSpacing: 0 }}>← Gate AI forwards calls here</span>
-            </label>
-            <input
-              type="tel"
-              style={fieldStyle}
-              placeholder="+1 (555) 123-4567"
-              value={accountForm.phone}
-              onChange={e => setAccountForm(f => ({ ...f, phone: e.target.value }))}
-              onFocus={e => e.target.style.borderColor = "var(--accent)"}
-              onBlur={e => e.target.style.borderColor = "var(--border)"}
-            />
-            <div style={{ fontSize: 11.5, color: "var(--text-tertiary)", marginTop: 6 }}>
-              This is the number Gate AI will ring when a legitimate call is forwarded to you.
-            </div>
-          </div>
         </div>
         <div style={{ padding: "0 20px 20px", display: "flex", justifyContent: "flex-end" }}>
           <button className="btn btn-sm btn-primary" onClick={saveAccount} disabled={savingAccount}>{savingAccount ? "Saving..." : "Save changes"}</button>
         </div>
       </div>
 
-      {/* ── Change Password Modal ── */}
-      {showPwModal && (
-        <div className="modal-overlay" onClick={() => { setShowPwModal(false); setPwForm({ current_password: "", new_password: "", confirm_password: "" }); setPwError(""); }}>
-          <div className="modal modal-sm" onClick={e => e.stopPropagation()}>
-            <div className="modal-header">
-              <span className="modal-title">Change Password</span>
-              <button className="modal-close" onClick={() => { setShowPwModal(false); setPwForm({ current_password: "", new_password: "", confirm_password: "" }); setPwError(""); }}>{Icons.x}</button>
-            </div>
-            <div className="modal-body" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-              {pwError && <div style={{ background: "var(--red-dim)", border: "1px solid rgba(255,107,107,0.3)", borderRadius: "var(--radius-md)", padding: "10px 14px", fontSize: 13, color: "var(--red)" }}>{pwError}</div>}
-              {pwSaved && <div style={{ background: "var(--green-dim)", border: "1px solid rgba(0,214,143,0.3)", borderRadius: "var(--radius-md)", padding: "10px 14px", fontSize: 13, color: "var(--green)" }}>✓ Password updated successfully</div>}
-              <div>
-                <label style={labelStyle}>Current Password</label>
-                <input type="password" style={fieldStyle} placeholder="Enter current password" value={pwForm.current_password} onChange={e => setPwForm(f => ({ ...f, current_password: e.target.value }))} onFocus={e => e.target.style.borderColor = "var(--accent)"} onBlur={e => e.target.style.borderColor = "var(--border)"} />
-              </div>
-              <div>
-                <label style={labelStyle}>New Password</label>
-                <input type="password" style={fieldStyle} placeholder="Min. 8 characters" value={pwForm.new_password} onChange={e => setPwForm(f => ({ ...f, new_password: e.target.value }))} onFocus={e => e.target.style.borderColor = "var(--accent)"} onBlur={e => e.target.style.borderColor = "var(--border)"} />
-              </div>
-              <div>
-                <label style={labelStyle}>Confirm New Password</label>
-                <input type="password" style={fieldStyle} placeholder="Repeat new password" value={pwForm.confirm_password} onChange={e => setPwForm(f => ({ ...f, confirm_password: e.target.value }))} onFocus={e => e.target.style.borderColor = "var(--accent)"} onBlur={e => e.target.style.borderColor = "var(--border)"} />
-              </div>
-            </div>
-            <div className="modal-footer">
-              <button className="btn btn-sm" onClick={() => { setShowPwModal(false); setPwForm({ current_password: "", new_password: "", confirm_password: "" }); setPwError(""); }}>Cancel</button>
-              <button className="btn btn-sm btn-primary" onClick={savePassword} disabled={savingPw}>{savingPw ? "Updating..." : "Update password"}</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ── Change Password card ── */}
+      {/* Change Password */}
       <div className="section">
         <div className="section-header">
           <span className="section-title">Change Password</span>
+          {pwSaved && <span style={savedBadge}>✓ Password updated</span>}
         </div>
-        <div style={{ padding: 20, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <div style={{ fontSize: 13, color: "var(--text-tertiary)" }}>Update your account password to keep your account secure.</div>
-          <button className="btn btn-sm btn-primary" onClick={() => setShowPwModal(true)}>Change password</button>
+        <div style={{ padding: 20, display: "flex", flexDirection: "column", gap: 14 }}>
+          {pwError && <div style={{ background: "var(--red-dim)", border: "1px solid rgba(255,107,107,0.3)", borderRadius: "var(--radius-md)", padding: "10px 14px", fontSize: 13, color: "var(--red)" }}>{pwError}</div>}
+          <div>
+            <label style={labelStyle}>Current Password</label>
+            <input type="password" style={fieldStyle} placeholder="Enter current password" value={pwForm.current_password} onChange={e => setPwForm(f => ({ ...f, current_password: e.target.value }))} onFocus={e => e.target.style.borderColor = "var(--accent)"} onBlur={e => e.target.style.borderColor = "var(--border)"} />
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+            <div>
+              <label style={labelStyle}>New Password</label>
+              <input type="password" style={fieldStyle} placeholder="Min. 8 characters" value={pwForm.new_password} onChange={e => setPwForm(f => ({ ...f, new_password: e.target.value }))} onFocus={e => e.target.style.borderColor = "var(--accent)"} onBlur={e => e.target.style.borderColor = "var(--border)"} />
+            </div>
+            <div>
+              <label style={labelStyle}>Confirm New Password</label>
+              <input type="password" style={fieldStyle} placeholder="Repeat new password" value={pwForm.confirm_password} onChange={e => setPwForm(f => ({ ...f, confirm_password: e.target.value }))} onFocus={e => e.target.style.borderColor = "var(--accent)"} onBlur={e => e.target.style.borderColor = "var(--border)"} />
+            </div>
+          </div>
+          <div style={{ display: "flex", justifyContent: "flex-end" }}>
+            <button className="btn btn-sm btn-primary" onClick={savePassword} disabled={savingPw}>{savingPw ? "Updating..." : "Update password"}</button>
+          </div>
         </div>
       </div>
 
-      {/* ── Billing & Subscription ── */}
+      {/* Billing */}
       <div className="section">
         <div className="section-header"><span className="section-title">Billing & Subscription</span></div>
         <div style={{ padding: 20, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div>
-            <div style={{ fontSize: 13.5, fontWeight: 500 }}>
-              Current plan: <span style={{ color: "var(--accent-light)" }}>{capitalize(company?.plan || "starter")}</span>
-            </div>
-            <div style={{ fontSize: 12, color: "var(--text-tertiary)", marginTop: 4 }}>
-              Manage your subscription, invoices, and payment method via Stripe.
-            </div>
+            <div style={{ fontSize: 13.5, fontWeight: 500 }}>Current plan: <span style={{ color: "var(--accent-light)", textTransform: "capitalize" }}>{company?.plan || "Starter"}</span></div>
+            <div style={{ fontSize: 12, color: "var(--text-tertiary)", marginTop: 4 }}>Manage your subscription, invoices, and payment method.</div>
           </div>
           <button className="btn btn-sm btn-primary" onClick={openBillingPortal}>{Icons.creditCard} Manage billing</button>
         </div>
       </div>
 
-      {/* ── AI Assistant ── */}
-      <div className="section">
-        <div className="section-header">
-          <span className="section-title">AI Assistant</span>
-          {assistantSaved && <span style={savedBadge}>✓ Saved</span>}
-        </div>
-        <div style={{ padding: 20, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-          <div>
-            <label style={labelStyle}>Assistant Name</label>
-            <input
-              style={fieldStyle}
-              placeholder="GATE-AI"
-              value={assistantName}
-              onChange={e => setAssistantName(e.target.value)}
-              onFocus={e => e.target.style.borderColor = "var(--accent)"}
-              onBlur={e => e.target.style.borderColor = "var(--border)"}
-            />
-            <div style={{ fontSize: 11.5, color: "var(--text-tertiary)", marginTop: 6 }}>
-              The name your AI assistant uses when greeting callers.
-            </div>
-          </div>
-          <div>
-            <label style={labelStyle}>Gate AI Phone Number</label>
-            <div style={{ ...readonlyStyle, fontFamily: "var(--font-mono)", fontSize: 14 }}>
-              {company?.twilio_number || "+18337142521"}
-            </div>
-            <div style={{ fontSize: 11.5, color: "var(--text-tertiary)", marginTop: 6 }}>
-              This is the number your AI assistant answers calls on. To change it, contact support.
-            </div>
-          </div>
-        </div>
-        <div style={{ padding: "0 20px 20px", display: "flex", justifyContent: "flex-end" }}>
-          <button className="btn btn-sm btn-primary" onClick={saveAssistantName} disabled={savingAssistant}>
-            {savingAssistant ? "Saving..." : "Save assistant name"}
-          </button>
-        </div>
-      </div>
-
-      {/* ── Notification Preferences ── */}
+      {/* Notifications */}
       <div className="section">
         <div className="section-header"><span className="section-title">Notification Preferences</span></div>
         <div style={{ padding: 20, display: "flex", flexDirection: "column", gap: 16 }}>
@@ -2331,605 +1911,10 @@ function SettingsPage() {
   );
 }
 
-// ─── AI ASSISTANT PAGE ───────────────────────────────────────
-function AIAssistantPage() {
-  const { company } = useAuth();
-  const canvasRef = useRef(null);
-  const animRef   = useRef(null);
-  const [stats, setStats] = useState({ blocked: 0, forwarded: 0, total: 0 });
-
-  const assistantName   = company?.assistant_name || "GATE-AI";
-  const twilioNumber    = company?.twilio_number  || "+18337142521";
-
-  // Load today's call stats
-  useEffect(() => {
-    callsApi.list({ limit: 200, sort: "desc" }).then(res => {
-      const all = res?.calls || res || [];
-      const today = new Date(); today.setHours(0, 0, 0, 0);
-      const todayCalls = all.filter(c => new Date(c.started_at || c.created_at) >= today);
-      setStats({
-        blocked:   todayCalls.filter(c => (c.call_status || c.status) === "blocked").length,
-        forwarded: todayCalls.filter(c => (c.call_status || c.status) === "forwarded").length,
-        total:     todayCalls.length,
-      });
-    }).catch(() => {});
-  }, []);
-
-  // 2D JARVIS HUD canvas
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    let frameId;
-    let t = 0;
-
-    function resize() {
-      const size = canvas.parentElement?.clientWidth || 420;
-      canvas.width  = size;
-      canvas.height = size;
-    }
-    resize();
-    window.addEventListener("resize", resize);
-
-    function draw() {
-      const W = canvas.width;
-      const H = canvas.height;
-      const cx = W / 2;
-      const cy = H / 2;
-      const base = Math.min(W, H) * 0.46; // base radius
-
-      ctx.clearRect(0, 0, W, H);
-
-      // ── Background glow ──
-      const grd = ctx.createRadialGradient(cx, cy, base * 0.1, cx, cy, base * 1.1);
-      grd.addColorStop(0,   "rgba(108,92,231,0.10)");
-      grd.addColorStop(0.5, "rgba(108,92,231,0.04)");
-      grd.addColorStop(1,   "rgba(0,0,0,0)");
-      ctx.fillStyle = grd;
-      ctx.fillRect(0, 0, W, H);
-
-      function drawRing({ radius, tickCount, tickLen, tickGap, lineWidth, color, alpha, rotation, arcGaps }) {
-        ctx.save();
-        ctx.translate(cx, cy);
-        ctx.rotate(rotation);
-        ctx.globalAlpha = alpha;
-        ctx.strokeStyle = color;
-        ctx.lineWidth   = lineWidth;
-
-        // Full ring (slightly transparent base)
-        ctx.beginPath();
-        ctx.arc(0, 0, radius, 0, Math.PI * 2);
-        ctx.globalAlpha = alpha * 0.25;
-        ctx.stroke();
-
-        // Arc segments (gaps cut out for JARVIS look)
-        ctx.globalAlpha = alpha;
-        if (arcGaps) {
-          arcGaps.forEach(([start, end]) => {
-            ctx.beginPath();
-            ctx.arc(0, 0, radius, start, end);
-            ctx.stroke();
-          });
-        }
-
-        // Tick marks
-        if (tickCount) {
-          for (let i = 0; i < tickCount; i++) {
-            const angle  = (i / tickCount) * Math.PI * 2;
-            const skip   = tickGap && (i % tickGap === 0);
-            const len    = skip ? tickLen * 1.8 : tickLen;
-            const outerR = radius + len / 2;
-            const innerR = radius - len / 2;
-            ctx.beginPath();
-            ctx.moveTo(Math.cos(angle) * innerR, Math.sin(angle) * innerR);
-            ctx.lineTo(Math.cos(angle) * outerR, Math.sin(angle) * outerR);
-            ctx.globalAlpha = skip ? alpha : alpha * 0.5;
-            ctx.lineWidth   = skip ? lineWidth * 1.5 : lineWidth * 0.8;
-            ctx.stroke();
-          }
-        }
-
-        ctx.restore();
-      }
-
-      // ── Outermost ring — slow CW rotation, tick marks ──
-      drawRing({
-        radius: base * 0.98, tickCount: 120, tickLen: base * 0.025, tickGap: 10,
-        lineWidth: 1.2, color: "#6c5ce7", alpha: 0.55, rotation: t * 0.18,
-        arcGaps: [
-          [0.05, Math.PI * 0.45],
-          [Math.PI * 0.52, Math.PI * 1.05],
-          [Math.PI * 1.12, Math.PI * 1.65],
-          [Math.PI * 1.72, Math.PI * 2 - 0.05],
-        ],
-      });
-
-      // ── Second ring — CCW, dotted segments ──
-      drawRing({
-        radius: base * 0.84, tickCount: 72, tickLen: base * 0.02, tickGap: 8,
-        lineWidth: 1.0, color: "#a29bfe", alpha: 0.45, rotation: -t * 0.28,
-        arcGaps: [
-          [0.2, Math.PI * 0.7],
-          [Math.PI * 0.8, Math.PI * 1.4],
-          [Math.PI * 1.5, Math.PI * 2 - 0.2],
-        ],
-      });
-
-      // ── Third ring — faster CW ──
-      drawRing({
-        radius: base * 0.70, tickCount: 48, tickLen: base * 0.018, tickGap: 6,
-        lineWidth: 1.2, color: "#6c5ce7", alpha: 0.50, rotation: t * 0.42,
-        arcGaps: [
-          [0.3, Math.PI * 0.9],
-          [Math.PI * 1.0, Math.PI * 1.7],
-          [Math.PI * 1.85, Math.PI * 2 - 0.15],
-        ],
-      });
-
-      // ── Inner circle — solid glow ring ──
-      ctx.save();
-      ctx.translate(cx, cy);
-      const pulse = 0.82 + 0.04 * Math.sin(t * 2.2);
-      ctx.globalAlpha = 0.65;
-      ctx.strokeStyle = "#a29bfe";
-      ctx.lineWidth   = 1.5;
-      ctx.beginPath();
-      ctx.arc(0, 0, base * 0.54 * pulse, 0, Math.PI * 2);
-      ctx.stroke();
-
-      // Inner glow fill
-      const igrd = ctx.createRadialGradient(0, 0, 0, 0, 0, base * 0.54);
-      igrd.addColorStop(0,   "rgba(108,92,231,0.18)");
-      igrd.addColorStop(0.6, "rgba(108,92,231,0.08)");
-      igrd.addColorStop(1,   "rgba(108,92,231,0.01)");
-      ctx.globalAlpha = 1;
-      ctx.fillStyle   = igrd;
-      ctx.beginPath();
-      ctx.arc(0, 0, base * 0.54, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.restore();
-
-      // ── Orbiting bright dot on ring 2 ──
-      ctx.save();
-      ctx.translate(cx, cy);
-      const dotAngle = t * 1.1;
-      const dotR     = base * 0.84;
-      const dx = Math.cos(dotAngle) * dotR;
-      const dy = Math.sin(dotAngle) * dotR;
-      const dotGlow = ctx.createRadialGradient(dx, dy, 0, dx, dy, base * 0.055);
-      dotGlow.addColorStop(0,   "rgba(162,155,254,0.95)");
-      dotGlow.addColorStop(0.4, "rgba(108,92,231,0.5)");
-      dotGlow.addColorStop(1,   "rgba(108,92,231,0)");
-      ctx.fillStyle   = dotGlow;
-      ctx.globalAlpha = 1;
-      ctx.beginPath();
-      ctx.arc(dx, dy, base * 0.055, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.restore();
-
-      // ── Second orbiting dot on ring 3, opposite phase ──
-      ctx.save();
-      ctx.translate(cx, cy);
-      const dot2Angle = -t * 1.6 + Math.PI;
-      const dot2R     = base * 0.70;
-      const d2x = Math.cos(dot2Angle) * dot2R;
-      const d2y = Math.sin(dot2Angle) * dot2R;
-      ctx.fillStyle   = "#6c5ce7";
-      ctx.globalAlpha = 0.8;
-      ctx.beginPath();
-      ctx.arc(d2x, d2y, base * 0.025, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.restore();
-
-      // ── Assistant name in centre ──
-      const fontSize = Math.max(13, base * 0.13);
-      ctx.save();
-      ctx.translate(cx, cy);
-      ctx.globalAlpha = 0.9 + 0.1 * Math.sin(t * 1.5);
-      ctx.fillStyle   = "#a29bfe";
-      ctx.font        = `700 ${fontSize}px 'JetBrains Mono', monospace`;
-      ctx.textAlign   = "center";
-      ctx.textBaseline = "middle";
-      // Subtle text glow
-      ctx.shadowColor  = "#6c5ce7";
-      ctx.shadowBlur   = 18;
-      ctx.fillText(assistantName, 0, 0);
-      // Sub-label
-      ctx.shadowBlur   = 0;
-      ctx.globalAlpha  = 0.4;
-      ctx.fillStyle    = "#8b8fa3";
-      ctx.font         = `500 ${fontSize * 0.42}px 'DM Sans', sans-serif`;
-      ctx.fillText("AI RECEPTIONIST", 0, fontSize * 0.85);
-      ctx.restore();
-
-      t += 0.012;
-      frameId = requestAnimationFrame(draw);
-    }
-
-    draw();
-
-    return () => {
-      cancelAnimationFrame(frameId);
-      window.removeEventListener("resize", resize);
-    };
-  }, [assistantName]);
-
-  const statCard = (label, value, color) => (
-    <div style={{
-      background: "var(--bg-card)", border: "1px solid var(--border)",
-      borderRadius: "var(--radius-lg)", padding: "18px 20px",
-    }}>
-      <div style={{ fontSize: 11, fontWeight: 600, color: "var(--text-tertiary)", textTransform: "uppercase", letterSpacing: "0.6px", marginBottom: 8 }}>{label}</div>
-      <div style={{ fontSize: 32, fontWeight: 700, letterSpacing: "-1px", color: color || "var(--text-primary)" }}>{value}</div>
-    </div>
-  );
-
-  return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-      <div style={{ display: "grid", gridTemplateColumns: "420px 1fr", gap: 24, alignItems: "start" }} className="ai-assistant-grid">
-
-        {/* Left — HUD canvas */}
-        <div style={{
-          background: "var(--bg-card)", border: "1px solid var(--border)",
-          borderRadius: "var(--radius-xl)", overflow: "hidden",
-          position: "relative", aspectRatio: "1",
-        }}>
-          <canvas ref={canvasRef} style={{ width: "100%", height: "100%", display: "block" }} />
-          {/* Live badge */}
-          <div style={{ position: "absolute", bottom: 20, left: 0, right: 0, textAlign: "center", pointerEvents: "none" }}>
-            <div style={{
-              display: "inline-flex", alignItems: "center", gap: 8,
-              background: "rgba(10,11,15,0.80)", backdropFilter: "blur(8px)",
-              border: "1px solid var(--border-light)", borderRadius: 30, padding: "6px 18px",
-            }}>
-              <span className="status-dot" style={{ width: 7, height: 7 }} />
-              <span style={{ fontSize: 13, fontWeight: 700, letterSpacing: "0.12em", color: "var(--accent-light)" }}>{assistantName}</span>
-              <span style={{ fontSize: 11, color: "var(--text-tertiary)" }}>LIVE</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Right — info panels */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-
-          <div style={{ background: "var(--bg-card)", border: "1px solid var(--border)", borderRadius: "var(--radius-lg)", padding: "20px" }}>
-            <div style={{ fontSize: 11, fontWeight: 600, color: "var(--text-tertiary)", textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: 16 }}>Assistant Identity</div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-              {[
-                ["Name",       <span style={{ color: "var(--accent-light)", fontWeight: 600 }}>{assistantName}</span>],
-                ["Phone Number", <span style={{ fontFamily: "var(--font-mono)", fontSize: 13.5, fontWeight: 600 }}>{twilioNumber}</span>],
-                ["Status",     <span style={{ display:"flex", alignItems:"center", gap:6 }}><span className="status-dot"/><span style={{ color:"var(--green)", fontWeight:600, fontSize:12.5 }}>Active — Answering Calls</span></span>],
-                ["Powered by", <span style={{ color:"var(--text-tertiary)", fontSize:12.5 }}>Vapi · Claude · Twilio</span>],
-              ].map(([label, val], i, arr) => (
-                <div key={label}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <span style={{ fontSize: 13, color: "var(--text-secondary)" }}>{label}</span>
-                    <span>{val}</span>
-                  </div>
-                  {i < arr.length - 1 && <div style={{ height: 1, background: "var(--border)", marginTop: 12 }} />}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div style={{ background: "var(--bg-card)", border: "1px solid var(--border)", borderRadius: "var(--radius-lg)", padding: "20px" }}>
-            <div style={{ fontSize: 11, fontWeight: 600, color: "var(--text-tertiary)", textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: 16 }}>Today's Activity</div>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 }}>
-              {statCard("Total Calls",  stats.total,     "var(--accent-light)")}
-              {statCard("Blocked",      stats.blocked,   "var(--red)")}
-              {statCard("Forwarded",    stats.forwarded, "var(--green)")}
-            </div>
-          </div>
-
-          <div style={{
-            background: "linear-gradient(135deg, rgba(108,92,231,0.08), rgba(162,155,254,0.04))",
-            border: "1px solid rgba(108,92,231,0.2)", borderRadius: "var(--radius-lg)", padding: "20px",
-          }}>
-            <div style={{ fontSize: 11, fontWeight: 600, color: "var(--text-tertiary)", textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: 12 }}>How it works</div>
-            {[
-              ["📞", "Answers every inbound call instantly, 24/7"],
-              ["🛡️", "Screens for cold callers, spam, and robocalls"],
-              ["🧠", "Classifies intent using Claude AI"],
-              ["📡", "Routes legitimate calls to the right team member"],
-              ["📋", "Generates a summary of every call automatically"],
-            ].map(([icon, text], i) => (
-              <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "7px 0", borderBottom: i < 4 ? "1px solid rgba(108,92,231,0.1)" : "none" }}>
-                <span style={{ fontSize: 15, flexShrink: 0 }}>{icon}</span>
-                <span style={{ fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.4 }}>{text}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      <div style={{
-        background: "var(--bg-card)", border: "1px solid var(--border)",
-        borderRadius: "var(--radius-lg)", padding: "18px 20px",
-        display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap",
-      }}>
-        <div>
-          <div style={{ fontSize: 13.5, fontWeight: 600, color: "var(--text-primary)" }}>Rename your assistant</div>
-          <div style={{ fontSize: 12, color: "var(--text-tertiary)", marginTop: 3 }}>This is the name callers hear and that appears on this page.</div>
-        </div>
-        <button className="btn btn-sm btn-primary" onClick={() => document.dispatchEvent(new CustomEvent("gateai:navigate", { detail: "settings" }))}>
-          Go to Settings →
-        </button>
-      </div>
-
-      <style>{`
-        @media (max-width: 768px) {
-          .ai-assistant-grid { grid-template-columns: 1fr !important; }
-        }
-      `}</style>
-    </div>
-  );
-}
-
-// ─── HELP CHAT WIDGET ────────────────────────────────────────
-function HelpChatWidget() {
-  const { company, user } = useAuth();
-  const BASE = import.meta.env.VITE_API_URL || "https://gate-ai-backend-production.up.railway.app";
-  const assistantName = company?.assistant_name || "GATE-AI";
-
-  const [open,       setOpen]       = useState(false);
-  const [messages,   setMessages]   = useState([
-    { role: "assistant", content: `Hi! I'm ${assistantName}, your Gate AI support assistant. How can I help you today?` }
-  ]);
-  const [input,      setInput]      = useState("");
-  const [sending,    setSending]    = useState(false);
-  const [escalating, setEscalating] = useState(false);
-  const [escalated,  setEscalated]  = useState(false);
-  const [showEscForm, setShowEscForm] = useState(false);
-  const [escForm,    setEscForm]    = useState({ name: `${user?.first_name || ""} ${user?.last_name || ""}`.trim(), email: user?.email || "", issue: "" });
-  const [pendingImage, setPendingImage] = useState(null); // { data: base64, type: mime }
-  const bottomRef  = useRef(null);
-  const fileRef    = useRef(null);
-
-  useEffect(() => {
-    if (open) bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, open]);
-
-  // Reset greeting if assistant name changes
-  useEffect(() => {
-    setMessages([{ role: "assistant", content: `Hi! I'm ${assistantName}, your Gate AI support assistant. How can I help you today?` }]);
-  }, [assistantName]);
-
-  async function sendMessage() {
-    const text = input.trim();
-    if (!text && !pendingImage) return;
-    setSending(true);
-
-    const userMsg = { role: "user", content: text || "What do you see in this image?", ...(pendingImage ? { image: pendingImage.data, imageType: pendingImage.type } : {}) };
-    const updated = [...messages, userMsg];
-    setMessages(updated);
-    setInput("");
-    setPendingImage(null);
-
-    try {
-      const res = await fetch(`${BASE}/api/help/chat`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: updated, assistantName, companyName: company?.name }),
-      });
-      const data = await res.json();
-      setMessages(prev => [...prev, { role: "assistant", content: data.reply || "Sorry, I couldn't process that." }]);
-    } catch {
-      setMessages(prev => [...prev, { role: "assistant", content: "Sorry, I'm having trouble connecting. Please try again." }]);
-    } finally {
-      setSending(false);
-    }
-  }
-
-  async function handleEscalate() {
-    if (!escForm.issue.trim()) return;
-    setEscalating(true);
-    const transcript = messages.map(m => `${m.role === "assistant" ? assistantName : "You"}: ${m.content}`).join("\n");
-    try {
-      await fetch(`${BASE}/api/help/escalate`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...escForm, transcript, companyName: company?.name, assistantName }),
-      });
-      setEscalated(true);
-      setShowEscForm(false);
-      setMessages(prev => [...prev, { role: "assistant", content: "✓ Your request has been sent to the Gate AI support team at hello@gate-ai.io. We'll get back to you as soon as possible!" }]);
-    } catch {
-      alert("Failed to send. Please email hello@gate-ai.io directly.");
-    } finally { setEscalating(false); }
-  }
-
-  function handleImageUpload(e) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      const base64 = reader.result.split(",")[1];
-      setPendingImage({ data: base64, type: file.type });
-    };
-    reader.readAsDataURL(file);
-    e.target.value = "";
-  }
-
-  const bubbleStyle = (role) => ({
-    maxWidth: "82%",
-    padding: "10px 14px",
-    borderRadius: role === "user" ? "16px 16px 4px 16px" : "16px 16px 16px 4px",
-    fontSize: 13.5,
-    lineHeight: 1.55,
-    background: role === "user" ? "#6c5ce7" : "#f0f0f5",
-    color: role === "user" ? "white" : "#1a1a2e",
-    alignSelf: role === "user" ? "flex-end" : "flex-start",
-    wordBreak: "break-word",
-  });
-
-  return (
-    <>
-      {/* Floating button */}
-      <div
-        onClick={() => setOpen(v => !v)}
-        style={{
-          position: "fixed", bottom: 24, right: 24, zIndex: 999,
-          width: 52, height: 52, borderRadius: "50%",
-          background: "linear-gradient(135deg, #6c5ce7, #a29bfe)",
-          display: "flex", alignItems: "center", justifyContent: "center",
-          cursor: "pointer", boxShadow: "0 4px 20px rgba(108,92,231,0.45)",
-          transition: "transform 200ms ease, box-shadow 200ms ease",
-        }}
-        onMouseEnter={e => { e.currentTarget.style.transform = "scale(1.08)"; e.currentTarget.style.boxShadow = "0 6px 24px rgba(108,92,231,0.6)"; }}
-        onMouseLeave={e => { e.currentTarget.style.transform = "scale(1)"; e.currentTarget.style.boxShadow = "0 4px 20px rgba(108,92,231,0.45)"; }}
-        title="Help & Support"
-      >
-        {open ? (
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-        ) : (
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-        )}
-      </div>
-
-      {/* Chat panel */}
-      {open && (
-        <div style={{
-          position: "fixed", bottom: 88, right: 24, zIndex: 998,
-          width: 360, maxHeight: 520,
-          background: "white", borderRadius: 16,
-          boxShadow: "0 8px 40px rgba(0,0,0,0.18), 0 2px 8px rgba(0,0,0,0.1)",
-          display: "flex", flexDirection: "column", overflow: "hidden",
-          animation: "slideUp 200ms ease",
-        }}>
-          {/* Header */}
-          <div style={{
-            padding: "14px 16px", background: "linear-gradient(135deg, #6c5ce7, #a29bfe)",
-            display: "flex", alignItems: "center", gap: 10,
-          }}>
-            <div style={{
-              width: 34, height: 34, borderRadius: "50%",
-              background: "rgba(255,255,255,0.2)",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              fontSize: 16,
-            }}>🤖</div>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 14, fontWeight: 700, color: "white" }}>{assistantName}</div>
-              <div style={{ fontSize: 11.5, color: "rgba(255,255,255,0.8)", display: "flex", alignItems: "center", gap: 5 }}>
-                <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#00d68f", display: "inline-block" }} />
-                Gate AI Support
-              </div>
-            </div>
-            {!escalated && (
-              <button
-                onClick={() => setShowEscForm(v => !v)}
-                style={{ background: "rgba(255,255,255,0.18)", border: "none", borderRadius: 8, padding: "5px 10px", fontSize: 11.5, color: "white", cursor: "pointer", fontFamily: "var(--font-sans)" }}
-                title="Talk to a human"
-              >
-                👤 Agent
-              </button>
-            )}
-          </div>
-
-          {/* Escalation form */}
-          {showEscForm && (
-            <div style={{ padding: "12px 14px", background: "#f8f7ff", borderBottom: "1px solid #e8e5ff" }}>
-              <div style={{ fontSize: 12.5, fontWeight: 600, color: "#4a4a6a", marginBottom: 8 }}>Connect with a Gate AI agent</div>
-              <input
-                style={{ width: "100%", padding: "7px 10px", borderRadius: 8, border: "1px solid #d0cdf0", fontSize: 13, marginBottom: 6, color: "#1a1a2e", fontFamily: "inherit", outline: "none" }}
-                placeholder="Your name"
-                value={escForm.name}
-                onChange={e => setEscForm(f => ({ ...f, name: e.target.value }))}
-              />
-              <input
-                style={{ width: "100%", padding: "7px 10px", borderRadius: 8, border: "1px solid #d0cdf0", fontSize: 13, marginBottom: 6, color: "#1a1a2e", fontFamily: "inherit", outline: "none" }}
-                placeholder="Your email"
-                value={escForm.email}
-                onChange={e => setEscForm(f => ({ ...f, email: e.target.value }))}
-              />
-              <textarea
-                style={{ width: "100%", padding: "7px 10px", borderRadius: 8, border: "1px solid #d0cdf0", fontSize: 13, color: "#1a1a2e", fontFamily: "inherit", resize: "none", outline: "none", minHeight: 60 }}
-                placeholder="Briefly describe your issue..."
-                value={escForm.issue}
-                onChange={e => setEscForm(f => ({ ...f, issue: e.target.value }))}
-              />
-              <div style={{ display: "flex", gap: 6, marginTop: 6 }}>
-                <button onClick={() => setShowEscForm(false)} style={{ flex: 1, padding: "7px", borderRadius: 8, border: "1px solid #d0cdf0", background: "white", fontSize: 12.5, cursor: "pointer", color: "#6c6c8a" }}>Cancel</button>
-                <button onClick={handleEscalate} disabled={escalating} style={{ flex: 2, padding: "7px", borderRadius: 8, border: "none", background: "#6c5ce7", color: "white", fontSize: 12.5, fontWeight: 600, cursor: "pointer" }}>
-                  {escalating ? "Sending..." : "Send to Agent"}
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Messages */}
-          <div style={{ flex: 1, overflowY: "auto", padding: "14px 12px", display: "flex", flexDirection: "column", gap: 10, background: "white" }}>
-            {messages.map((m, i) => (
-              <div key={i} style={{ display: "flex", flexDirection: "column", alignItems: m.role === "user" ? "flex-end" : "flex-start" }}>
-                {m.image && (
-                  <img src={`data:${m.imageType};base64,${m.image}`} alt="uploaded" style={{ maxWidth: 180, borderRadius: 10, marginBottom: 4, alignSelf: m.role === "user" ? "flex-end" : "flex-start" }} />
-                )}
-                <div style={bubbleStyle(m.role)}>{m.content}</div>
-              </div>
-            ))}
-            {sending && (
-              <div style={{ alignSelf: "flex-start", display: "flex", gap: 4, padding: "10px 14px", background: "#f0f0f5", borderRadius: "16px 16px 16px 4px" }}>
-                {[0,1,2].map(i => <div key={i} style={{ width: 7, height: 7, borderRadius: "50%", background: "#a29bfe", animation: `bounce 1s ease ${i * 0.2}s infinite` }} />)}
-              </div>
-            )}
-            <div ref={bottomRef} />
-          </div>
-
-          {/* Image preview */}
-          {pendingImage && (
-            <div style={{ padding: "6px 12px", background: "#f8f7ff", borderTop: "1px solid #e8e5ff", display: "flex", alignItems: "center", gap: 8 }}>
-              <img src={`data:${pendingImage.type};base64,${pendingImage.data}`} alt="preview" style={{ height: 36, borderRadius: 6 }} />
-              <span style={{ fontSize: 12, color: "#6c6c8a", flex: 1 }}>Image ready to send</span>
-              <button onClick={() => setPendingImage(null)} style={{ background: "none", border: "none", cursor: "pointer", color: "#ff6b6b", fontSize: 16 }}>×</button>
-            </div>
-          )}
-
-          {/* Input bar */}
-          <div style={{ padding: "10px 12px", borderTop: "1px solid #f0f0f5", display: "flex", gap: 8, alignItems: "flex-end", background: "white" }}>
-            <input type="file" ref={fileRef} accept="image/*" style={{ display: "none" }} onChange={handleImageUpload} />
-            <button
-              onClick={() => fileRef.current?.click()}
-              style={{ width: 34, height: 34, borderRadius: 8, border: "1px solid #e0ddf0", background: "white", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: "#a29bfe" }}
-              title="Attach image"
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-            </button>
-            <input
-              style={{ flex: 1, padding: "8px 12px", borderRadius: 10, border: "1px solid #e0ddf0", fontSize: 13.5, outline: "none", fontFamily: "inherit", color: "#1a1a2e", background: "white" }}
-              placeholder="Ask a question..."
-              value={input}
-              onChange={e => setInput(e.target.value)}
-              onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}
-              onFocus={e => e.target.style.borderColor = "#6c5ce7"}
-              onBlur={e => e.target.style.borderColor = "#e0ddf0"}
-            />
-            <button
-              onClick={sendMessage}
-              disabled={sending || (!input.trim() && !pendingImage)}
-              style={{
-                width: 34, height: 34, borderRadius: 8, border: "none",
-                background: (sending || (!input.trim() && !pendingImage)) ? "#e0ddf0" : "#6c5ce7",
-                cursor: (sending || (!input.trim() && !pendingImage)) ? "not-allowed" : "pointer",
-                display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
-                transition: "background 150ms ease",
-              }}
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-            </button>
-          </div>
-
-          {/* Bounce animation for typing dots */}
-          <style>{`@keyframes bounce { 0%,80%,100%{transform:translateY(0)} 40%{transform:translateY(-6px)} }`}</style>
-        </div>
-      )}
-    </>
-  );
-}
-
 // ─── MAIN APP ────────────────────────────────────────────────
 const PAGE_TITLES = {
   dashboard:    "Dashboard",
   calls:        "Call Log",
-  aiassistant:  "AI Assistant",
   screening:    "Screening Rules",
   team:         "Team & Routing",
   integrations: "Integrations",
@@ -2937,37 +1922,15 @@ const PAGE_TITLES = {
 };
 
 export default function Dashboard() {
-  const [activePage,    setActivePage]    = useState("dashboard");
-  const [selectedCall,  setSelectedCall]  = useState(null);
-  const [sidebarOpen,   setSidebarOpen]   = useState(false);
-  const [liveCalls,     setLiveCalls]     = useState([]);
-  const [callLogFilter, setCallLogFilter] = useState("all");
-
-  // When navigating away from calls, reset filter so it starts fresh next time
-  // unless the navigation explicitly sets a filter (stat card clicks)
-  function navigateTo(page) {
-    if (page !== "calls") setCallLogFilter("all");
-    setActivePage(page);
-  }
-
-  // Called by the search bar — optionally carries a filter for the calls page
-  function handleSearchNavigate(page, filter) {
-    if (page === "calls" && filter) setCallLogFilter(filter);
-    else if (page !== "calls") setCallLogFilter("all");
-    setActivePage(page);
-  }
+  const [activePage,   setActivePage]   = useState("dashboard");
+  const [selectedCall, setSelectedCall] = useState(null);
+  const [sidebarOpen,  setSidebarOpen]  = useState(false);
+  const [liveCalls,    setLiveCalls]    = useState([]);
 
   const handleWsMessage = useCallback((msg) => {
     if (msg.type === "new_call") setLiveCalls(prev => [msg.call, ...prev].slice(0, 20));
   }, []);
   useWebSocket(handleWsMessage);
-
-  // Cross-component navigation (e.g. AI Assistant page → Settings)
-  useEffect(() => {
-    function onNav(e) { if (e.detail) { setActivePage(e.detail); } }
-    document.addEventListener("gateai:navigate", onNav);
-    return () => document.removeEventListener("gateai:navigate", onNav);
-  }, []);
 
   return (
     <>
@@ -2975,13 +1938,12 @@ export default function Dashboard() {
       <ImpersonationBanner />
       <JWTExpiryBanner />
       <div className="app">
-        <Sidebar active={activePage} setActive={navigateTo} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+        <Sidebar active={activePage} setActive={setActivePage} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
         <div className="main">
-          <Topbar title={PAGE_TITLES[activePage] || "Dashboard"} onMenuToggle={() => setSidebarOpen(!sidebarOpen)} setActivePage={navigateTo} onSearchNavigate={handleSearchNavigate} />
+          <Topbar title={PAGE_TITLES[activePage]} onMenuToggle={() => setSidebarOpen(!sidebarOpen)} setActivePage={setActivePage} />
           <div className="content">
-            {activePage === "dashboard"    && <DashboardPage onViewCall={setSelectedCall} liveCalls={liveCalls} setActivePage={setActivePage} setCallLogFilter={setCallLogFilter} />}
-            {activePage === "calls"        && <CallLogPage   onViewCall={setSelectedCall} initialFilter={callLogFilter} />}
-            {activePage === "aiassistant"  && <AIAssistantPage />}
+            {activePage === "dashboard"    && <DashboardPage onViewCall={setSelectedCall} liveCalls={liveCalls} setActivePage={setActivePage} />}
+            {activePage === "calls"        && <CallLogPage   onViewCall={setSelectedCall} />}
             {activePage === "screening"    && <ScreeningPage />}
             {activePage === "team"         && <TeamPage />}
             {activePage === "integrations" && <IntegrationsPage />}
@@ -2996,7 +1958,6 @@ export default function Dashboard() {
             onBlock={blockCaller}
           />
         )}
-        <HelpChatWidget />
       </div>
     </>
   );
