@@ -1208,7 +1208,7 @@ function ScreeningModeOption({ opt, isActive, disabled, onSelect }) {
           <div style={{ position: "relative", display: "inline-flex" }}>
             <span onClick={e => { e.stopPropagation(); setShowInfo(v => !v); }} style={{ width: 16, height: 16, borderRadius: "50%", background: "var(--text-tertiary)", color: "#fff", fontSize: 10, fontWeight: 700, cursor: "pointer", display: "inline-flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>i</span>
             {showInfo && (
-              <div onClick={e => e.stopPropagation()} style={{ position: "absolute", left: 0, top: 22, zIndex: 100, background: "var(--surface-raised)", border: "1px solid var(--border)", borderRadius: 8, padding: "10px 14px", width: 260, fontSize: 12, color: "var(--text-secondary)", lineHeight: 1.5, boxShadow: "0 4px 16px rgba(0,0,0,0.3)" }}>
+              <div onClick={e => e.stopPropagation()} style={{ position: "absolute", left: 0, top: 22, zIndex: 100, background: "#1a1a2e", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 8, padding: "10px 14px", width: 260, fontSize: 12, color: "#e0e0e0", lineHeight: 1.5, boxShadow: "0 8px 24px rgba(0,0,0,0.6)" }}>
                 {opt.info}
                 <div onClick={() => setShowInfo(false)} style={{ marginTop: 8, fontSize: 11, color: opt.color, cursor: "pointer", fontWeight: 600 }}>Close</div>
               </div>
