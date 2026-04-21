@@ -1232,6 +1232,9 @@ function ScreeningPage() {
   const [wlForm,   setWlForm]   = useState({ name: "", company_name: "", phone_number: "", tag: "Client" });
   const [scrEmail, setScrEmail] = useState("");
   const [savingEmail, setSavingEmail] = useState(false);
+  const [fallbackNumber, setFallbackNumber] = useState("");
+  const [savingFallback, setSavingFallback] = useState(false);
+  const [fallbackSaved, setFallbackSaved] = useState(false);
   const [screeningMode, setScreeningMode] = useState("moderate");
   const [savingMode, setSavingMode] = useState(false);
   const [modeSaved, setModeSaved] = useState(false);
@@ -1244,6 +1247,7 @@ function ScreeningPage() {
         setWlList(wl?.contacts || wl || []);
         setScrEmail(sett?.screening_email || "");
         setScreeningMode(aiSett?.screening_mode || "moderate");
+        setFallbackNumber(aiSett?.fallback_number || "");
         setNotifSettings(notif?.settings || notif || {});
       }).catch(console.error).finally(() => setLoading(false));
   }, []);
@@ -1273,6 +1277,15 @@ function ScreeningPage() {
     try { await settingsApi.update({ screening_email: scrEmail }); }
     catch (err) { alert(err.message); }
     finally { setSavingEmail(false); }
+  }
+  async function saveFallbackNumber() {
+    setSavingFallback(true); setFallbackSaved(false);
+    try {
+      await settingsApi.updateAi({ fallback_number: fallbackNumber || null });
+      setFallbackSaved(true);
+      setTimeout(() => setFallbackSaved(false), 2000);
+    } catch (err) { alert(err.message); }
+    finally { setSavingFallback(false); }
   }
   async function saveScreeningMode(mode) {
     setScreeningMode(mode);
@@ -1376,6 +1389,22 @@ function ScreeningPage() {
               <div style={{ display: "flex", gap: 8 }}>
                 <input className="form-input" style={{ flex: 1 }} placeholder="screening@yourcompany.com" value={scrEmail} onChange={e => setScrEmail(e.target.value)} />
                 <button className="btn btn-sm btn-primary" onClick={saveScreeningEmail} disabled={savingEmail}>{savingEmail ? "Saving..." : "Save"}</button>
+              </div>
+            </div>
+          </div>
+
+          <div className="section" style={{ marginBottom: 0 }}>
+            <div className="section-header">
+              <span className="section-title">Fallback Number</span>
+              {fallbackSaved && <span style={{ fontSize: 12, color: "var(--accent)", fontWeight: 500 }}>✓ Saved</span>}
+            </div>
+            <div style={{ padding: 20 }}>
+              <div style={{ fontSize: 13, color: "var(--text-tertiary)", marginBottom: 12 }}>
+                If a transfer fails because an employee's number is unreachable or disconnected, the call is routed here instead. Use a reception line, manager, or general company number.
+              </div>
+              <div style={{ display: "flex", gap: 8 }}>
+                <input className="form-input" style={{ flex: 1 }} placeholder="+1 (555) 000-0000" value={fallbackNumber} onChange={e => setFallbackNumber(e.target.value)} />
+                <button className="btn btn-sm btn-primary" onClick={saveFallbackNumber} disabled={savingFallback}>{savingFallback ? "Saving..." : "Save"}</button>
               </div>
             </div>
           </div>
