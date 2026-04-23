@@ -1208,7 +1208,7 @@ function ScreeningModeOption({ opt, isActive, disabled, onSelect }) {
           <div style={{ position: "relative", display: "inline-flex" }}>
             <span onClick={e => { e.stopPropagation(); setShowInfo(v => !v); }} style={{ width: 16, height: 16, borderRadius: "50%", background: "var(--text-tertiary)", color: "#fff", fontSize: 10, fontWeight: 700, cursor: "pointer", display: "inline-flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>i</span>
             {showInfo && (
-              <div onClick={e => e.stopPropagation()} style={{ position: "absolute", left: 0, top: 22, zIndex: 100, background: "#1a1a2e", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 8, padding: "10px 14px", width: 260, fontSize: 12, color: "#e0e0e0", lineHeight: 1.5, boxShadow: "0 8px 24px rgba(0,0,0,0.6)" }}>
+              <div onClick={e => e.stopPropagation()} style={{ position: "absolute", left: 0, top: 22, zIndex: 100, background: "var(--surface-raised)", border: "1px solid var(--border)", borderRadius: 8, padding: "10px 14px", width: 260, fontSize: 12, color: "var(--text-secondary)", lineHeight: 1.5, boxShadow: "0 4px 16px rgba(0,0,0,0.3)" }}>
                 {opt.info}
                 <div onClick={() => setShowInfo(false)} style={{ marginTop: 8, fontSize: 11, color: opt.color, cursor: "pointer", fontWeight: 600 }}>Close</div>
               </div>
@@ -1232,12 +1232,12 @@ function ScreeningPage() {
   const [wlForm,   setWlForm]   = useState({ name: "", company_name: "", phone_number: "", tag: "Client" });
   const [scrEmail, setScrEmail] = useState("");
   const [savingEmail, setSavingEmail] = useState(false);
-  const [fallbackNumber, setFallbackNumber] = useState("");
-  const [savingFallback, setSavingFallback] = useState(false);
-  const [fallbackSaved, setFallbackSaved] = useState(false);
   const [screeningMode, setScreeningMode] = useState("moderate");
   const [savingMode, setSavingMode] = useState(false);
   const [modeSaved, setModeSaved] = useState(false);
+  const [referencePatterns, setReferencePatterns] = useState("");
+  const [savingPatterns, setSavingPatterns] = useState(false);
+  const [patternsSaved, setPatternsSaved] = useState(false);
   const [notifSettings, setNotifSettings] = useState({});
 
   useEffect(() => {
@@ -1247,7 +1247,7 @@ function ScreeningPage() {
         setWlList(wl?.contacts || wl || []);
         setScrEmail(sett?.screening_email || "");
         setScreeningMode(aiSett?.screening_mode || "moderate");
-        setFallbackNumber(aiSett?.fallback_number || "");
+        setReferencePatterns(aiSett?.reference_patterns || "");
         setNotifSettings(notif?.settings || notif || {});
       }).catch(console.error).finally(() => setLoading(false));
   }, []);
@@ -1278,15 +1278,6 @@ function ScreeningPage() {
     catch (err) { alert(err.message); }
     finally { setSavingEmail(false); }
   }
-  async function saveFallbackNumber() {
-    setSavingFallback(true); setFallbackSaved(false);
-    try {
-      await settingsApi.updateAi({ fallback_number: fallbackNumber || null });
-      setFallbackSaved(true);
-      setTimeout(() => setFallbackSaved(false), 2000);
-    } catch (err) { alert(err.message); }
-    finally { setSavingFallback(false); }
-  }
   async function saveScreeningMode(mode) {
     setScreeningMode(mode);
     setSavingMode(true); setModeSaved(false);
@@ -1296,6 +1287,15 @@ function ScreeningPage() {
       setTimeout(() => setModeSaved(false), 2000);
     } catch (err) { alert(err.message); }
     finally { setSavingMode(false); }
+  }
+  async function saveReferencePatterns() {
+    setSavingPatterns(true); setPatternsSaved(false);
+    try {
+      await settingsApi.updateAi({ reference_patterns: referencePatterns || null });
+      setPatternsSaved(true);
+      setTimeout(() => setPatternsSaved(false), 2000);
+    } catch (err) { alert(err.message); }
+    finally { setSavingPatterns(false); }
   }
   async function toggleNotif(key) {
     const updated = { ...notifSettings, [key]: !notifSettings[key] };
@@ -1395,22 +1395,6 @@ function ScreeningPage() {
 
           <div className="section" style={{ marginBottom: 0 }}>
             <div className="section-header">
-              <span className="section-title">Fallback Number</span>
-              {fallbackSaved && <span style={{ fontSize: 12, color: "var(--accent)", fontWeight: 500 }}>✓ Saved</span>}
-            </div>
-            <div style={{ padding: 20 }}>
-              <div style={{ fontSize: 13, color: "var(--text-tertiary)", marginBottom: 12 }}>
-                If a transfer fails because an employee's number is unreachable or disconnected, the call is routed here instead. Use a reception line, manager, or general company number.
-              </div>
-              <div style={{ display: "flex", gap: 8 }}>
-                <input className="form-input" style={{ flex: 1 }} placeholder="+1 (555) 000-0000" value={fallbackNumber} onChange={e => setFallbackNumber(e.target.value)} />
-                <button className="btn btn-sm btn-primary" onClick={saveFallbackNumber} disabled={savingFallback}>{savingFallback ? "Saving..." : "Save"}</button>
-              </div>
-            </div>
-          </div>
-
-          <div className="section" style={{ marginBottom: 0 }}>
-            <div className="section-header">
               <span className="section-title">Screening Intensity</span>
               {modeSaved && <span style={{ fontSize: 12, color: "var(--accent)", fontWeight: 500 }}>✓ Saved</span>}
             </div>
@@ -1436,6 +1420,35 @@ function ScreeningPage() {
               {savingMode && <div style={{ fontSize: 12, color: "var(--text-tertiary)", marginTop: 10 }}>Saving…</div>}
             </div>
           </div>
+          <div className="section" style={{ marginBottom: 0 }}>
+            <div className="section-header">
+              <span className="section-title">
+                Reference Number Patterns
+                <span
+                  title="Describe how your company's PO numbers, load references, invoice numbers, or BOL numbers are formatted. Your AI will use this to spot callers giving fake reference numbers. Example: PO numbers start with PO-, load references start with LD-, invoices start with INV-"
+                  style={{ marginLeft: 6, width: 15, height: 15, borderRadius: "50%", background: "var(--text-tertiary)", color: "#fff", fontSize: 10, fontWeight: 700, cursor: "help", display: "inline-flex", alignItems: "center", justifyContent: "center", verticalAlign: "middle" }}
+                >i</span>
+              </span>
+              {patternsSaved && <span style={{ fontSize: 12, color: "var(--accent)", fontWeight: 500 }}>✓ Saved</span>}
+            </div>
+            <div style={{ padding: 20 }}>
+              <div style={{ fontSize: 13, color: "var(--text-tertiary)", marginBottom: 12 }}>
+                Tell your AI how your reference numbers are formatted. It will flag callers who provide numbers that don't match your patterns.
+              </div>
+              <textarea
+                className="form-input"
+                rows={3}
+                placeholder="e.g. PO numbers start with PO- followed by 6 digits. Load references start with LD-. Invoice numbers start with INV-."
+                value={referencePatterns}
+                onChange={e => setReferencePatterns(e.target.value)}
+                style={{ resize: "vertical", fontFamily: "var(--font-mono)", fontSize: 12 }}
+              />
+              <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 8 }}>
+                <button className="btn btn-sm btn-primary" onClick={saveReferencePatterns} disabled={savingPatterns}>{savingPatterns ? "Saving..." : "Save"}</button>
+              </div>
+            </div>
+          </div>
+
           <div className="section" style={{ marginBottom: 0 }}>
             <div className="section-header"><span className="section-title">Notification Settings</span></div>
             <div style={{ padding: 20, display: "flex", flexDirection: "column", gap: 18 }}>
@@ -2041,7 +2054,7 @@ function SettingsPage() {
   const [loading,  setLoading]  = useState(true);
 
   // Company profile state
-  const [companyForm,   setCompanyForm]   = useState({ name: "", industry: "", timezone: "" });
+  const [companyForm,   setCompanyForm]   = useState({ name: "", industry: "", timezone: "", warehouse_address: "" });
   const [savingCompany, setSavingCompany] = useState(false);
   const [companySaved,  setCompanySaved]  = useState(false);
 
@@ -2074,7 +2087,7 @@ function SettingsPage() {
       .catch(() => setNotifs({}))
       .finally(() => setLoading(false));
     if (company) {
-      setCompanyForm({ name: company.name || "", industry: company.industry || "", timezone: company.timezone || "" });
+      setCompanyForm({ name: company.name || "", industry: company.industry || "", timezone: company.timezone || "", warehouse_address: company.warehouse_address || "" });
       setAssistantName(company.assistant_name || "GATE-AI");
     }
     if (user) setAccountForm({ first_name: user.first_name || "", last_name: user.last_name || "", email: user.email || "", phone: user.phone || "" });
@@ -2084,9 +2097,10 @@ function SettingsPage() {
     setSavingCompany(true); setCompanySaved(false);
     try {
       await settingsApi.updateCompany({
-        name:     companyForm.name,
-        industry: companyForm.industry,
-        timezone: companyForm.timezone,
+        name:              companyForm.name,
+        industry:          companyForm.industry,
+        timezone:          companyForm.timezone,
+        warehouse_address: companyForm.warehouse_address || null,
       });
       const token = localStorage.getItem("gateai_token");
       if (token) {
@@ -2247,6 +2261,23 @@ function SettingsPage() {
               <option value="Europe/London">London (GMT)</option>
               <option value="Europe/Paris">Central Europe (CET)</option>
             </select>
+          </div>
+          <div style={{ gridColumn: "1 / -1" }}>
+            <label style={labelStyle}>
+              Facility / Warehouse Address
+              <span
+                title="Used by your AI receptionist to verify callers who claim to be at or near your location. If a caller gives the wrong address, the AI treats it as a red flag. Include street, city and state."
+                style={{ marginLeft: 6, width: 15, height: 15, borderRadius: "50%", background: "var(--text-tertiary)", color: "#fff", fontSize: 10, fontWeight: 700, cursor: "help", display: "inline-flex", alignItems: "center", justifyContent: "center" }}
+              >i</span>
+            </label>
+            <input
+              style={fieldStyle}
+              placeholder="e.g. 1234 Warehouse Blvd, Houston, TX 77001"
+              value={companyForm.warehouse_address}
+              onChange={e => setCompanyForm(f => ({ ...f, warehouse_address: e.target.value }))}
+              onFocus={e => e.target.style.borderColor = "var(--accent)"}
+              onBlur={e => e.target.style.borderColor = "var(--border)"}
+            />
           </div>
         </div>
         <div style={{ padding: "0 20px 20px", display: "flex", justifyContent: "flex-end" }}>
