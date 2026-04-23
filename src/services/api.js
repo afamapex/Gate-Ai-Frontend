@@ -72,10 +72,12 @@ export const routing = {
 };
 
 export const settings = {
-  get:      ()     => get('/api/settings'),
-  update:   (data) => patch('/api/settings', data),
-  updateAi: (data) => put('/api/settings/ai', data),
-  getAi:    ()     => get('/api/settings/ai'),
+  get:            ()     => get('/api/settings'),
+  update:         (data) => patch('/api/settings', data),
+  updateAi:       (data) => put('/api/settings/ai', data),
+  getAi:          ()     => get('/api/settings/ai'),
+  updateCompany:  (data) => put('/api/settings/company', data),
+  getCompany:     ()     => get('/api/settings/company'),
 };
 
 export const notifications = {
