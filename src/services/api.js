@@ -81,8 +81,8 @@ export const settings = {
 };
 
 export const notifications = {
-  get:          ()     => get('/api/notifications'),
-  update:       (data) => patch('/api/notifications', data),
+  get:          ()     => get('/api/settings/notifications'),
+  update:       (data) => patch('/api/settings/notifications', data),
   testBlocked:   ()    => post('/api/notifications/test/blocked'),
   testForwarded: ()    => post('/api/notifications/test/forwarded'),
 };
