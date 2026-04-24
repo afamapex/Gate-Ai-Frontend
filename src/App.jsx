@@ -17,6 +17,7 @@ import FAQ          from './pages/FAQ.jsx';
 import Contact      from './pages/Contact.jsx';
 import Privacy      from './pages/Privacy.jsx';
 import Terms        from './pages/Terms.jsx';
+import HelpPage     from './pages/HelpPage.jsx';
 
 import Activate        from './pages/Activate.jsx';
 import ActivateSuccess from './pages/ActivateSuccess.jsx';
@@ -89,6 +90,7 @@ export default function App() {
             <Route path="/provisioning" element={<ProtectedRoute><Provisioning /></ProtectedRoute>} />
 
             <Route path="/dashboard/*" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+            <Route path="/help"        element={<ProtectedRoute><HelpPage /></ProtectedRoute>} />
 
             <Route path="/staff/login" element={<StaffLogin />} />
             <Route path="/staff"       element={<Navigate to="/staff/dashboard" replace />} />
