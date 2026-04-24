@@ -1194,6 +1194,61 @@ function CallLogPage({ onViewCall, initialFilter }) {
 }
 
 // ─── SCREENING PAGE ──────────────────────────────────────────
+// Industry-specific reference number defaults
+function getDefaultRefEntries(industry) {
+  const universal = [
+    { type: "Invoice Number",   prefix: "INV-", digits: 6,  universal: true },
+    { type: "Purchase Order",   prefix: "PO-",  digits: 6,  universal: true },
+    { type: "Account Number",   prefix: "",      digits: 8,  universal: true },
+  ];
+  const industrySpecific = {
+    logistics: [
+      { type: "Load Number",         prefix: "LD-",  digits: 6 },
+      { type: "Bill of Lading (BOL)", prefix: "BOL", digits: 7 },
+      { type: "Pro Number",          prefix: "",      digits: 10 },
+      { type: "Delivery Order",      prefix: "DO-",  digits: 5 },
+    ],
+    manufacturing: [
+      { type: "Work Order",    prefix: "WO-", digits: 5 },
+      { type: "Sales Order",   prefix: "SO-", digits: 6 },
+      { type: "Part / SKU",    prefix: "SKU-",digits: 8 },
+      { type: "Production Order", prefix: "PRD-", digits: 5 },
+    ],
+    warehousing: [
+      { type: "Receipt Number",    prefix: "RCT-", digits: 6 },
+      { type: "Pick Ticket",       prefix: "PT-",  digits: 6 },
+      { type: "Storage Order",     prefix: "SO-",  digits: 6 },
+      { type: "Shipment ID",       prefix: "SHP-", digits: 7 },
+    ],
+    construction: [
+      { type: "Job / Project Number", prefix: "JOB-", digits: 5 },
+      { type: "Work Order",           prefix: "WO-",  digits: 5 },
+      { type: "RFI Number",           prefix: "RFI-", digits: 4 },
+      { type: "Change Order",         prefix: "CO-",  digits: 4 },
+    ],
+    distribution: [
+      { type: "Distribution Order", prefix: "DO-",  digits: 6 },
+      { type: "Transfer Order",     prefix: "TO-",  digits: 6 },
+      { type: "Route Number",       prefix: "RT-",  digits: 4 },
+      { type: "Delivery Manifest",  prefix: "DM-",  digits: 6 },
+    ],
+    fleet: [
+      { type: "Vehicle / Unit ID", prefix: "VEH-", digits: 4 },
+      { type: "Service Ticket",    prefix: "SVC-", digits: 6 },
+      { type: "Route Number",      prefix: "RT-",  digits: 4 },
+      { type: "Driver ID",         prefix: "DRV-", digits: 4 },
+    ],
+    industrial: [
+      { type: "Service Ticket",   prefix: "SVC-", digits: 6 },
+      { type: "Work Order",       prefix: "WO-",  digits: 5 },
+      { type: "Job Number",       prefix: "JOB-", digits: 5 },
+      { type: "Equipment ID",     prefix: "EQP-", digits: 5 },
+    ],
+  };
+  const specific = industrySpecific[industry] || industrySpecific.logistics;
+  return [...specific, ...universal];
+}
+
 // Extracted so useState is never called inside .map()
 function ScreeningModeOption({ opt, isActive, disabled, onSelect }) {
   const [showInfo, setShowInfo] = useState(false);
@@ -1235,9 +1290,10 @@ function ScreeningPage() {
   const [screeningMode, setScreeningMode] = useState("moderate");
   const [savingMode, setSavingMode] = useState(false);
   const [modeSaved, setModeSaved] = useState(false);
-  const [referencePatterns, setReferencePatterns] = useState("");
-  const [savingPatterns, setSavingPatterns] = useState(false);
-  const [patternsSaved, setPatternsSaved] = useState(false);
+  const [industry, setIndustry] = useState("logistics");
+  const [refEntries, setRefEntries] = useState([]);
+  const [savingRef, setSavingRef] = useState(false);
+  const [refSaved, setRefSaved] = useState(false);
   const [notifSettings, setNotifSettings] = useState({});
 
   useEffect(() => {
@@ -1246,9 +1302,17 @@ function ScreeningPage() {
         setPtList(pt?.patterns || pt || []);
         setWlList(wl?.contacts || wl || []);
         setScrEmail(sett?.screening_email || "");
+        const ind = sett?.industry || "logistics";
+        setIndustry(ind);
         setScreeningMode(aiSett?.screening_mode || "moderate");
-        setReferencePatterns(aiSett?.reference_patterns || "");
         setNotifSettings(notif?.settings || notif || {});
+        // Load saved reference patterns or initialise industry defaults
+        if (aiSett?.reference_patterns) {
+          try { setRefEntries(JSON.parse(aiSett.reference_patterns)); }
+          catch { setRefEntries(getDefaultRefEntries(ind)); }
+        } else {
+          setRefEntries(getDefaultRefEntries(ind));
+        }
       }).catch(console.error).finally(() => setLoading(false));
   }, []);
 
@@ -1288,14 +1352,14 @@ function ScreeningPage() {
     } catch (err) { alert(err.message); }
     finally { setSavingMode(false); }
   }
-  async function saveReferencePatterns() {
-    setSavingPatterns(true); setPatternsSaved(false);
+  async function saveReferenceEntries() {
+    setSavingRef(true); setRefSaved(false);
     try {
-      await settingsApi.updateAi({ reference_patterns: referencePatterns || null });
-      setPatternsSaved(true);
-      setTimeout(() => setPatternsSaved(false), 2000);
+      await settingsApi.updateAi({ reference_patterns: JSON.stringify(refEntries) });
+      setRefSaved(true);
+      setTimeout(() => setRefSaved(false), 2500);
     } catch (err) { alert(err.message); }
-    finally { setSavingPatterns(false); }
+    finally { setSavingRef(false); }
   }
   async function toggleNotif(key) {
     const updated = { ...notifSettings, [key]: !notifSettings[key] };
@@ -1423,28 +1487,74 @@ function ScreeningPage() {
           <div className="section" style={{ marginBottom: 0 }}>
             <div className="section-header">
               <span className="section-title">
-                Reference Number Patterns
-                <span
-                  title="Describe how your company's PO numbers, load references, invoice numbers, or BOL numbers are formatted. Your AI will use this to spot callers giving fake reference numbers. Example: PO numbers start with PO-, load references start with LD-, invoices start with INV-"
-                  style={{ marginLeft: 6, width: 15, height: 15, borderRadius: "50%", background: "var(--text-tertiary)", color: "#fff", fontSize: 10, fontWeight: 700, cursor: "help", display: "inline-flex", alignItems: "center", justifyContent: "center", verticalAlign: "middle" }}
-                >i</span>
+                Reference Numbers
+                <span title="Tell your AI what your internal reference numbers look like. When a caller provides a number, the AI will check it fits one of these formats. A number that doesn't match is treated as a red flag." style={{ marginLeft: 6, width: 15, height: 15, borderRadius: "50%", background: "var(--text-tertiary)", color: "#fff", fontSize: 10, fontWeight: 700, cursor: "help", display: "inline-flex", alignItems: "center", justifyContent: "center", verticalAlign: "middle" }}>i</span>
               </span>
-              {patternsSaved && <span style={{ fontSize: 12, color: "var(--accent)", fontWeight: 500 }}>✓ Saved</span>}
+              {refSaved && <span style={{ fontSize: 12, color: "var(--accent)", fontWeight: 500 }}>✓ Saved</span>}
             </div>
             <div style={{ padding: 20 }}>
-              <div style={{ fontSize: 13, color: "var(--text-tertiary)", marginBottom: 12 }}>
-                Tell your AI how your reference numbers are formatted. It will flag callers who provide numbers that don't match your patterns.
+              <div style={{ fontSize: 13, color: "var(--text-tertiary)", marginBottom: 16 }}>
+                Add the reference number types your business uses. When callers give a number on a call, your AI will verify it matches the right format.
               </div>
-              <textarea
-                className="form-input"
-                rows={3}
-                placeholder="e.g. PO numbers start with PO- followed by 6 digits. Load references start with LD-. Invoice numbers start with INV-."
-                value={referencePatterns}
-                onChange={e => setReferencePatterns(e.target.value)}
-                style={{ resize: "vertical", fontFamily: "var(--font-mono)", fontSize: 12 }}
-              />
-              <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 8 }}>
-                <button className="btn btn-sm btn-primary" onClick={saveReferencePatterns} disabled={savingPatterns}>{savingPatterns ? "Saving..." : "Save"}</button>
+              <div style={{ display: "flex", gap: 6, marginBottom: 12, padding: "8px 12px", background: "var(--surface-raised, rgba(108,92,231,0.08))", borderRadius: 8, fontSize: 12, color: "var(--text-secondary)", alignItems: "center" }}>
+                <span style={{ fontSize: 16 }}>💡</span>
+                <span>Example: a <strong>Load Number</strong> starts with <strong>LD-</strong> and has <strong>6 digits</strong> → the AI will verify "LD-634450" but flag "LD-12" or "XY-999999"</span>
+              </div>
+              {/* Header row */}
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 110px 90px 100px 36px", gap: 8, marginBottom: 6, padding: "0 4px" }}>
+                <span style={{ fontSize: 11, color: "var(--text-tertiary)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.04em" }}>Reference type</span>
+                <span style={{ fontSize: 11, color: "var(--text-tertiary)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.04em" }}>Prefix</span>
+                <span style={{ fontSize: 11, color: "var(--text-tertiary)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.04em" }}>Digits</span>
+                <span style={{ fontSize: 11, color: "var(--text-tertiary)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.04em" }}>Preview</span>
+                <span />
+              </div>
+              {/* Entries */}
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                {refEntries.map((entry, i) => {
+                  const preview = entry.prefix ? `${entry.prefix}${"X".repeat(Math.min(entry.digits || 6, 8))}` : `${"X".repeat(Math.min(entry.digits || 6, 8))}`;
+                  return (
+                    <div key={i} style={{ display: "grid", gridTemplateColumns: "1fr 110px 90px 100px 36px", gap: 8, alignItems: "center" }}>
+                      <input
+                        className="form-input"
+                        style={{ fontSize: 13, padding: "6px 10px" }}
+                        placeholder="e.g. Load Number"
+                        value={entry.type}
+                        onChange={e => setRefEntries(prev => prev.map((r, idx) => idx === i ? { ...r, type: e.target.value } : r))}
+                      />
+                      <input
+                        className="form-input"
+                        style={{ fontSize: 13, padding: "6px 10px", fontFamily: "var(--font-mono, monospace)" }}
+                        placeholder="e.g. LD-"
+                        value={entry.prefix}
+                        onChange={e => setRefEntries(prev => prev.map((r, idx) => idx === i ? { ...r, prefix: e.target.value } : r))}
+                      />
+                      <input
+                        className="form-input"
+                        style={{ fontSize: 13, padding: "6px 10px" }}
+                        type="number"
+                        min={1}
+                        max={20}
+                        placeholder="6"
+                        value={entry.digits || ""}
+                        onChange={e => setRefEntries(prev => prev.map((r, idx) => idx === i ? { ...r, digits: parseInt(e.target.value) || 0 } : r))}
+                      />
+                      <span style={{ fontSize: 12, color: "var(--accent)", fontFamily: "var(--font-mono, monospace)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{preview}</span>
+                      <button
+                        onClick={() => setRefEntries(prev => prev.filter((_, idx) => idx !== i))}
+                        style={{ background: "none", border: "none", color: "var(--text-tertiary)", cursor: "pointer", fontSize: 16, padding: 4, lineHeight: 1, borderRadius: 4 }}
+                        title="Remove"
+                      >×</button>
+                    </div>
+                  );
+                })}
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 14 }}>
+                <button
+                  className="btn btn-sm"
+                  style={{ background: "var(--surface-raised, rgba(255,255,255,0.06))", border: "1px solid var(--border)", color: "var(--text-secondary)", fontSize: 12 }}
+                  onClick={() => setRefEntries(prev => [...prev, { type: "", prefix: "", digits: 6, universal: false }])}
+                >+ Add reference type</button>
+                <button className="btn btn-sm btn-primary" onClick={saveReferenceEntries} disabled={savingRef}>{savingRef ? "Saving..." : "Save reference numbers"}</button>
               </div>
             </div>
           </div>
@@ -2054,7 +2164,7 @@ function SettingsPage() {
   const [loading,  setLoading]  = useState(true);
 
   // Company profile state
-  const [companyForm,   setCompanyForm]   = useState({ name: "", industry: "", timezone: "", warehouse_address: "" });
+  const [companyForm,   setCompanyForm]   = useState({ name: "", industry: "", timezone: "" });
   const [savingCompany, setSavingCompany] = useState(false);
   const [companySaved,  setCompanySaved]  = useState(false);
 
@@ -2087,7 +2197,7 @@ function SettingsPage() {
       .catch(() => setNotifs({}))
       .finally(() => setLoading(false));
     if (company) {
-      setCompanyForm({ name: company.name || "", industry: company.industry || "", timezone: company.timezone || "", warehouse_address: company.warehouse_address || "" });
+      setCompanyForm({ name: company.name || "", industry: company.industry || "", timezone: company.timezone || "" });
       setAssistantName(company.assistant_name || "GATE-AI");
     }
     if (user) setAccountForm({ first_name: user.first_name || "", last_name: user.last_name || "", email: user.email || "", phone: user.phone || "" });
@@ -2097,10 +2207,9 @@ function SettingsPage() {
     setSavingCompany(true); setCompanySaved(false);
     try {
       await settingsApi.updateCompany({
-        name:              companyForm.name,
-        industry:          companyForm.industry,
-        timezone:          companyForm.timezone,
-        warehouse_address: companyForm.warehouse_address || null,
+        name:     companyForm.name,
+        industry: companyForm.industry,
+        timezone: companyForm.timezone,
       });
       const token = localStorage.getItem("gateai_token");
       if (token) {
@@ -2261,23 +2370,6 @@ function SettingsPage() {
               <option value="Europe/London">London (GMT)</option>
               <option value="Europe/Paris">Central Europe (CET)</option>
             </select>
-          </div>
-          <div style={{ gridColumn: "1 / -1" }}>
-            <label style={labelStyle}>
-              Facility / Warehouse Address
-              <span
-                title="Used by your AI receptionist to verify callers who claim to be at or near your location. If a caller gives the wrong address, the AI treats it as a red flag. Include street, city and state."
-                style={{ marginLeft: 6, width: 15, height: 15, borderRadius: "50%", background: "var(--text-tertiary)", color: "#fff", fontSize: 10, fontWeight: 700, cursor: "help", display: "inline-flex", alignItems: "center", justifyContent: "center" }}
-              >i</span>
-            </label>
-            <input
-              style={fieldStyle}
-              placeholder="e.g. 1234 Warehouse Blvd, Houston, TX 77001"
-              value={companyForm.warehouse_address}
-              onChange={e => setCompanyForm(f => ({ ...f, warehouse_address: e.target.value }))}
-              onFocus={e => e.target.style.borderColor = "var(--accent)"}
-              onBlur={e => e.target.style.borderColor = "var(--border)"}
-            />
           </div>
         </div>
         <div style={{ padding: "0 20px 20px", display: "flex", justifyContent: "flex-end" }}>
