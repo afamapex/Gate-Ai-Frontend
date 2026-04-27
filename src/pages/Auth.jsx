@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+import { useNavigate, Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 
 const API = import.meta.env.VITE_API_URL || 'https://gate-ai-backend-production.up.railway.app';
@@ -9,17 +9,11 @@ export default function Auth() {
   const { token, login } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-
-  // ✅ FIXED: useState must be declared before any conditional return.
-  // Previously this was after the `if (token)` block, which broke React's
-  // rules of hooks and caused a blank page at /auth.
   const [signin, setSignin] = useState({ email: '', password: '' });
 
-  useEffect(() => {
-    if (token) navigate('/', { replace: true });
-  }, [token, navigate]);
-
-  if (token) return null;
+  // ✅ All hooks declared above — safe to conditionally return below.
+  // Already-logged-in users go straight to /dashboard, not the landing page.
+  if (token) return <Navigate to="/dashboard" replace />;
 
   async function handleSignin(e) {
     e.preventDefault();
@@ -28,13 +22,20 @@ export default function Auth() {
     if (!email || !password) { setError('Please enter your email and password.'); return; }
     setLoading(true);
     try {
-      const res = await fetch(`${API}/api/auth/login`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password }) });
+      const res = await fetch(`${API}/api/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
       const data = await res.json();
       if (!res.ok) { setError(data.error || 'Invalid email or password.'); return; }
       login(data);
       navigate('/dashboard');
-    } catch { setError('Connection error. Please try again.'); }
-    finally { setLoading(false); }
+    } catch {
+      setError('Connection error. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
