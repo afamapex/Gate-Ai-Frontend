@@ -610,10 +610,10 @@ function Topbar({ title, onMenuToggle, setActivePage, onSearchNavigate }) {
                 <div className="avatar-menu-email">{user?.email}</div>
               </div>
               <div className="avatar-menu-item" onClick={() => { setShowMenu(false); setActivePage("settings"); }}>
-                {Icons.user} Update Profile
-              </div>
-              <div className="avatar-menu-item" onClick={() => { setShowMenu(false); setActivePage("settings"); }}>
                 {Icons.settings} Settings
+              </div>
+              <div className="avatar-menu-item" onClick={() => { setShowMenu(false); window.open('/help', '_blank'); }}>
+                {Icons.info || <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>} Help & FAQ
               </div>
               <div className="avatar-menu-divider" />
               <div className="avatar-menu-item danger" onClick={handleSignOut}>
@@ -1001,7 +1001,7 @@ function DashboardPage({ onViewCall, liveCalls, setActivePage, setCallLogFilter 
                       <td style={{ fontFamily: "var(--font-mono)", fontSize: 12 }}>{call.phone}</td>
                       <td><span style={{ display: "flex", alignItems: "center", gap: 4, color: "var(--text-tertiary)" }}>{Icons.clock} {call.time}</span></td>
                       <td><span className={`badge ${call.status === "forwarded" ? "badge-green" : call.status === "blocked" ? "badge-red" : "badge-orange"}`}>{call.status}</span></td>
-                      <td><span className="badge badge-ghost">{call.intent}</span></td>
+                      <td><span className="badge badge-ghost" style={{ maxWidth: 110, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", display: "inline-block" }} title={call.intent}>{call.intent ? (call.intent.length > 12 ? call.intent.slice(0,11)+"…" : call.intent) : "—"}</span></td>
                       <td>{call.forwardedTo || <span style={{ color: "var(--text-tertiary)" }}>—</span>}</td>
                       <td onClick={e => e.stopPropagation()}>
                         <CallActionMenu call={allCalls[i]} onWhitelist={whitelistCaller} onBlock={blockCaller} onUnblock={unblockCaller} />
@@ -1139,7 +1139,7 @@ function CallLogPage({ onViewCall, initialFilter }) {
                       <td style={{ color: "var(--text-secondary)", fontSize: 12 }}>{call.dateTime}</td>
                       <td style={{ fontFamily: "var(--font-mono)", fontSize: 12 }}>{call.duration}</td>
                       <td><span className={`badge ${call.status === "forwarded" ? "badge-green" : call.status === "blocked" ? "badge-red" : "badge-orange"}`}>{call.status}</span></td>
-                      <td><span className="badge badge-ghost">{call.intent}</span></td>
+                      <td><span className="badge badge-ghost" style={{ maxWidth: 110, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", display: "inline-block" }} title={call.intent}>{call.intent ? (call.intent.length > 12 ? call.intent.slice(0,11)+"…" : call.intent) : "—"}</span></td>
                       <td>
                         <div className="confidence-bar-wrap" style={{ minWidth: 80 }}>
                           <div className="confidence-bar" style={{ flex: 1 }}><div className="confidence-fill" style={{ width: `${call.confidence}%`, background: call.confidence >= 90 ? "var(--green)" : "var(--orange)" }} /></div>
@@ -1270,7 +1270,7 @@ function ScreeningModeOption({ opt, isActive, disabled, onSelect }) {
           <div style={{ position: "relative", display: "inline-flex" }}>
             <span onClick={e => { e.stopPropagation(); setShowInfo(v => !v); }} style={{ width: 16, height: 16, borderRadius: "50%", background: "var(--text-tertiary)", color: "#fff", fontSize: 10, fontWeight: 700, cursor: "pointer", display: "inline-flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>i</span>
             {showInfo && (
-              <div onClick={e => e.stopPropagation()} style={{ position: "absolute", left: 0, top: 22, zIndex: 100, background: "var(--surface-raised)", border: "1px solid var(--border)", borderRadius: 8, padding: "10px 14px", width: 260, fontSize: 12, color: "var(--text-secondary)", lineHeight: 1.5, boxShadow: "0 4px 16px rgba(0,0,0,0.3)" }}>
+              <div onClick={e => e.stopPropagation()} style={{ position: "absolute", left: 0, top: 22, zIndex: 100, background: "#1e1e2e", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 8, padding: "10px 14px", width: 260, fontSize: 12, color: "#ddd", lineHeight: 1.5, boxShadow: "0 8px 24px rgba(0,0,0,0.7)" }}>
                 {opt.info}
                 <div onClick={() => setShowInfo(false)} style={{ marginTop: 8, fontSize: 11, color: opt.color, cursor: "pointer", fontWeight: 600 }}>Close</div>
               </div>
@@ -1286,7 +1286,7 @@ function ScreeningModeOption({ opt, isActive, disabled, onSelect }) {
 function ScreeningPage() {
   const [ptList,   setPtList]   = useState([]);
   const [wlList,   setWlList]   = useState([]);
-  const [tab,      setTab]      = useState("blocked");
+  const [tab,      setTab]      = useState("ai");
   const [loading,  setLoading]  = useState(true);
   const [addingPt, setAddingPt] = useState(false);
   const [addingWl, setAddingWl] = useState(false);
@@ -1297,6 +1297,7 @@ function ScreeningPage() {
   const [screeningMode, setScreeningMode] = useState("moderate");
   const [savingMode, setSavingMode] = useState(false);
   const [modeSaved, setModeSaved] = useState(false);
+  const [pendingMode, setPendingMode] = useState(null); // for confirm dialog
   const [industry, setIndustry] = useState("logistics");
   const [refEntries, setRefEntries] = useState([]);
   const [savingRef, setSavingRef] = useState(false);
@@ -1379,9 +1380,9 @@ function ScreeningPage() {
   return (
     <>
       <div className="tabs">
+        <div className={`tab ${tab === "ai" ? "active" : ""}`} onClick={() => setTab("ai")}>AI Behavior</div>
         <div className={`tab ${tab === "blocked" ? "active" : ""}`} onClick={() => setTab("blocked")}>Blocked Patterns</div>
         <div className={`tab ${tab === "whitelist" ? "active" : ""}`} onClick={() => setTab("whitelist")}>Whitelist / VIP</div>
-        <div className={`tab ${tab === "ai" ? "active" : ""}`} onClick={() => setTab("ai")}>AI Behavior</div>
       </div>
 
       {tab === "blocked" && (
@@ -1471,26 +1472,66 @@ function ScreeningPage() {
             </div>
             <div style={{ padding: 20 }}>
               <div style={{ fontSize: 13, color: "var(--text-tertiary)", marginBottom: 16 }}>
-                Controls how aggressively your AI screens inbound calls. Takes effect on the very next call.
+                Controls how strictly your AI screens inbound calls. Takes effect on the very next call.
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                 {[
-                  { value: "relaxed",    label: "Relaxed",    color: "#20c997", sub: "Fewest questions — most calls get through",         info: "Forwards calls whenever a caller names someone or gives any business reason. Only blocks clear sales pitches. Best for companies that prioritise accessibility and expect mostly legitimate callers." },
-                  { value: "moderate",   label: "Moderate",   color: "#6c5ce7", sub: "Balanced — recommended for most businesses",         info: "Requires both a name and a business reason before transferring. Asks one question if context is missing. Blocks anyone who reveals they are selling or pitching. The recommended default for most businesses." },
-                  { value: "aggressive", label: "Aggressive", color: "#e84393", sub: "Most thorough — fewest unwanted calls get through",  info: "Requires a specific employee name AND a clear operational reason before any transfer. Blocks callers who are vague after two questions. Best for companies receiving very high cold call volumes." },
+                  { value: "relaxed",    label: "Relaxed",    color: "#20c997", sub: "Fewest questions — most calls get through",        info: "Forwards calls whenever a caller names someone or gives any business reason. Only blocks clear sales pitches. Best for companies that prioritise accessibility and expect mostly legitimate callers." },
+                  { value: "moderate",   label: "Moderate",   color: "#6c5ce7", sub: "Balanced — recommended for most businesses",        info: "Requires both a name and a business reason before transferring. Asks one question if context is missing. Blocks anyone who reveals they are selling or pitching. The recommended default for most businesses." },
+                  { value: "aggressive", label: "Aggressive", color: "#e84393", sub: "Most thorough — fewest unwanted calls get through", info: "Requires a specific employee name AND a verifiable operational reason before any transfer. Blocks callers who are vague after two questions. Best for companies with very high cold call volumes." },
                 ].map(opt => (
                   <ScreeningModeOption
                     key={opt.value}
                     opt={opt}
                     isActive={screeningMode === opt.value}
                     disabled={savingMode}
-                    onSelect={() => !savingMode && saveScreeningMode(opt.value)}
+                    onSelect={() => { if (!savingMode && screeningMode !== opt.value) setPendingMode(opt.value); }}
                   />
                 ))}
               </div>
               {savingMode && <div style={{ fontSize: 12, color: "var(--text-tertiary)", marginTop: 10 }}>Saving…</div>}
             </div>
           </div>
+
+          {/* Screening intensity confirmation dialog */}
+          {pendingMode && (() => {
+            const modeInfo = {
+              relaxed:    { color: "#20c997", label: "Relaxed",    effect: "Your AI will transfer calls when a caller names anyone or gives any business reason. Only obvious sales pitches are blocked." },
+              moderate:   { color: "#6c5ce7", label: "Moderate",   effect: "Your AI will require both a name and an operational reason before transferring. One clarifying question is asked if unclear." },
+              aggressive: { color: "#e84393", label: "Aggressive", effect: "Your AI will require a name, a reason, and a verifiable detail (reference number or address) before transferring anyone." },
+            }[pendingMode];
+            return (
+              <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", zIndex: 500, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <div style={{ background: "var(--bg-card)", border: "1px solid var(--border-light)", borderRadius: 16, padding: 28, width: 420, maxWidth: "90vw", boxShadow: "0 16px 48px rgba(0,0,0,0.5)" }}>
+                  <div style={{ fontSize: 16, fontWeight: 700, color: "var(--text-primary)", marginBottom: 8 }}>
+                    Switch to <span style={{ color: modeInfo.color }}>{modeInfo.label}</span> mode?
+                  </div>
+                  <div style={{ fontSize: 13, color: "var(--text-secondary)", marginBottom: 20, lineHeight: 1.6 }}>
+                    {modeInfo.effect}
+                  </div>
+                  {/* Mini visual */}
+                  <div style={{ display: "flex", gap: 6, marginBottom: 20, padding: "12px 14px", background: `${modeInfo.color}12`, borderRadius: 10, border: `1px solid ${modeInfo.color}30` }}>
+                    {["relaxed", "moderate", "aggressive"].map((m, i) => (
+                      <div key={m} style={{ flex: 1, height: 6, borderRadius: 3, background: m === pendingMode ? modeInfo.color : "var(--border)", transition: "all 0.2s" }} />
+                    ))}
+                  </div>
+                  <div style={{ fontSize: 12, color: "var(--text-tertiary)", marginBottom: 20 }}>
+                    {pendingMode === "relaxed" && "⚡ Low friction — some cold callers may get through. Best for high-trust environments."}
+                    {pendingMode === "moderate" && "⚖️ Balanced — stops most cold callers while keeping the experience smooth for real callers."}
+                    {pendingMode === "aggressive" && "🛡 Maximum protection — real callers with valid details always get through."}
+                  </div>
+                  <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
+                    <button className="btn btn-sm" onClick={() => setPendingMode(null)} style={{ minWidth: 80 }}>Cancel</button>
+                    <button
+                      className="btn btn-sm btn-primary"
+                      style={{ minWidth: 120, background: modeInfo.color, borderColor: modeInfo.color }}
+                      onClick={() => { saveScreeningMode(pendingMode); setPendingMode(null); }}
+                    >Confirm change</button>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
           <div className="section" style={{ marginBottom: 0 }}>
             <div className="section-header">
               <span className="section-title">
@@ -1609,6 +1650,7 @@ function TeamPage() {
   const [addingRule,     setAddingRule]     = useState(false);
   const [editingRuleId,  setEditingRuleId]  = useState(null);
   const [editingIntent,  setEditingIntent]  = useState("");
+  const [editingPriority, setEditingPriority] = useState("medium");
   const [ruleForm,   setRuleForm]   = useState({ intent_match: "", route_to_id: "", priority: "medium" });
   const [form,       setForm]       = useState({ first_name: "", last_name: "", email: "", phone: "", extension: "", role: "employee" });
 
@@ -1674,10 +1716,10 @@ function TeamPage() {
   async function saveRuleIntent(ruleId) {
     if (!editingIntent.trim()) return;
     try {
-      await routingApi.update(ruleId, { intent_match: editingIntent.trim() });
-      setRules(prev => prev.map(r => r.id === ruleId ? { ...r, intent_match: editingIntent.trim() } : r));
+      await routingApi.update(ruleId, { intent_match: editingIntent.trim(), priority: editingPriority });
+      setRules(prev => prev.map(r => r.id === ruleId ? { ...r, intent_match: editingIntent.trim(), priority: editingPriority } : r));
     } catch (err) { alert(err.message); }
-    finally { setEditingRuleId(null); setEditingIntent(""); }
+    finally { setEditingRuleId(null); setEditingIntent(""); setEditingPriority("medium"); }
   }
 
   async function toggleRule(rule) {
@@ -1879,17 +1921,22 @@ function TeamPage() {
                     <tr key={rule.id}>
                       <td style={{ color: "var(--text-primary)", fontWeight: 500 }}>
                         {editingRuleId === rule.id ? (
-                          <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                          <div style={{ display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap" }}>
                             <input
                               className="form-input"
-                              style={{ minWidth: 180, padding: "4px 10px", fontSize: 13 }}
+                              style={{ minWidth: 160, padding: "4px 10px", fontSize: 13 }}
                               value={editingIntent}
                               onChange={e => setEditingIntent(e.target.value)}
-                              onKeyDown={e => { if (e.key === "Enter") saveRuleIntent(rule.id); if (e.key === "Escape") { setEditingRuleId(null); setEditingIntent(""); } }}
+                              onKeyDown={e => { if (e.key === "Enter") saveRuleIntent(rule.id); if (e.key === "Escape") { setEditingRuleId(null); setEditingIntent(""); setEditingPriority("medium"); } }}
                               autoFocus
                             />
+                            <select className="form-input" style={{ width: 110, padding: "4px 8px", fontSize: 12 }} value={editingPriority} onChange={e => setEditingPriority(e.target.value)}>
+                              <option value="high">High</option>
+                              <option value="medium">Medium</option>
+                              <option value="low">Low</option>
+                            </select>
                             <button className="btn btn-sm btn-primary" style={{ padding: "3px 8px" }} onClick={() => saveRuleIntent(rule.id)}>Save</button>
-                            <button className="btn btn-sm" style={{ padding: "3px 8px" }} onClick={() => { setEditingRuleId(null); setEditingIntent(""); }}>Cancel</button>
+                            <button className="btn btn-sm" style={{ padding: "3px 8px" }} onClick={() => { setEditingRuleId(null); setEditingIntent(""); setEditingPriority("medium"); }}>Cancel</button>
                           </div>
                         ) : (
                           rule.intent_match
@@ -1923,7 +1970,7 @@ function TeamPage() {
                         <div style={{ display: "flex", gap: 6 }}>
                           <button
                             className="btn btn-sm"
-                            onClick={() => { setEditingRuleId(rule.id); setEditingIntent(rule.intent_match); }}
+                            onClick={() => { setEditingRuleId(rule.id); setEditingIntent(rule.intent_match); setEditingPriority(rule.priority || "medium"); }}
                           >
                             Edit
                           </button>
@@ -2845,7 +2892,7 @@ function AIAssistantPage() {
                 ["Name",       <span style={{ color: "var(--accent-light)", fontWeight: 600 }}>{assistantName}</span>],
                 ["Phone Number", <span style={{ fontFamily: "var(--font-mono)", fontSize: 13.5, fontWeight: 600 }}>{twilioNumber}</span>],
                 ["Status",     <span style={{ display:"flex", alignItems:"center", gap:6 }}><span className="status-dot"/><span style={{ color:"var(--green)", fontWeight:600, fontSize:12.5 }}>Active — Answering Calls</span></span>],
-                ["Powered by", <span style={{ color:"var(--text-tertiary)", fontSize:12.5 }}>Vapi · Claude · Twilio</span>],
+                ["Powered by", <span style={{ color:"var(--accent-light)", fontSize:12.5, fontWeight:600 }}>Gate AI</span>],
               ].map(([label, val], i, arr) => (
                 <div key={label}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
