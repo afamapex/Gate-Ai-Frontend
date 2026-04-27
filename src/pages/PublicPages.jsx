@@ -28,7 +28,8 @@ export function PublicNav({ active }) {
             ))}
           </ul>
           <div className="pub-cta">
-            <a href="/login" onClick={go('/login')} className="pub-btn-ghost">Sign In</a>
+            {/* ✅ FIXED: was href="/login" — changed to /auth */}
+            <a href="/auth" onClick={go('/auth')} className="pub-btn-ghost">Sign In</a>
             <a href="/book-demo" onClick={go('/book-demo')} className="pub-btn-primary">Book Demo</a>
           </div>
         </div>
@@ -328,57 +329,6 @@ const INT_CSS = NAV_CSS + `
 // FAQ PAGE
 // ═══════════════════════════════════════════════════════════════
 export function FAQ() {
-  const faqs = [
-    { q: 'How long does setup take?', a: 'Under 10 minutes. You sign up, we automatically provision a phone number, you configure your team and routing rules, and you\'re live. Most customers handle their first real call within an hour.' },
-    { q: 'Will Gate AI replace my receptionist?', a: 'It depends. Gate AI handles every inbound call before it gets to a human — for many SMBs that removes the need for a part-time receptionist entirely. For larger teams, it works as a force multiplier: your receptionist only sees the 10–20% of calls that actually matter.' },
-    { q: 'What happens if the AI misclassifies a call?', a: 'You get the transcript, the recording, and the confidence score for every call. You can whitelist numbers instantly, adjust screening rules, and provide corrections. In practice, cold-call detection is 94%+ accurate out of the box.' },
-    { q: 'Does it work with my existing phone system?', a: 'Yes. Gate AI plugs into Twilio, OpenPhone, RingCentral, Talkroute, and Avaya. If you have a SIP-capable system, we can route calls through Gate AI as a screening layer without replacing your main phone system.' },
-    { q: 'What about VIP callers — clients who should never be screened?', a: 'Add them to your whitelist. VIP callers skip the AI entirely and ring through directly. You can whitelist by phone number, company domain, or individual name.' },
-    { q: 'How much does it actually cost per call?', a: 'Less than you think. The average blocked cold call costs us about 3 cents in AI and telephony fees. Your flat monthly subscription covers typical SMB call volume with plenty of headroom.' },
-    { q: 'Can I use my existing phone number?', a: 'Yes — you can port your existing number to Gate AI. The porting process typically takes 5–10 business days. In the meantime you can use your provisioned Gate AI number immediately.' },
-    { q: 'What AI model powers Gate AI?', a: 'Gate AI uses Anthropic\'s Claude Haiku for real-time intent classification and call summarisation, combined with Deepgram for speech-to-text and ElevenLabs for text-to-speech — all orchestrated through Vapi.' },
-    { q: 'Is my call data secure?', a: 'Yes. All call data is encrypted in transit and at rest. We do not sell or share your data. Each company\'s data is fully isolated in a multi-tenant architecture.' },
-    { q: 'Do you offer a free trial?', a: 'Yes — all plans come with a 14-day free trial. No credit card required. Your phone number is provisioned automatically when you sign up.' },
-  ];
-
-  return (
-    <>
-      <PublicNav active="/faq" />
-      <style>{FAQ_CSS}</style>
-      <div className="page-hero">
-        <div className="container" style={{ position: 'relative', zIndex: 1 }}>
-          <div className="eyebrow">FAQ</div>
-          <h1 className="page-title">Questions?<br />We've got answers.</h1>
-          <p className="page-sub">Everything you need to know about Gate AI before getting started.</p>
-        </div>
-      </div>
-      <div className="section">
-        <div className="container">
-          <div className="faq-list">
-            {faqs.map((item, i) => (
-              <details key={i} className="faq-item">
-                <summary>{item.q}</summary>
-                <p>{item.a}</p>
-              </details>
-            ))}
-          </div>
-          <div style={{ textAlign: 'center', marginTop: 56 }}>
-            <p style={{ color: 'var(--text-2)', marginBottom: 20 }}>Still have questions?</p>
-            <a className="btn-accent" onClick={() => useNavigateHook('/contact')}>Contact us →</a>
-          </div>
-        </div>
-      </div>
-      <PubFooter />
-    </>
-  );
-}
-
-// workaround for FAQ CTA
-function useNavigateHook(path) {
-  // This is called directly, not as a hook — handled via inline navigate below
-}
-
-export function FAQPage() {
   const navigate = useNavigate();
   const faqs = [
     { q: 'How long does setup take?', a: 'Under 10 minutes. You sign up, we automatically provision a phone number, you configure your team and routing rules, and you\'re live. Most customers handle their first real call within an hour.' },
@@ -425,6 +375,9 @@ export function FAQPage() {
   );
 }
 
+// ─── FAQPage export kept for backwards compat ─────────────────
+export { FAQ as FAQPage };
+
 const FAQ_CSS = NAV_CSS + `
 .faq-list{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:10px;}
 .faq-item{background:var(--bg-2);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;transition:all 200ms;}
@@ -439,6 +392,8 @@ const FAQ_CSS = NAV_CSS + `
 // ═══════════════════════════════════════════════════════════════
 // CONTACT PAGE
 // ═══════════════════════════════════════════════════════════════
+import { useState } from 'react';
+
 export function Contact() {
   const navigate = useNavigate();
   const [form, setForm] = useState({ name: '', email: '', company: '', message: '' });
