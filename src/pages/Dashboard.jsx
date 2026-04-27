@@ -355,25 +355,104 @@ tbody tr:last-child td { border-bottom: none; }
 .action-menu-item.success:hover { background: var(--green-dim); }
 
 @media (max-width: 768px) {
+  /* ── Core layout ── */
   .sidebar { position: fixed; left: -240px; top: 0; height: 100vh; transition: left 200ms ease; z-index: 50; }
   .sidebar.open { left: 0; }
   .sidebar-overlay.visible { display: block; }
   .mobile-menu-btn { display: flex; }
-  .stats-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
-  .stat-value { font-size: 24px; }
-  .content { padding: 12px; }
+  .content { padding: 12px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+
+  /* ── Topbar ── */
   .topbar { padding: 0 12px; height: 54px; min-height: 54px; }
-  .live-indicator { padding: 3px 8px; font-size: 11px; }
+  .topbar-search { display: none; }
+  .topbar-title { font-size: 14px; max-width: 140px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .live-indicator { display: none; }
+  .topbar-right { gap: 8px; }
+
+  /* ── Notification panel: fix overflow off right edge ── */
+  .notif-panel { right: 0; left: auto; width: calc(100vw - 20px); max-width: 340px; }
+
+  /* ── Stat cards: 2×2 grid ── */
+  .stats-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .stat-card { padding: 14px 16px; }
+  .stat-value { font-size: 24px; }
+  .stat-label { font-size: 11px; }
+
+  /* ── Dashboard bottom grid: single column ── */
+  .dashboard-bottom-grid { grid-template-columns: 1fr !important; }
+
+  /* ── Billing banner: stack vertically ── */
+  .billing-banner { flex-direction: column; align-items: flex-start; gap: 12px; padding: 14px 16px; }
+  .billing-banner-actions { width: 100%; }
+  .billing-banner-actions .btn { width: 100%; justify-content: center; }
+
+  /* ── Section headers: wrap so buttons don't get cut off ── */
+  .section-header { flex-wrap: wrap; gap: 8px; padding: 12px 14px; min-height: unset; }
+  .section-actions { flex-wrap: wrap; }
+
+  /* ── Call log: show cards, hide table ── */
   .table-wrap.desktop-table { display: none; }
   .mobile-call-cards { display: flex; flex-direction: column; gap: 8px; padding: 12px 14px; }
+
+  /* ── Filter bar: horizontal scroll, no wrap ── */
+  .filter-bar { overflow-x: auto; flex-wrap: nowrap; -webkit-overflow-scrolling: touch; padding: 8px 12px; scrollbar-width: none; }
+  .filter-bar::-webkit-scrollbar { display: none; }
+  .filter-chip { flex-shrink: 0; }
+
+  /* ── Pagination: stack ── */
+  .pagination-row { flex-direction: column !important; gap: 8px !important; align-items: center !important; padding: 12px !important; }
+  .pagination-row > div { width: 100%; display: flex; justify-content: center; gap: 6px; }
+  .pagination-row .btn { flex: 1; justify-content: center; }
+
+  /* ── Add-form rows (screening, team, routing): stack ── */
+  .add-form-row { flex-direction: column; gap: 8px; padding: 12px 14px; }
+  .add-form-row .form-input,
+  .add-form-row select.form-input { width: 100% !important; min-width: 0 !important; }
+  .add-form-row .btn { width: 100%; justify-content: center; }
+
+  /* ── Screening: reference numbers grid — stack each row ── */
+  .ref-grid-header { display: none !important; }
+  .ref-grid-row { grid-template-columns: 1fr 80px 60px 26px !important; gap: 6px !important; }
+  .ref-grid-row .ref-preview { display: none; }
+
+  /* ── Team: employee grid — single column ── */
   .employee-grid { grid-template-columns: 1fr; gap: 8px; padding: 12px 14px; }
-  .tabs { padding: 0 14px; overflow-x: auto; }
-  .tab { padding: 10px 12px; font-size: 12px; white-space: nowrap; }
+
+  /* ── Tables (screening blocked/whitelist, routing rules): scrollable ── */
+  .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+  /* ── Tabs: scrollable ── */
+  .tabs { padding: 0 14px; overflow-x: auto; scrollbar-width: none; white-space: nowrap; }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab { padding: 10px 12px; font-size: 12px; white-space: nowrap; display: inline-flex; }
+
+  /* ── Modals: full screen ── */
   .modal { width: 100vw; max-width: 100vw; max-height: 100vh; height: 100vh; border-radius: 0; }
   .modal-header { padding: 14px 16px; }
   .modal-body { padding: 16px; }
+  .modal-footer { padding: 12px 16px; flex-wrap: wrap; gap: 8px; }
+  .modal-footer .btn { flex: 1; justify-content: center; min-width: 80px; }
   .modal-row { flex-direction: column; gap: 4px; }
   .modal-label { min-width: unset; }
+
+  /* ── Modal form grids (edit employee) ── */
+  .modal-form-grid { grid-template-columns: 1fr !important; }
+
+  /* ── Settings grids: single column ── */
+  .settings-form-grid { grid-template-columns: 1fr !important; }
+
+  /* ── Settings inline rows (billing, change-password): stack ── */
+  .settings-inline-row { flex-direction: column !important; align-items: flex-start !important; gap: 12px !important; }
+  .settings-inline-row .btn { width: 100%; justify-content: center; }
+
+  /* ── AI Assistant grid: single column (canvas on top) ── */
+  .ai-assistant-grid { grid-template-columns: 1fr !important; }
+
+  /* ── Help chat widget: full width on small screens ── */
+  .help-chat-panel { right: 8px !important; left: 8px !important; width: auto !important; bottom: 88px !important; }
+
+  /* ── Integrations grid: single column ── */
+  .integrations-grid { grid-template-columns: 1fr !important; padding: 12px 14px; }
 }
 `;
 
@@ -1166,7 +1245,7 @@ function CallLogPage({ onViewCall, initialFilter }) {
 
           {/* Pagination controls */}
           {pageCount > 1 && (
-            <div style={{
+            <div className="pagination-row" style={{
               display: "flex", alignItems: "center", justifyContent: "space-between",
               padding: "12px 20px", borderTop: "1px solid var(--border)",
             }}>
@@ -1549,7 +1628,7 @@ function ScreeningPage() {
                 <span>Example: a <strong>Load Number</strong> starts with <strong>LD-</strong> and has <strong>6 digits</strong> → the AI will verify "LD-634450" but flag "LD-12" or "XY-999999"</span>
               </div>
               {/* Header row */}
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 110px 90px 100px 36px", gap: 8, marginBottom: 6, padding: "0 4px" }}>
+              <div className="ref-grid-header" style={{ display: "grid", gridTemplateColumns: "1fr 110px 90px 100px 36px", gap: 8, marginBottom: 6, padding: "0 4px" }}>
                 <span style={{ fontSize: 11, color: "var(--text-tertiary)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.04em" }}>Reference type</span>
                 <span style={{ fontSize: 11, color: "var(--text-tertiary)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.04em" }}>Prefix</span>
                 <span style={{ fontSize: 11, color: "var(--text-tertiary)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.04em" }}>Digits</span>
@@ -1561,7 +1640,7 @@ function ScreeningPage() {
                 {refEntries.map((entry, i) => {
                   const preview = entry.prefix ? `${entry.prefix}${"X".repeat(Math.min(entry.digits || 6, 8))}` : `${"X".repeat(Math.min(entry.digits || 6, 8))}`;
                   return (
-                    <div key={i} style={{ display: "grid", gridTemplateColumns: "1fr 110px 90px 100px 36px", gap: 8, alignItems: "center" }}>
+                    <div key={i} className="ref-grid-row" style={{ display: "grid", gridTemplateColumns: "1fr 110px 90px 100px 36px", gap: 8, alignItems: "center" }}>
                       <input
                         className="form-input"
                         style={{ fontSize: 13, padding: "6px 10px" }}
@@ -1586,7 +1665,7 @@ function ScreeningPage() {
                         value={entry.digits || ""}
                         onChange={e => setRefEntries(prev => prev.map((r, idx) => idx === i ? { ...r, digits: parseInt(e.target.value) || 0 } : r))}
                       />
-                      <span style={{ fontSize: 12, color: "var(--accent)", fontFamily: "var(--font-mono, monospace)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{preview}</span>
+                      <span className="ref-preview" style={{ fontSize: 12, color: "var(--accent)", fontFamily: "var(--font-mono, monospace)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{preview}</span>
                       <button
                         onClick={() => setRefEntries(prev => prev.filter((_, idx) => idx !== i))}
                         style={{ background: "none", border: "none", color: "var(--text-tertiary)", cursor: "pointer", fontSize: 16, padding: 4, lineHeight: 1, borderRadius: 4 }}
@@ -1745,7 +1824,7 @@ function TeamPage() {
               <button className="modal-close" onClick={() => setEditEmp(null)}>{Icons.x}</button>
             </div>
             <div className="modal-body">
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
+              <div className="modal-form-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
                 <div>
                   <label className="form-label">First Name</label>
                   <input className="form-input-full" value={editEmp.first_name || ""} onChange={e => setEditEmp(p => ({ ...p, first_name: e.target.value }))} />
@@ -1759,7 +1838,7 @@ function TeamPage() {
                 <label className="form-label">Phone Number <span style={{ color: "var(--accent-light)", fontSize: 10 }}>← Required for call forwarding</span></label>
                 <input className="form-input-full" placeholder="+1 (555) 123-4567" value={editEmp.phone || ""} onChange={e => setEditEmp(p => ({ ...p, phone: e.target.value }))} />
               </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
+              <div className="modal-form-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
                 <div>
                   <label className="form-label">Extension</label>
                   <input className="form-input-full" placeholder="e.g. 201" value={editEmp.extension || ""} onChange={e => setEditEmp(p => ({ ...p, extension: e.target.value }))} />
@@ -2410,7 +2489,7 @@ function SettingsPage() {
           <span className="section-title">Company Profile</span>
           {companySaved && <span style={savedBadge}>✓ Saved</span>}
         </div>
-        <div style={{ padding: 20, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+        <div className="settings-form-grid" style={{ padding: 20, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
           <div>
             <label style={labelStyle}>Company Name</label>
             <input style={fieldStyle} value={companyForm.name} onChange={e => setCompanyForm(f => ({ ...f, name: e.target.value }))} onFocus={e => e.target.style.borderColor = "var(--accent)"} onBlur={e => e.target.style.borderColor = "var(--border)"} />
@@ -2455,7 +2534,7 @@ function SettingsPage() {
           <span className="section-title">Account Details</span>
           {accountSaved && <span style={savedBadge}>✓ Saved</span>}
         </div>
-        <div style={{ padding: 20, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+        <div className="settings-form-grid" style={{ padding: 20, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
           <div>
             <label style={labelStyle}>First Name</label>
             <input style={fieldStyle} value={accountForm.first_name} onChange={e => setAccountForm(f => ({ ...f, first_name: e.target.value }))} onFocus={e => e.target.style.borderColor = "var(--accent)"} onBlur={e => e.target.style.borderColor = "var(--border)"} />
@@ -2530,7 +2609,7 @@ function SettingsPage() {
         <div className="section-header">
           <span className="section-title">Change Password</span>
         </div>
-        <div style={{ padding: 20, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <div className="settings-inline-row" style={{ padding: 20, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div style={{ fontSize: 13, color: "var(--text-tertiary)" }}>Update your account password to keep your account secure.</div>
           <button className="btn btn-sm btn-primary" onClick={() => setShowPwModal(true)}>Change password</button>
         </div>
@@ -2539,7 +2618,7 @@ function SettingsPage() {
       {/* ── Billing & Subscription ── */}
       <div className="section">
         <div className="section-header"><span className="section-title">Billing & Subscription</span></div>
-        <div style={{ padding: 20, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <div className="settings-inline-row" style={{ padding: 20, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div>
             <div style={{ fontSize: 13.5, fontWeight: 500 }}>
               Current plan: <span style={{ color: "var(--accent-light)" }}>{capitalize(company?.plan || "starter")}</span>
@@ -2558,7 +2637,7 @@ function SettingsPage() {
           <span className="section-title">AI Assistant</span>
           {assistantSaved && <span style={savedBadge}>✓ Saved</span>}
         </div>
-        <div style={{ padding: 20, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+        <div className="settings-form-grid" style={{ padding: 20, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
           <div>
             <label style={labelStyle}>Assistant Name</label>
             <input
@@ -2949,11 +3028,7 @@ function AIAssistantPage() {
         </button>
       </div>
 
-      <style>{`
-        @media (max-width: 768px) {
-          .ai-assistant-grid { grid-template-columns: 1fr !important; }
-        }
-      `}</style>
+
     </div>
   );
 }
@@ -3081,7 +3156,7 @@ function HelpChatWidget() {
 
       {/* Chat panel */}
       {open && (
-        <div style={{
+        <div className="help-chat-panel" style={{
           position: "fixed", bottom: 88, right: 24, zIndex: 998,
           width: 360, maxHeight: 520,
           background: "white", borderRadius: 16,
