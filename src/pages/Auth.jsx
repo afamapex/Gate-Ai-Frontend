@@ -10,12 +10,16 @@ export default function Auth() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  if (token) {
-    navigate('/', { replace: true });
-    return null;
-  }
-
+  // ✅ FIXED: useState must be declared before any conditional return.
+  // Previously this was after the `if (token)` block, which broke React's
+  // rules of hooks and caused a blank page at /auth.
   const [signin, setSignin] = useState({ email: '', password: '' });
+
+  useEffect(() => {
+    if (token) navigate('/', { replace: true });
+  }, [token, navigate]);
+
+  if (token) return null;
 
   async function handleSignin(e) {
     e.preventDefault();
