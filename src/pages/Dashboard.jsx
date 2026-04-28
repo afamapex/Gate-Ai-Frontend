@@ -603,18 +603,9 @@ tbody tr:last-child td { border-bottom: none; }
   .add-form-row select.form-input { width: 100% !important; min-width: 0 !important; }
   .add-form-row .btn { width: 100%; justify-content: center; }
 
-  /* ── Screening: reference numbers — stack on mobile ── */
-  .ref-grid-header { display: none !important; }
-  .ref-grid-row {
-    grid-template-columns: 1fr auto !important;
-    grid-template-rows: auto auto !important;
-    gap: 6px !important;
-  }
-  .ref-grid-row > input:nth-child(1) { grid-column: 1; grid-row: 1; }
-  .ref-grid-row > button:last-child  { grid-column: 2; grid-row: 1; align-self: start; }
-  .ref-grid-row > input:nth-child(2) { grid-column: 1 / -1; grid-row: 2; }
-  .ref-grid-row > input:nth-child(3) { grid-column: 1 / -1; grid-row: 3; }
-  .ref-grid-row .ref-preview         { grid-column: 1 / -1; grid-row: 4; }
+  /* ── Screening: reference numbers — horizontal scroll on mobile ── */
+  .ref-numbers-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .ref-numbers-inner  { min-width: 600px; }
 
   /* ── Team: employee grid — single column ── */
   .employee-grid { grid-template-columns: 1fr; gap: 8px; padding: 12px 14px; }
@@ -1836,6 +1827,7 @@ function ScreeningPage() {
                 <span style={{ fontSize: 16 }}>💡</span>
                 <span>Example: a <strong>Load Number</strong> starts with <strong>LD-</strong> and has <strong>6 digits</strong> → the AI will verify "LD-634450" but flag "LD-12" or "XY-999999"</span>
               </div>
+              <div className="ref-numbers-scroll"><div className="ref-numbers-inner">
               {/* Header row */}
               <div className="ref-grid-header" style={{ display: "grid", gridTemplateColumns: "2fr 1fr 0.7fr 1.4fr 28px", gap: 10, marginBottom: 8, padding: "0 2px" }}>
                 <span style={{ fontSize: 11, color: "var(--text-tertiary)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em" }}>Reference type</span>
@@ -1884,6 +1876,7 @@ function ScreeningPage() {
                   );
                 })}
               </div>
+              </div></div>{/* end scroll */}
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 14 }}>
                 <button
                   className="btn btn-sm"
