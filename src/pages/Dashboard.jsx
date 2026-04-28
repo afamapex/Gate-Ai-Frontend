@@ -2315,7 +2315,7 @@ function SettingsPage() {
   const [loading,  setLoading]  = useState(true);
 
   // Company profile state
-  const [companyForm,   setCompanyForm]   = useState({ name: "", industry: "", timezone: "" });
+  const [companyForm,   setCompanyForm]   = useState({ name: "", industry: "", timezone: "", warehouse_address: "", website_url: "", company_about: "" });
   const [savingCompany, setSavingCompany] = useState(false);
   const [companySaved,  setCompanySaved]  = useState(false);
 
@@ -2348,7 +2348,7 @@ function SettingsPage() {
       .catch(() => setNotifs({}))
       .finally(() => setLoading(false));
     if (company) {
-      setCompanyForm({ name: company.name || "", industry: company.industry || "", timezone: company.timezone || "" });
+      setCompanyForm({ name: company.name || "", industry: company.industry || "", timezone: company.timezone || "", warehouse_address: company.warehouse_address || "", website_url: company.website_url || "", company_about: company.company_about || "" });
       setAssistantName(company.assistant_name || "GATE-AI");
     }
     if (user) setAccountForm({ first_name: user.first_name || "", last_name: user.last_name || "", email: user.email || "", phone: user.phone || "" });
@@ -2358,9 +2358,12 @@ function SettingsPage() {
     setSavingCompany(true); setCompanySaved(false);
     try {
       await settingsApi.updateCompany({
-        name:     companyForm.name,
-        industry: companyForm.industry,
-        timezone: companyForm.timezone,
+        name:              companyForm.name,
+        industry:          companyForm.industry,
+        timezone:          companyForm.timezone,
+        warehouse_address: companyForm.warehouse_address || null,
+        website_url:       companyForm.website_url       || null,
+        company_about:     companyForm.company_about     || null,
       });
       const token = localStorage.getItem("gateai_token");
       if (token) {
@@ -2521,6 +2524,27 @@ function SettingsPage() {
               <option value="Europe/London">London (GMT)</option>
               <option value="Europe/Paris">Central Europe (CET)</option>
             </select>
+          <div style={{ gridColumn: "1 / -1" }}>
+            <label style={labelStyle}>
+              Facility / Warehouse Address
+              <span title="Used by your AI to verify callers who claim to be at your location. If a caller gives the wrong address, the AI treats it as a red flag." style={{ marginLeft: 6, width: 15, height: 15, borderRadius: "50%", background: "var(--text-tertiary)", color: "#fff", fontSize: 10, fontWeight: 700, cursor: "help", display: "inline-flex", alignItems: "center", justifyContent: "center", verticalAlign: "middle" }}>i</span>
+            </label>
+            <input style={fieldStyle} placeholder="e.g. 1234 Warehouse Blvd, Houston, TX 77001" value={companyForm.warehouse_address} onChange={e => setCompanyForm(f => ({ ...f, warehouse_address: e.target.value }))} onFocus={e => e.target.style.borderColor = "var(--accent)"} onBlur={e => e.target.style.borderColor = "var(--border)"} />
+          </div>
+          <div style={{ gridColumn: "1 / -1" }}>
+            <label style={labelStyle}>
+              Website URL
+              <span title="Your AI reads your website to learn what your company does and sound more familiar on calls. Refreshed automatically every 30 days." style={{ marginLeft: 6, width: 15, height: 15, borderRadius: "50%", background: "var(--text-tertiary)", color: "#fff", fontSize: 10, fontWeight: 700, cursor: "help", display: "inline-flex", alignItems: "center", justifyContent: "center", verticalAlign: "middle" }}>i</span>
+            </label>
+            <input style={fieldStyle} placeholder="https://yourcompany.com" value={companyForm.website_url} onChange={e => setCompanyForm(f => ({ ...f, website_url: e.target.value }))} onFocus={e => e.target.style.borderColor = "var(--accent)"} onBlur={e => e.target.style.borderColor = "var(--border)"} />
+          </div>
+          <div style={{ gridColumn: "1 / -1" }}>
+            <label style={labelStyle}>
+              About Your Company
+              <span title="Paste your LinkedIn About section or write a short description. Your AI uses this to sound more familiar when representing you on calls." style={{ marginLeft: 6, width: 15, height: 15, borderRadius: "50%", background: "var(--text-tertiary)", color: "#fff", fontSize: 10, fontWeight: 700, cursor: "help", display: "inline-flex", alignItems: "center", justifyContent: "center", verticalAlign: "middle" }}>i</span>
+            </label>
+            <textarea style={{ ...fieldStyle, resize: "vertical", minHeight: 90, fontFamily: "inherit", fontSize: 13 }} placeholder="Paste your LinkedIn About section or write a short description of what your company does, who your clients are, and what makes you different." value={companyForm.company_about} onChange={e => setCompanyForm(f => ({ ...f, company_about: e.target.value }))} onFocus={e => e.target.style.borderColor = "var(--accent)"} onBlur={e => e.target.style.borderColor = "var(--border)"} />
+          </div>
           </div>
         </div>
         <div style={{ padding: "0 20px 20px", display: "flex", justifyContent: "flex-end" }}>
