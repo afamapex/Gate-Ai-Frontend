@@ -147,7 +147,7 @@ const CSS = `
   --transition: 180ms ease;
 }
 
-/* ── Light theme ──────────────────────────────────────────── */
+/* ── Light theme ────────────────────────────────────────────── */
 [data-theme="light"] {
   --bg-primary:   #f4f5f9;
   --bg-secondary: #ffffff;
@@ -172,12 +172,28 @@ const CSS = `
   --orange-dim: rgba(230, 119, 0, 0.10);
   --blue:     #1971c2;
   --blue-dim: rgba(25, 113, 194, 0.10);
-  --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
-  --shadow-md: 0 4px 12px rgba(0,0,0,0.10);
-  --shadow-lg: 0 8px 30px rgba(0,0,0,0.14);
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.07);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.09);
+  --shadow-lg: 0 8px 30px rgba(0,0,0,0.13);
 }
 
-/* ── OS dark-mode preference (when no explicit choice saved) ── */
+/* ── Light mode structural overrides ───────────────────────── */
+[data-theme="light"] .section { background: var(--bg-card); border: 1px solid var(--border); }
+[data-theme="light"] .modal { background: var(--bg-card); }
+[data-theme="light"] .modal-overlay { background: rgba(0,0,0,0.28); }
+[data-theme="light"] .form-input, [data-theme="light"] .form-input-full { background: var(--bg-tertiary); border-color: var(--border); color: var(--text-primary); }
+[data-theme="light"] .btn { background: var(--bg-tertiary); border-color: var(--border); color: var(--text-secondary); }
+[data-theme="light"] .btn:hover { background: var(--bg-hover); color: var(--text-primary); }
+[data-theme="light"] .btn-primary { background: var(--accent) !important; color: #fff !important; border-color: var(--accent) !important; }
+[data-theme="light"] .tab { color: var(--text-secondary); }
+[data-theme="light"] .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+[data-theme="light"] .avatar-menu { background: var(--bg-secondary); border-color: var(--border); }
+[data-theme="light"] .sidebar-status { background: rgba(0,168,107,0.10); color: #00a86b; }
+[data-theme="light"] .badge-blocked   { background: rgba(224,49,49,0.12);  color: #c92a2a; }
+[data-theme="light"] .badge-forwarded { background: rgba(0,168,107,0.12);  color: #00a86b; }
+[data-theme="light"] .badge-screened  { background: rgba(230,119,0,0.12);  color: #d97706; }
+
+/* ── OS dark-mode preference (no explicit localStorage choice) ── */
 @media (prefers-color-scheme: light) {
   :root:not([data-theme="dark"]) {
     --bg-primary:   #f4f5f9;
@@ -203,32 +219,11 @@ const CSS = `
     --orange-dim: rgba(230, 119, 0, 0.10);
     --blue:     #1971c2;
     --blue-dim: rgba(25, 113, 194, 0.10);
-    --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
-    --shadow-md: 0 4px 12px rgba(0,0,0,0.10);
-    --shadow-lg: 0 8px 30px rgba(0,0,0,0.14);
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.07);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.09);
+    --shadow-lg: 0 8px 30px rgba(0,0,0,0.13);
   }
 }
-
-/* Light-mode specific overrides for elements that use hardcoded colours */
-[data-theme="light"] .sidebar-status { background: rgba(0,168,107,0.10); color: #00a86b; }
-[data-theme="light"] .badge-blocked   { background: rgba(224,49,49,0.12);  color: #c92a2a; }
-[data-theme="light"] .badge-forwarded { background: rgba(0,168,107,0.12);  color: #00a86b; }
-[data-theme="light"] .badge-screened  { background: rgba(230,119,0,0.12);  color: #d97706; }
-[data-theme="light"] .section         { background: var(--bg-card); border: 1px solid var(--border); }
-[data-theme="light"] .modal           { background: var(--bg-card); }
-[data-theme="light"] .modal-overlay   { background: rgba(0,0,0,0.3); }
-[data-theme="light"] .form-input,
-[data-theme="light"] .form-input-full { background: var(--bg-tertiary); border-color: var(--border); color: var(--text-primary); }
-[data-theme="light"] .form-input:focus,
-[data-theme="light"] .form-input-full:focus { background: var(--bg-secondary); border-color: var(--accent); }
-[data-theme="light"] .btn             { background: var(--bg-tertiary); border-color: var(--border); color: var(--text-primary); }
-[data-theme="light"] .btn:hover       { background: var(--bg-hover); }
-[data-theme="light"] .btn-primary     { background: var(--accent) !important; color: #fff !important; border-color: var(--accent) !important; }
-[data-theme="light"] .tab             { color: var(--text-secondary); }
-[data-theme="light"] .tab.active      { color: var(--accent); border-bottom-color: var(--accent); }
-[data-theme="light"] .avatar-menu     { background: var(--bg-secondary); border-color: var(--border); box-shadow: var(--shadow-lg); }
-[data-theme="light"] .topbar-search input::placeholder { color: var(--text-tertiary); }
-
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body { font-family: var(--font-sans); background: var(--bg-primary); color: var(--text-primary); -webkit-font-smoothing: antialiased; overflow: hidden; }
@@ -736,13 +731,12 @@ function Topbar({ title, onMenuToggle, setActivePage, onSearchNavigate, theme, o
         </div>
 
         {/* Notifications bell */}
-        <div ref={notifRef} style={{ position: "relative" }}>
-          {/* Theme toggle */}
+        <div ref={notifRef} style={{ position: "relative", display: "flex", alignItems: "center", gap: 8 }}>
           <div
             className="topbar-btn"
             onClick={onToggleTheme}
             title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
-            style={{ fontSize: 16 }}
+            style={{ fontSize: 15, lineHeight: 1 }}
           >
             {theme === "dark" ? "☀️" : "🌙"}
           </div>
@@ -1441,7 +1435,7 @@ function ScreeningModeOption({ opt, isActive, disabled, onSelect }) {
           <div style={{ position: "relative", display: "inline-flex" }}>
             <span onClick={e => { e.stopPropagation(); setShowInfo(v => !v); }} style={{ width: 16, height: 16, borderRadius: "50%", background: "var(--text-tertiary)", color: "#fff", fontSize: 10, fontWeight: 700, cursor: "pointer", display: "inline-flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>i</span>
             {showInfo && (
-              <div onClick={e => e.stopPropagation()} style={{ position: "absolute", left: 0, top: 22, zIndex: 100, background: "var(--bg-card)", border: "1px solid var(--border-light)", borderRadius: 8, padding: "10px 14px", width: 260, fontSize: 12, color: "var(--text-primary)", lineHeight: 1.5, boxShadow: "0 8px 24px rgba(0,0,0,0.7)" }}>
+              <div onClick={e => e.stopPropagation()} style={{ position: "absolute", left: 0, top: 22, zIndex: 100, background: "#1e1e2e", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 8, padding: "10px 14px", width: 260, fontSize: 12, color: "#ddd", lineHeight: 1.5, boxShadow: "0 8px 24px rgba(0,0,0,0.7)" }}>
                 {opt.info}
                 <div onClick={() => setShowInfo(false)} style={{ marginTop: 8, fontSize: 11, color: opt.color, cursor: "pointer", fontWeight: 600 }}>Close</div>
               </div>
@@ -1720,7 +1714,7 @@ function ScreeningPage() {
                 <span>Example: a <strong>Load Number</strong> starts with <strong>LD-</strong> and has <strong>6 digits</strong> → the AI will verify "LD-634450" but flag "LD-12" or "XY-999999"</span>
               </div>
               {/* Header row */}
-              <div className="ref-grid-header" style={{ display: "grid", gridTemplateColumns: "1fr 110px 90px 100px 36px", gap: 8, marginBottom: 6, padding: "0 4px" }}>
+              <div className="ref-grid-header" style={{ display: "grid", gridTemplateColumns: "1fr 100px 70px 1fr 32px", gap: 8, marginBottom: 6, padding: "0 4px" }}>
                 <span style={{ fontSize: 11, color: "var(--text-tertiary)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.04em" }}>Reference type</span>
                 <span style={{ fontSize: 11, color: "var(--text-tertiary)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.04em" }}>Prefix</span>
                 <span style={{ fontSize: 11, color: "var(--text-tertiary)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.04em" }}>Digits</span>
@@ -1732,7 +1726,7 @@ function ScreeningPage() {
                 {refEntries.map((entry, i) => {
                   const preview = entry.prefix ? `${entry.prefix}${"X".repeat(Math.min(entry.digits || 6, 8))}` : `${"X".repeat(Math.min(entry.digits || 6, 8))}`;
                   return (
-                    <div key={i} className="ref-grid-row" style={{ display: "grid", gridTemplateColumns: "1fr 110px 90px 100px 36px", gap: 8, alignItems: "center" }}>
+                    <div key={i} className="ref-grid-row" style={{ display: "grid", gridTemplateColumns: "1fr 100px 70px 1fr 32px", gap: 8, alignItems: "center" }}>
                       <input
                         className="form-input"
                         style={{ fontSize: 13, padding: "6px 10px" }}
@@ -2820,7 +2814,7 @@ function SettingsPage() {
 }
 
 // ─── AI ASSISTANT PAGE ───────────────────────────────────────
-function AIAssistantPage() {
+function AIAssistantPage({ theme }) {
   const { company } = useAuth();
   const canvasRef = useRef(null);
   const animRef   = useRef(null);
@@ -2868,13 +2862,21 @@ function AIAssistantPage() {
 
       ctx.clearRect(0, 0, W, H);
 
-      // ── Background glow ──
+      // ── Background glow (stronger in light mode so rings are visible) ──
+      const isLight = theme === "light" || (theme === undefined && window.matchMedia("(prefers-color-scheme: light)").matches);
+      const glowStrong = isLight ? "rgba(108,92,231,0.18)" : "rgba(108,92,231,0.10)";
+      const glowMid    = isLight ? "rgba(108,92,231,0.10)" : "rgba(108,92,231,0.04)";
       const grd = ctx.createRadialGradient(cx, cy, base * 0.1, cx, cy, base * 1.1);
-      grd.addColorStop(0,   "rgba(108,92,231,0.10)");
-      grd.addColorStop(0.5, "rgba(108,92,231,0.04)");
+      grd.addColorStop(0,   glowStrong);
+      grd.addColorStop(0.5, glowMid);
       grd.addColorStop(1,   "rgba(0,0,0,0)");
       ctx.fillStyle = grd;
       ctx.fillRect(0, 0, W, H);
+      // Light mode: add a soft card background tint so rings contrast well
+      if (isLight) {
+        ctx.fillStyle = "rgba(108,92,231,0.04)";
+        ctx.fillRect(0, 0, W, H);
+      }
 
       function drawRing({ radius, tickCount, tickLen, tickGap, lineWidth, color, alpha, rotation, arcGaps }) {
         ctx.save();
@@ -2923,7 +2925,7 @@ function AIAssistantPage() {
       // ── Outermost ring — slow CW rotation, tick marks ──
       drawRing({
         radius: base * 0.98, tickCount: 120, tickLen: base * 0.025, tickGap: 10,
-        lineWidth: 1.2, color: "#6c5ce7", alpha: 0.55, rotation: t * 0.18,
+        lineWidth: 1.2, color: "#6c5ce7", alpha: isLight ? 0.75 : 0.55, rotation: t * 0.18,
         arcGaps: [
           [0.05, Math.PI * 0.45],
           [Math.PI * 0.52, Math.PI * 1.05],
@@ -2935,7 +2937,7 @@ function AIAssistantPage() {
       // ── Second ring — CCW, dotted segments ──
       drawRing({
         radius: base * 0.84, tickCount: 72, tickLen: base * 0.02, tickGap: 8,
-        lineWidth: 1.0, color: "#a29bfe", alpha: 0.45, rotation: -t * 0.28,
+        lineWidth: 1.0, color: "#a29bfe", alpha: isLight ? 0.65 : 0.45, rotation: -t * 0.28,
         arcGaps: [
           [0.2, Math.PI * 0.7],
           [Math.PI * 0.8, Math.PI * 1.4],
@@ -2946,7 +2948,7 @@ function AIAssistantPage() {
       // ── Third ring — faster CW ──
       drawRing({
         radius: base * 0.70, tickCount: 48, tickLen: base * 0.018, tickGap: 6,
-        lineWidth: 1.2, color: "#6c5ce7", alpha: 0.50, rotation: t * 0.42,
+        lineWidth: 1.2, color: "#6c5ce7", alpha: isLight ? 0.70 : 0.50, rotation: t * 0.42,
         arcGaps: [
           [0.3, Math.PI * 0.9],
           [Math.PI * 1.0, Math.PI * 1.7],
@@ -3025,7 +3027,7 @@ function AIAssistantPage() {
       // Sub-label
       ctx.shadowBlur   = 0;
       ctx.globalAlpha  = 0.4;
-      ctx.fillStyle    = "#8b8fa3";
+      ctx.fillStyle    = isLight ? "#4a5068" : "#8b8fa3";
       ctx.font         = `500 ${fontSize * 0.42}px 'DM Sans', sans-serif`;
       ctx.fillText("AI RECEPTIONIST", 0, fontSize * 0.85);
       ctx.restore();
@@ -3067,7 +3069,7 @@ function AIAssistantPage() {
           <div style={{ position: "absolute", bottom: 20, left: 0, right: 0, textAlign: "center", pointerEvents: "none" }}>
             <div style={{
               display: "inline-flex", alignItems: "center", gap: 8,
-              background: "rgba(10,11,15,0.80)", backdropFilter: "blur(8px)",
+              background: isLight ? "rgba(255,255,255,0.88)" : "rgba(10,11,15,0.80)", backdropFilter: "blur(8px)",
               border: "1px solid var(--border-light)", borderRadius: 30, padding: "6px 18px",
             }}>
               <span className="status-dot" style={{ width: 7, height: 7 }} />
@@ -3241,7 +3243,7 @@ function HelpChatWidget() {
     fontSize: 13.5,
     lineHeight: 1.55,
     background: role === "user" ? "#6c5ce7" : "#f0f0f5",
-    color: role === "user" ? "white" : "var(--text-primary)",
+    color: role === "user" ? "white" : "#1a1a2e",
     alignSelf: role === "user" ? "flex-end" : "flex-start",
     wordBreak: "break-word",
   });
@@ -3427,22 +3429,17 @@ export default function Dashboard() {
   const [liveCalls,     setLiveCalls]     = useState([]);
   const [callLogFilter, setCallLogFilter] = useState("all");
 
-  // ── Theme management ──────────────────────────────────────
+  // ── Theme: OS detection + localStorage override ───────────
   const [theme, setTheme] = useState(() => {
     const saved = localStorage.getItem("gateai_theme");
-    if (saved) return saved; // user has an explicit preference
-    // Fall back to OS preference
+    if (saved) return saved;
     return window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
   });
-
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
     localStorage.setItem("gateai_theme", theme);
   }, [theme]);
-
-  function toggleTheme() {
-    setTheme(t => t === "dark" ? "light" : "dark");
-  }
+  const toggleTheme = () => setTheme(t => t === "dark" ? "light" : "dark");
 
   // When navigating away from calls, reset filter so it starts fresh next time
   // unless the navigation explicitly sets a filter (stat card clicks)
@@ -3482,7 +3479,7 @@ export default function Dashboard() {
           <div className="content">
             {activePage === "dashboard"    && <DashboardPage onViewCall={setSelectedCall} liveCalls={liveCalls} setActivePage={setActivePage} setCallLogFilter={setCallLogFilter} />}
             {activePage === "calls"        && <CallLogPage   onViewCall={setSelectedCall} initialFilter={callLogFilter} />}
-            {activePage === "aiassistant"  && <AIAssistantPage />}
+            {activePage === "aiassistant"  && <AIAssistantPage theme={theme} />}
             {activePage === "screening"    && <ScreeningPage />}
             {activePage === "team"         && <TeamPage />}
             {activePage === "integrations" && <IntegrationsPage />}
