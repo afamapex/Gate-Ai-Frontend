@@ -524,8 +524,8 @@ tbody tr:last-child td { border-bottom: none; }
 
   /* ── Screening: reference numbers grid — stack each row ── */
   .ref-grid-header { display: none !important; }
-  .ref-grid-row { grid-template-columns: 1fr 80px 60px 26px !important; gap: 6px !important; }
-  .ref-grid-row .ref-preview { display: none; }
+  .ref-grid-row { grid-template-columns: 1fr 80px 55px 26px !important; gap: 6px !important; }
+  .ref-grid-row .ref-preview { display: none !important; }
 
   /* ── Team: employee grid — single column ── */
   .employee-grid { grid-template-columns: 1fr; gap: 8px; padding: 12px 14px; }
@@ -1748,11 +1748,11 @@ function ScreeningPage() {
                 <span>Example: a <strong>Load Number</strong> starts with <strong>LD-</strong> and has <strong>6 digits</strong> → the AI will verify "LD-634450" but flag "LD-12" or "XY-999999"</span>
               </div>
               {/* Header row */}
-              <div className="ref-grid-header" style={{ display: "grid", gridTemplateColumns: "1fr 120px 80px 160px 28px", gap: 12, marginBottom: 6, padding: "0 4px" }}>
-                <span style={{ fontSize: 11, color: "var(--text-tertiary)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.04em" }}>Reference type</span>
-                <span style={{ fontSize: 11, color: "var(--text-tertiary)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.04em" }}>Prefix</span>
-                <span style={{ fontSize: 11, color: "var(--text-tertiary)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.04em" }}>Digits</span>
-                <span style={{ fontSize: 11, color: "var(--text-tertiary)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.04em" }}>Preview</span>
+              <div className="ref-grid-header" style={{ display: "grid", gridTemplateColumns: "2fr 1fr 0.7fr 1.4fr 28px", gap: 10, marginBottom: 8, padding: "0 2px" }}>
+                <span style={{ fontSize: 11, color: "var(--text-tertiary)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em" }}>Reference type</span>
+                <span style={{ fontSize: 11, color: "var(--text-tertiary)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em" }}>Prefix</span>
+                <span style={{ fontSize: 11, color: "var(--text-tertiary)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em" }}>Digits</span>
+                <span style={{ fontSize: 11, color: "var(--text-tertiary)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em" }}>Preview</span>
                 <span />
               </div>
               {/* Entries */}
@@ -1760,24 +1760,24 @@ function ScreeningPage() {
                 {refEntries.map((entry, i) => {
                   const preview = entry.prefix ? `${entry.prefix}${"X".repeat(Math.min(entry.digits || 6, 8))}` : `${"X".repeat(Math.min(entry.digits || 6, 8))}`;
                   return (
-                    <div key={i} className="ref-grid-row" style={{ display: "grid", gridTemplateColumns: "1fr 120px 80px 160px 28px", gap: 12, alignItems: "center" }}>
+                    <div key={i} className="ref-grid-row" style={{ display: "grid", gridTemplateColumns: "2fr 1fr 0.7fr 1.4fr 28px", gap: 10, alignItems: "center" }}>
                       <input
                         className="form-input"
-                        style={{ fontSize: 13, padding: "6px 10px" }}
+                        style={{ fontSize: 13, padding: "7px 10px", width: "100%" }}
                         placeholder="e.g. Load Number"
                         value={entry.type}
                         onChange={e => setRefEntries(prev => prev.map((r, idx) => idx === i ? { ...r, type: e.target.value } : r))}
                       />
                       <input
                         className="form-input"
-                        style={{ fontSize: 13, padding: "6px 10px", fontFamily: "var(--font-mono, monospace)" }}
+                        style={{ fontSize: 13, padding: "7px 10px", width: "100%", fontFamily: "var(--font-mono, monospace)" }}
                         placeholder="e.g. LD-"
                         value={entry.prefix}
                         onChange={e => setRefEntries(prev => prev.map((r, idx) => idx === i ? { ...r, prefix: e.target.value } : r))}
                       />
                       <input
                         className="form-input"
-                        style={{ fontSize: 13, padding: "6px 10px" }}
+                        style={{ fontSize: 13, padding: "7px 10px", width: "100%", textAlign: "center" }}
                         type="number"
                         min={1}
                         max={20}
@@ -1785,10 +1785,10 @@ function ScreeningPage() {
                         value={entry.digits || ""}
                         onChange={e => setRefEntries(prev => prev.map((r, idx) => idx === i ? { ...r, digits: parseInt(e.target.value) || 0 } : r))}
                       />
-                      <span className="ref-preview" style={{ fontSize: 12, color: "var(--accent)", fontFamily: "var(--font-mono, monospace)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", display: "block", minWidth: 0 }}>{preview}</span>
+                      <div className="ref-preview" style={{ background: "var(--accent-dim)", border: "1px solid rgba(108,92,231,0.2)", borderRadius: "var(--radius-md)", padding: "7px 10px", fontSize: 12, color: "var(--accent)", fontFamily: "var(--font-mono, monospace)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", width: "100%", boxSizing: "border-box" }}>{preview}</div>
                       <button
                         onClick={() => setRefEntries(prev => prev.filter((_, idx) => idx !== i))}
-                        style={{ background: "none", border: "none", color: "var(--text-tertiary)", cursor: "pointer", fontSize: 16, padding: 4, lineHeight: 1, borderRadius: 4 }}
+                        style={{ background: "none", border: "none", color: "var(--text-tertiary)", cursor: "pointer", fontSize: 18, padding: 0, lineHeight: 1, borderRadius: 4, display: "flex", alignItems: "center", justifyContent: "center" }}
                         title="Remove"
                       >×</button>
                     </div>
