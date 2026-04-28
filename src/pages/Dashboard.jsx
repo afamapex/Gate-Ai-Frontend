@@ -193,6 +193,40 @@ const CSS = `
 [data-theme="light"] .badge-forwarded { background: rgba(0,168,107,0.12);  color: #00a86b; }
 [data-theme="light"] .badge-screened  { background: rgba(230,119,0,0.12);  color: #d97706; }
 
+/* ── NotificationBanner light mode ── */
+[data-theme="light"] [class*="notification-banner"],
+[data-theme="light"] [class*="notif-banner"],
+[data-theme="light"] [class*="action-banner"],
+[data-theme="light"] [class*="pending-banner"],
+[data-theme="light"] [class*="pending-section"],
+[data-theme="light"] [class*="whitelist-banner"] {
+  background: #eef1ff !important;
+  border-color: #c5cef5 !important;
+  color: var(--text-primary) !important;
+}
+[data-theme="light"] [class*="banner-item"],
+[data-theme="light"] [class*="notif-item"],
+[data-theme="light"] [class*="pending-item"],
+[data-theme="light"] [class*="whitelist-item"] {
+  background: #ffffff !important;
+  border: 1px solid #d5daee !important;
+}
+[data-theme="light"] [class*="banner-title"],
+[data-theme="light"] [class*="banner-heading"],
+[data-theme="light"] [class*="notif-title"],
+[data-theme="light"] [class*="pending-title"],
+[data-theme="light"] [class*="action-title"] {
+  color: var(--text-primary) !important;
+}
+[data-theme="light"] [class*="banner-sub"],
+[data-theme="light"] [class*="confidence-text"],
+[data-theme="light"] [class*="notif-desc"],
+[data-theme="light"] [class*="pending-sub"],
+[data-theme="light"] [class*="summary-text"],
+[data-theme="light"] [class*="call-summary"] {
+  color: var(--text-secondary) !important;
+}
+
 /* ── OS dark-mode preference (no explicit localStorage choice) ── */
 @media (prefers-color-scheme: light) {
   :root:not([data-theme="dark"]) {
@@ -1714,7 +1748,7 @@ function ScreeningPage() {
                 <span>Example: a <strong>Load Number</strong> starts with <strong>LD-</strong> and has <strong>6 digits</strong> → the AI will verify "LD-634450" but flag "LD-12" or "XY-999999"</span>
               </div>
               {/* Header row */}
-              <div className="ref-grid-header" style={{ display: "grid", gridTemplateColumns: "minmax(140px,2fr) 90px 65px minmax(100px,1fr) 28px", gap: 8, marginBottom: 6, padding: "0 4px" }}>
+              <div className="ref-grid-header" style={{ display: "grid", gridTemplateColumns: "1fr 120px 80px 160px 28px", gap: 12, marginBottom: 6, padding: "0 4px" }}>
                 <span style={{ fontSize: 11, color: "var(--text-tertiary)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.04em" }}>Reference type</span>
                 <span style={{ fontSize: 11, color: "var(--text-tertiary)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.04em" }}>Prefix</span>
                 <span style={{ fontSize: 11, color: "var(--text-tertiary)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.04em" }}>Digits</span>
@@ -1726,7 +1760,7 @@ function ScreeningPage() {
                 {refEntries.map((entry, i) => {
                   const preview = entry.prefix ? `${entry.prefix}${"X".repeat(Math.min(entry.digits || 6, 8))}` : `${"X".repeat(Math.min(entry.digits || 6, 8))}`;
                   return (
-                    <div key={i} className="ref-grid-row" style={{ display: "grid", gridTemplateColumns: "minmax(140px,2fr) 90px 65px minmax(100px,1fr) 28px", gap: 8, alignItems: "center" }}>
+                    <div key={i} className="ref-grid-row" style={{ display: "grid", gridTemplateColumns: "1fr 120px 80px 160px 28px", gap: 12, alignItems: "center" }}>
                       <input
                         className="form-input"
                         style={{ fontSize: 13, padding: "6px 10px" }}
@@ -1751,7 +1785,7 @@ function ScreeningPage() {
                         value={entry.digits || ""}
                         onChange={e => setRefEntries(prev => prev.map((r, idx) => idx === i ? { ...r, digits: parseInt(e.target.value) || 0 } : r))}
                       />
-                      <span className="ref-preview" style={{ fontSize: 12, color: "var(--accent)", fontFamily: "var(--font-mono, monospace)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{preview}</span>
+                      <span className="ref-preview" style={{ fontSize: 12, color: "var(--accent)", fontFamily: "var(--font-mono, monospace)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", display: "block", minWidth: 0 }}>{preview}</span>
                       <button
                         onClick={() => setRefEntries(prev => prev.filter((_, idx) => idx !== i))}
                         style={{ background: "none", border: "none", color: "var(--text-tertiary)", cursor: "pointer", fontSize: 16, padding: 4, lineHeight: 1, borderRadius: 4 }}
@@ -2925,7 +2959,7 @@ function AIAssistantPage({ theme }) {
       // ── Outermost ring — slow CW rotation, tick marks ──
       drawRing({
         radius: base * 0.98, tickCount: 120, tickLen: base * 0.025, tickGap: 10,
-        lineWidth: 1.2, color: "#6c5ce7", alpha: isLight ? 0.75 : 0.55, rotation: t * 0.18,
+        lineWidth: 1.5, color: isLight ? "#4a30c4" : "#6c5ce7", alpha: isLight ? 0.85 : 0.55, rotation: t * 0.18,
         arcGaps: [
           [0.05, Math.PI * 0.45],
           [Math.PI * 0.52, Math.PI * 1.05],
@@ -2937,7 +2971,7 @@ function AIAssistantPage({ theme }) {
       // ── Second ring — CCW, dotted segments ──
       drawRing({
         radius: base * 0.84, tickCount: 72, tickLen: base * 0.02, tickGap: 8,
-        lineWidth: 1.0, color: "#a29bfe", alpha: isLight ? 0.65 : 0.45, rotation: -t * 0.28,
+        lineWidth: 1.2, color: isLight ? "#5e44d4" : "#a29bfe", alpha: isLight ? 0.80 : 0.45, rotation: -t * 0.28,
         arcGaps: [
           [0.2, Math.PI * 0.7],
           [Math.PI * 0.8, Math.PI * 1.4],
@@ -2948,7 +2982,7 @@ function AIAssistantPage({ theme }) {
       // ── Third ring — faster CW ──
       drawRing({
         radius: base * 0.70, tickCount: 48, tickLen: base * 0.018, tickGap: 6,
-        lineWidth: 1.2, color: "#6c5ce7", alpha: isLight ? 0.70 : 0.50, rotation: t * 0.42,
+        lineWidth: 1.5, color: isLight ? "#4a30c4" : "#6c5ce7", alpha: isLight ? 0.85 : 0.50, rotation: t * 0.42,
         arcGaps: [
           [0.3, Math.PI * 0.9],
           [Math.PI * 1.0, Math.PI * 1.7],
@@ -2961,7 +2995,7 @@ function AIAssistantPage({ theme }) {
       ctx.translate(cx, cy);
       const pulse = 0.82 + 0.04 * Math.sin(t * 2.2);
       ctx.globalAlpha = 0.65;
-      ctx.strokeStyle = "#a29bfe";
+      ctx.strokeStyle = isLight ? "#5e44d4" : "#a29bfe";
       ctx.lineWidth   = 1.5;
       ctx.beginPath();
       ctx.arc(0, 0, base * 0.54 * pulse, 0, Math.PI * 2);
@@ -3016,18 +3050,18 @@ function AIAssistantPage({ theme }) {
       ctx.save();
       ctx.translate(cx, cy);
       ctx.globalAlpha = 0.9 + 0.1 * Math.sin(t * 1.5);
-      ctx.fillStyle   = "#a29bfe";
+      ctx.fillStyle   = isLight ? "#3d2da0" : "#a29bfe";
       ctx.font        = `700 ${fontSize}px 'JetBrains Mono', monospace`;
       ctx.textAlign   = "center";
       ctx.textBaseline = "middle";
       // Subtle text glow
-      ctx.shadowColor  = "#6c5ce7";
+      ctx.shadowColor  = isLight ? "#3d2da0" : "#6c5ce7";
       ctx.shadowBlur   = 18;
       ctx.fillText(assistantName, 0, 0);
       // Sub-label
       ctx.shadowBlur   = 0;
       ctx.globalAlpha  = 0.4;
-      ctx.fillStyle    = isLight ? "#4a5068" : "#8b8fa3";
+      ctx.fillStyle    = isLight ? "#2a2d4a" : "#8b8fa3";
       ctx.font         = `500 ${fontSize * 0.42}px 'DM Sans', sans-serif`;
       ctx.fillText("AI RECEPTIONIST", 0, fontSize * 0.85);
       ctx.restore();
