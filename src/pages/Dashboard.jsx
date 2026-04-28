@@ -193,7 +193,81 @@ const CSS = `
 [data-theme="light"] .badge-forwarded { background: rgba(0,168,107,0.12);  color: #00a86b; }
 [data-theme="light"] .badge-screened  { background: rgba(230,119,0,0.12);  color: #d97706; }
 
-/* ── NotificationBanner light mode ── */
+/* ── NotificationBanner: mobile + light mode fixes ── */
+
+/* Light mode text visibility */
+[data-theme="light"] [class*="action-banner"],
+[data-theme="light"] [class*="notif-banner"],
+[data-theme="light"] [class*="pending"],
+[data-theme="light"] [class*="whitelist-banner"] {
+  background: #eef1ff !important;
+  border: 1px solid #c8d0f0 !important;
+}
+
+/* Force all text in the banner to be visible in light mode */
+[data-theme="light"] [class*="action-banner"] *,
+[data-theme="light"] [class*="notif-banner"] *,
+[data-theme="light"] [class*="pending"] * {
+  color: var(--text-secondary) !important;
+}
+[data-theme="light"] [class*="action-banner"] strong,
+[data-theme="light"] [class*="action-banner"] h3,
+[data-theme="light"] [class*="action-banner"] h4,
+[data-theme="light"] [class*="action-banner"] [class*="title"],
+[data-theme="light"] [class*="action-banner"] [class*="name"],
+[data-theme="light"] [class*="notif-banner"] strong,
+[data-theme="light"] [class*="notif-banner"] [class*="title"] {
+  color: var(--text-primary) !important;
+  font-weight: 600;
+}
+
+/* Mobile: fix the notification banner layout so text wraps properly */
+@media (max-width: 640px) {
+  [class*="action-banner"],
+  [class*="notif-banner"],
+  [class*="pending-section"] {
+    padding: 12px !important;
+  }
+  [class*="banner-item"],
+  [class*="notif-item"],
+  [class*="pending-item"] {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 10px !important;
+    padding: 12px !important;
+  }
+  [class*="banner-actions"],
+  [class*="notif-actions"],
+  [class*="pending-actions"] {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 6px !important;
+    width: 100% !important;
+  }
+  [class*="banner-actions"] button,
+  [class*="notif-actions"] button,
+  [class*="pending-actions"] button {
+    flex: 1 !important;
+    min-width: 80px !important;
+    font-size: 12px !important;
+    padding: 6px 10px !important;
+    white-space: nowrap !important;
+  }
+  [class*="banner-text"],
+  [class*="notif-text"],
+  [class*="pending-text"],
+  [class*="confidence"],
+  [class*="summary"] {
+    font-size: 13px !important;
+    line-height: 1.5 !important;
+    word-break: break-word !important;
+    overflow-wrap: break-word !important;
+    hyphens: none !important;
+    white-space: normal !important;
+  }
+}
+
+/* ── NotificationBanner light mode ──*/
 [data-theme="light"] [class*="notification-banner"],
 [data-theme="light"] [class*="notif-banner"],
 [data-theme="light"] [class*="action-banner"],
@@ -261,6 +335,13 @@ const CSS = `
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body { font-family: var(--font-sans); background: var(--bg-primary); color: var(--text-primary); -webkit-font-smoothing: antialiased; overflow: hidden; }
+
+/* Light mode — ensure any element with near-white text colour is overridden to be readable */
+[data-theme="light"] .content > div:first-child p,
+[data-theme="light"] .content > div:first-child span:not(.status-dot):not(.toggle-knob),
+[data-theme="light"] .content > div:first-child small {
+  color: var(--text-secondary);
+}
 ::-webkit-scrollbar { width: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
@@ -522,10 +603,18 @@ tbody tr:last-child td { border-bottom: none; }
   .add-form-row select.form-input { width: 100% !important; min-width: 0 !important; }
   .add-form-row .btn { width: 100%; justify-content: center; }
 
-  /* ── Screening: reference numbers grid — stack each row ── */
+  /* ── Screening: reference numbers — stack on mobile ── */
   .ref-grid-header { display: none !important; }
-  .ref-grid-row { grid-template-columns: 1fr 80px 55px 26px !important; gap: 6px !important; }
-  .ref-grid-row .ref-preview { display: none !important; }
+  .ref-grid-row {
+    grid-template-columns: 1fr auto !important;
+    grid-template-rows: auto auto !important;
+    gap: 6px !important;
+  }
+  .ref-grid-row > input:nth-child(1) { grid-column: 1; grid-row: 1; }
+  .ref-grid-row > button:last-child  { grid-column: 2; grid-row: 1; align-self: start; }
+  .ref-grid-row > input:nth-child(2) { grid-column: 1 / -1; grid-row: 2; }
+  .ref-grid-row > input:nth-child(3) { grid-column: 1 / -1; grid-row: 3; }
+  .ref-grid-row .ref-preview         { grid-column: 1 / -1; grid-row: 4; }
 
   /* ── Team: employee grid — single column ── */
   .employee-grid { grid-template-columns: 1fr; gap: 8px; padding: 12px 14px; }
@@ -1812,7 +1901,7 @@ function ScreeningPage() {
               <ToggleSetting label="Whitelist suggestion emails" desc="Get notified when Gate AI suggests adding a forwarded caller to your whitelist" value={notifSettings?.whitelist_suggestion_email !== false} onChange={() => toggleNotif("whitelist_suggestion_email")} />
               <ToggleSetting label="Blocked call email alerts" desc="Receive an email when a call is blocked. Off by default." value={!!notifSettings?.blocked_call_email_enabled} onChange={() => toggleNotif("blocked_call_email_enabled")} />
               <ToggleSetting label="Real-time Slack alerts" desc="Get instant Slack notifications for blocked and forwarded calls" value={!!notifSettings?.slack_enabled} onChange={() => toggleNotif("slack_enabled")} />
-              <div style={{ padding: "16px 20px", borderTop: "1px solid var(--border)" }}>
+              <div style={{ borderTop: "1px solid var(--border)", paddingTop: 16 }}>
                 <div style={{ fontSize: 14, fontWeight: 600, color: "var(--text-primary)", marginBottom: 4 }}>Voicemail notifications</div>
                 <div style={{ fontSize: 12, color: "var(--text-tertiary)", marginBottom: 12 }}>When a caller leaves a voicemail after a declined transfer, when would you like to be notified?</div>
                 <div style={{ display: "flex", gap: 8 }}>
