@@ -215,19 +215,43 @@ export default function HelpPage() {
   const [assistantName, setAssistantName] = useState("GATE-AI");
 
   useEffect(() => {
-    // ── 1. Sync theme exactly as the dashboard does ──
+    // ── 1. Inject CSS variables — this page runs in its own tab
+    //       so Dashboard's CSS doesn't exist here. Define them here.
+    const style = document.createElement("style");
+    style.id = "gate-ai-help-vars";
+    style.textContent = `
+      @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap');
+      :root {
+        --bg-primary: #0a0b0f; --bg-secondary: #111218; --bg-tertiary: #181a23;
+        --bg-card: #13141b; --bg-hover: #1a1c26;
+        --border: #252736; --border-light: #2a2d40;
+        --text-primary: #e8e9ed; --text-secondary: #8b8fa3; --text-tertiary: #5c6078;
+        --accent: #6c5ce7; --accent-light: #a29bfe;
+        --accent-dim: rgba(108,92,231,0.15); --accent-glow: rgba(108,92,231,0.3);
+        --font-sans: 'DM Sans', -apple-system, sans-serif;
+      }
+      [data-theme="light"] {
+        --bg-primary: #f4f5f9; --bg-secondary: #ffffff; --bg-tertiary: #eef0f6;
+        --bg-card: #ffffff; --bg-hover: #eef0f6;
+        --border: #e2e5f0; --border-light: #d0d4e8;
+        --text-primary: #1a1d2e; --text-secondary: #4a5068; --text-tertiary: #8b8fa3;
+        --accent: #6c5ce7; --accent-light: #6c5ce7;
+        --accent-dim: rgba(108,92,231,0.10); --accent-glow: rgba(108,92,231,0.20);
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body { font-family: var(--font-sans); background: var(--bg-primary); color: var(--text-primary); }
+      #root { background: var(--bg-primary); min-height: 100vh; }
+    `;
+    if (!document.getElementById("gate-ai-help-vars")) {
+      document.head.appendChild(style);
+    }
+
+    // ── 2. Sync theme from localStorage (same key as dashboard) ──
     const saved = localStorage.getItem("gateai_theme");
     const theme = saved || (window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark");
     document.documentElement.setAttribute("data-theme", theme);
-    // Kill white flash on root/body
-    ["body", "html"].forEach(tag => {
-      const el = document.querySelector(tag);
-      if (el) { el.style.background = "var(--bg-primary)"; el.style.margin = "0"; }
-    });
-    const root = document.getElementById("root");
-    if (root) root.style.background = "var(--bg-primary)";
 
-    // ── 2. Load assistant name from stored company data ──
+    // ── 3. Load assistant name ──
     try {
       const stored = localStorage.getItem("gateai_company");
       if (stored) {
@@ -281,7 +305,7 @@ export default function HelpPage() {
                 const key = `${ci}-${qi}`;
                 const open = !!openItems[key];
                 return (
-                  <div key={qi} style={{ border: "1px solid var(--border)", borderRadius: 10, overflow: "hidden", background: open ? "var(--bg-card, var(--bg-tertiary))" : "transparent", transition: "background 0.15s" }}>
+                  <div key={qi} style={{ border: "1px solid var(--border)", borderRadius: 10, overflow: "hidden", background: open ? "var(--bg-card)" : "var(--bg-secondary)", transition: "background 0.15s", boxShadow: open ? "0 2px 8px rgba(0,0,0,0.06)" : "none" }}>
                     <div onClick={() => toggle(key)} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "13px 16px", cursor: "pointer", userSelect: "none" }}>
                       <span style={{ fontSize: 14, fontWeight: 500, color: "var(--text-primary)", paddingRight: 12 }}>{item.q}</span>
                       <span style={{ flexShrink: 0, fontSize: 12, transform: open ? "rotate(180deg)" : "rotate(0)", transition: "transform 0.2s", color: "var(--text-tertiary)" }}>▾</span>
