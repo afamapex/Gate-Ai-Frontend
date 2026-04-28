@@ -60,25 +60,27 @@ function NotifCard({ notif, onAction }) {
   if (showConfirm) {
     return (
       <div style={{
-        background: 'rgba(255,107,107,0.06)',
-        border: '1px solid rgba(255,107,107,0.25)',
-        borderRadius: 10,
-        padding: '14px 18px',
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        gap: 14, flexWrap: 'wrap',
+      background: 'var(--red-dim, rgba(255,107,107,0.06))',
+      border: '1px solid rgba(255,107,107,0.25)',
+      borderRadius: 10,
+      padding: '14px 16px',
+      display: 'flex', alignItems: 'flex-start', flexDirection: 'column',
+      gap: 12,
       }}>
-        <div style={{ fontSize: 13.5, color: '#e8e9ed' }}>
-          <span style={{ color: '#ff6b6b', fontWeight: 600 }}>⚠ Block {notif.caller_phone}?</span>
-          <span style={{ color: '#8b8fa3', marginLeft: 8 }}>
-            They will be permanently rejected on all future calls.
-          </span>
-        </div>
-        <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
+      <div style={{
+        fontSize: 13.5, color: 'var(--text-primary, #e8e9ed)', lineHeight: 1.5, flex: 1,
+      }}>
+        <span style={{ color: '#e03131', fontWeight: 600 }}>⚠ Block {notif.caller_phone}?</span>
+        <span style={{ color: 'var(--text-secondary, #8b8fa3)', marginLeft: 8 }}>
+          They will be permanently rejected on all future calls.
+        </span>
+      </div>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', width: '100%' }}>
           <button
             onClick={() => setShowConfirm(false)}
             style={{
-              background: 'none', border: '1px solid #252736', borderRadius: 7,
-              padding: '6px 14px', fontSize: 12.5, color: '#8b8fa3',
+              background: 'none', border: '1px solid var(--border, #252736)', borderRadius: 7,
+              padding: '6px 14px', fontSize: 12.5, color: 'var(--text-secondary, #8b8fa3)',
               cursor: 'pointer', fontFamily: 'inherit',
             }}
           >
@@ -108,12 +110,12 @@ function NotifCard({ notif, onAction }) {
         : 'rgba(255,169,77,0.05)',
       border: `1px solid ${isWhitelist ? 'rgba(0,214,143,0.2)' : 'rgba(255,169,77,0.2)'}`,
       borderRadius: 10,
-      padding: '13px 18px',
-      display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between',
-      gap: 14, flexWrap: 'wrap',
+      padding: '13px 16px',
+      display: 'flex', alignItems: 'flex-start', flexDirection: 'column',
+      gap: 12,
     }}>
       {/* Icon + text */}
-      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, flex: 1, minWidth: 0 }}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, width: '100%', minWidth: 0 }}>
         <div style={{
           width: 28, height: 28, borderRadius: 7, flexShrink: 0,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -124,19 +126,19 @@ function NotifCard({ notif, onAction }) {
           {isWhitelist ? '✅' : '⚠️'}
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 13.5, fontWeight: 600, color: '#e8e9ed', marginBottom: 3 }}>
+          <div style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--text-primary, #e8e9ed)', marginBottom: 3, wordBreak: 'break-word' }}>
             {isWhitelist
               ? `Auto-whitelisted: ${callerLabel}`
               : `Uncertain call forwarded: ${callerLabel}`}
           </div>
-          <div style={{ fontSize: 12, color: '#8b8fa3', lineHeight: 1.5 }}>
+          <div style={{ fontSize: 12, color: 'var(--text-secondary, #8b8fa3)', lineHeight: 1.5 }}>
             {isWhitelist
               ? `${notif.confidence}% confidence · Added to whitelist — confirm or remove below`
               : `${notif.confidence}% confidence · Was this a legitimate call?`}
           </div>
           {notif.call_summary && (
             <div style={{
-              fontSize: 12, color: '#5c6078', marginTop: 5,
+              fontSize: 12, color: 'var(--text-tertiary, #5c6078)', marginTop: 5,
               fontStyle: 'italic', lineHeight: 1.5,
               overflow: 'hidden', textOverflow: 'ellipsis',
               display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
@@ -147,14 +149,14 @@ function NotifCard({ notif, onAction }) {
         </div>
       </div>
 
-      {/* Action buttons */}
-      <div style={{ display: 'flex', gap: 6, flexShrink: 0, alignItems: 'center', flexWrap: 'wrap' }}>
+      {/* Action buttons — always full width row, wrap on overflow */}
+      <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap', width: '100%' }}>
         {isWhitelist && (
           <>
             <button onClick={() => act('confirm')} disabled={acting} style={btnStyle('#00d68f', 'rgba(0,214,143,0.1)')}>
               {acting ? '…' : '✓ Confirm'}
             </button>
-            <button onClick={() => act('remove')} disabled={acting} style={btnStyle('#8b8fa3', 'transparent')}>
+            <button onClick={() => act('remove')} disabled={acting} style={btnStyle('var(--text-secondary, #8b8fa3)', 'transparent')}>
               Remove
             </button>
             <button onClick={() => act('block')} disabled={acting} style={btnStyle('#ff6b6b', 'rgba(255,107,107,0.08)')}>
@@ -170,7 +172,7 @@ function NotifCard({ notif, onAction }) {
             <button onClick={() => act('block')} disabled={acting} style={btnStyle('#ff6b6b', 'rgba(255,107,107,0.08)')}>
               Cold call — block
             </button>
-            <button onClick={() => act('dismiss')} disabled={acting} style={btnStyle('#5c6078', 'transparent')}>
+            <button onClick={() => act('dismiss')} disabled={acting} style={btnStyle('var(--text-tertiary, #5c6078)', 'transparent')}>
               Dismiss
             </button>
           </>
@@ -240,7 +242,7 @@ export default function NotificationBanner() {
         display: 'flex', alignItems: 'center', gap: 8, marginBottom: 2,
       }}>
         <div style={{
-          fontSize: 11, fontWeight: 700, color: '#5c6078',
+          fontSize: 11, fontWeight: 700, color: 'var(--text-tertiary, #5c6078)',
           textTransform: 'uppercase', letterSpacing: '0.8px',
         }}>
           Action Required
