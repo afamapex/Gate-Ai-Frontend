@@ -283,9 +283,11 @@ export default function HelpPage() {
       {/* Sticky header */}
       <div style={{ borderBottom: "1px solid var(--border)", padding: "14px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", background: "var(--bg-secondary)", position: "sticky", top: 0, zIndex: 50 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <svg width="26" height="26" viewBox="0 0 60 60" fill="none">
-            <defs><linearGradient id="hpg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#b8b1ff"/><stop offset="100%" stopColor="#6c5ce7"/></linearGradient></defs>
-            <path d="M30 4 L52 12 Q53 12.5 53 14 L53 30 Q53 46 30.7 57.5 Q30 58 29.3 57.5 Q7 46 7 30 L7 14 Q7 12.5 8 12 Z" fill="url(#hpg)"/>
+          <svg width="28" height="28" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M50 4 L88 18 Q90 19 90 22 L90 52 Q90 76 51 95 Q50 96 49 95 Q10 76 10 52 L10 22 Q10 19 12 18 Z" fill="#6c5ce7"/>
+            <rect x="38" y="48" width="8" height="20" rx="3" fill="white"/>
+            <rect x="50" y="38" width="8" height="30" rx="3" fill="white"/>
+            <rect x="62" y="44" width="8" height="24" rx="3" fill="white"/>
           </svg>
           <span style={{ fontWeight: 700, fontSize: 16 }}>Gate AI Help & FAQ</span>
         </div>
