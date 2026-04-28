@@ -690,7 +690,7 @@ function Sidebar({ active, setActive, isOpen, onClose }) {
     <>
       <div className={`sidebar-overlay ${isOpen ? "visible" : ""}`} onClick={onClose} />
       <div className={`sidebar ${isOpen ? "open" : ""}`}>
-        <div className="sidebar-logo">
+        <div className="sidebar-logo" onClick={() => { setActive("dashboard"); onClose(); }} style={{ cursor: "pointer" }}>
           <GateAILogo size={32} />
           <span className="logo-text">Gate AI</span>
         </div>
