@@ -2524,6 +2524,7 @@ function SettingsPage() {
               <option value="Europe/London">London (GMT)</option>
               <option value="Europe/Paris">Central Europe (CET)</option>
             </select>
+          </div>
           <div style={{ gridColumn: "1 / -1" }}>
             <label style={labelStyle}>
               Facility / Warehouse Address
@@ -2544,7 +2545,6 @@ function SettingsPage() {
               <span title="Paste your LinkedIn About section or write a short description. Your AI uses this to sound more familiar when representing you on calls." style={{ marginLeft: 6, width: 15, height: 15, borderRadius: "50%", background: "var(--text-tertiary)", color: "#fff", fontSize: 10, fontWeight: 700, cursor: "help", display: "inline-flex", alignItems: "center", justifyContent: "center", verticalAlign: "middle" }}>i</span>
             </label>
             <textarea style={{ ...fieldStyle, resize: "vertical", minHeight: 90, fontFamily: "inherit", fontSize: 13 }} placeholder="Paste your LinkedIn About section or write a short description of what your company does, who your clients are, and what makes you different." value={companyForm.company_about} onChange={e => setCompanyForm(f => ({ ...f, company_about: e.target.value }))} onFocus={e => e.target.style.borderColor = "var(--accent)"} onBlur={e => e.target.style.borderColor = "var(--border)"} />
-          </div>
           </div>
         </div>
         <div style={{ padding: "0 20px 20px", display: "flex", justifyContent: "flex-end" }}>
