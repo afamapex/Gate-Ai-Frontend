@@ -1714,7 +1714,7 @@ function ScreeningPage() {
                 <span>Example: a <strong>Load Number</strong> starts with <strong>LD-</strong> and has <strong>6 digits</strong> → the AI will verify "LD-634450" but flag "LD-12" or "XY-999999"</span>
               </div>
               {/* Header row */}
-              <div className="ref-grid-header" style={{ display: "grid", gridTemplateColumns: "1fr 100px 70px 1fr 32px", gap: 8, marginBottom: 6, padding: "0 4px" }}>
+              <div className="ref-grid-header" style={{ display: "grid", gridTemplateColumns: "minmax(140px,2fr) 90px 65px minmax(100px,1fr) 28px", gap: 8, marginBottom: 6, padding: "0 4px" }}>
                 <span style={{ fontSize: 11, color: "var(--text-tertiary)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.04em" }}>Reference type</span>
                 <span style={{ fontSize: 11, color: "var(--text-tertiary)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.04em" }}>Prefix</span>
                 <span style={{ fontSize: 11, color: "var(--text-tertiary)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.04em" }}>Digits</span>
@@ -1726,7 +1726,7 @@ function ScreeningPage() {
                 {refEntries.map((entry, i) => {
                   const preview = entry.prefix ? `${entry.prefix}${"X".repeat(Math.min(entry.digits || 6, 8))}` : `${"X".repeat(Math.min(entry.digits || 6, 8))}`;
                   return (
-                    <div key={i} className="ref-grid-row" style={{ display: "grid", gridTemplateColumns: "1fr 100px 70px 1fr 32px", gap: 8, alignItems: "center" }}>
+                    <div key={i} className="ref-grid-row" style={{ display: "grid", gridTemplateColumns: "minmax(140px,2fr) 90px 65px minmax(100px,1fr) 28px", gap: 8, alignItems: "center" }}>
                       <input
                         className="form-input"
                         style={{ fontSize: 13, padding: "6px 10px" }}
@@ -2816,6 +2816,7 @@ function SettingsPage() {
 // ─── AI ASSISTANT PAGE ───────────────────────────────────────
 function AIAssistantPage({ theme }) {
   const { company } = useAuth();
+  const isLight = theme === "light" || (!theme && typeof window !== "undefined" && window.matchMedia("(prefers-color-scheme: light)").matches);
   const canvasRef = useRef(null);
   const animRef   = useRef(null);
   const [stats, setStats] = useState({ blocked: 0, forwarded: 0, total: 0 });
@@ -2863,7 +2864,6 @@ function AIAssistantPage({ theme }) {
       ctx.clearRect(0, 0, W, H);
 
       // ── Background glow (stronger in light mode so rings are visible) ──
-      const isLight = theme === "light" || (theme === undefined && window.matchMedia("(prefers-color-scheme: light)").matches);
       const glowStrong = isLight ? "rgba(108,92,231,0.18)" : "rgba(108,92,231,0.10)";
       const glowMid    = isLight ? "rgba(108,92,231,0.10)" : "rgba(108,92,231,0.04)";
       const grd = ctx.createRadialGradient(cx, cy, base * 0.1, cx, cy, base * 1.1);
