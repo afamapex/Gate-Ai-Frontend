@@ -262,7 +262,14 @@ export default function HelpPage() {
   }, []);
 
   function goBack() {
-    try { navigate("/dashboard"); } catch { window.location.href = "/dashboard"; }
+    // If this tab was opened by window.open (from the dashboard), close it
+    // which returns focus to the original dashboard tab.
+    // If the user navigated here directly, fall back to navigating to /dashboard.
+    if (window.opener) {
+      window.close();
+    } else {
+      try { navigate("/dashboard"); } catch { window.location.href = "/dashboard"; }
+    }
   }
 
   const toggle   = (key) => setOpenItems(p => ({ ...p, [key]: !p[key] }));
