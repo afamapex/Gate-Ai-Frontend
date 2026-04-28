@@ -147,6 +147,89 @@ const CSS = `
   --transition: 180ms ease;
 }
 
+/* ── Light theme ──────────────────────────────────────────── */
+[data-theme="light"] {
+  --bg-primary:   #f4f5f9;
+  --bg-secondary: #ffffff;
+  --bg-tertiary:  #eef0f6;
+  --bg-card:      #ffffff;
+  --bg-hover:     #eef0f6;
+  --bg-active:    #e6e8f4;
+  --border:       #e2e5f0;
+  --border-light: #d0d4e8;
+  --text-primary:   #1a1d2e;
+  --text-secondary: #4a5068;
+  --text-tertiary:  #8b8fa3;
+  --accent:       #6c5ce7;
+  --accent-light: #6c5ce7;
+  --accent-dim:   rgba(108, 92, 231, 0.10);
+  --accent-glow:  rgba(108, 92, 231, 0.20);
+  --green:     #00a86b;
+  --green-dim: rgba(0, 168, 107, 0.10);
+  --red:     #e03131;
+  --red-dim: rgba(224, 49, 49, 0.10);
+  --orange:     #e67700;
+  --orange-dim: rgba(230, 119, 0, 0.10);
+  --blue:     #1971c2;
+  --blue-dim: rgba(25, 113, 194, 0.10);
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.10);
+  --shadow-lg: 0 8px 30px rgba(0,0,0,0.14);
+}
+
+/* ── OS dark-mode preference (when no explicit choice saved) ── */
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --bg-primary:   #f4f5f9;
+    --bg-secondary: #ffffff;
+    --bg-tertiary:  #eef0f6;
+    --bg-card:      #ffffff;
+    --bg-hover:     #eef0f6;
+    --bg-active:    #e6e8f4;
+    --border:       #e2e5f0;
+    --border-light: #d0d4e8;
+    --text-primary:   #1a1d2e;
+    --text-secondary: #4a5068;
+    --text-tertiary:  #8b8fa3;
+    --accent:       #6c5ce7;
+    --accent-light: #6c5ce7;
+    --accent-dim:   rgba(108, 92, 231, 0.10);
+    --accent-glow:  rgba(108, 92, 231, 0.20);
+    --green:     #00a86b;
+    --green-dim: rgba(0, 168, 107, 0.10);
+    --red:     #e03131;
+    --red-dim: rgba(224, 49, 49, 0.10);
+    --orange:     #e67700;
+    --orange-dim: rgba(230, 119, 0, 0.10);
+    --blue:     #1971c2;
+    --blue-dim: rgba(25, 113, 194, 0.10);
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.10);
+    --shadow-lg: 0 8px 30px rgba(0,0,0,0.14);
+  }
+}
+
+/* Light-mode specific overrides for elements that use hardcoded colours */
+[data-theme="light"] .sidebar-status { background: rgba(0,168,107,0.10); color: #00a86b; }
+[data-theme="light"] .badge-blocked   { background: rgba(224,49,49,0.12);  color: #c92a2a; }
+[data-theme="light"] .badge-forwarded { background: rgba(0,168,107,0.12);  color: #00a86b; }
+[data-theme="light"] .badge-screened  { background: rgba(230,119,0,0.12);  color: #d97706; }
+[data-theme="light"] .section         { background: var(--bg-card); border: 1px solid var(--border); }
+[data-theme="light"] .modal           { background: var(--bg-card); }
+[data-theme="light"] .modal-overlay   { background: rgba(0,0,0,0.3); }
+[data-theme="light"] .form-input,
+[data-theme="light"] .form-input-full { background: var(--bg-tertiary); border-color: var(--border); color: var(--text-primary); }
+[data-theme="light"] .form-input:focus,
+[data-theme="light"] .form-input-full:focus { background: var(--bg-secondary); border-color: var(--accent); }
+[data-theme="light"] .btn             { background: var(--bg-tertiary); border-color: var(--border); color: var(--text-primary); }
+[data-theme="light"] .btn:hover       { background: var(--bg-hover); }
+[data-theme="light"] .btn-primary     { background: var(--accent) !important; color: #fff !important; border-color: var(--accent) !important; }
+[data-theme="light"] .tab             { color: var(--text-secondary); }
+[data-theme="light"] .tab.active      { color: var(--accent); border-bottom-color: var(--accent); }
+[data-theme="light"] .avatar-menu     { background: var(--bg-secondary); border-color: var(--border); box-shadow: var(--shadow-lg); }
+[data-theme="light"] .topbar-search input::placeholder { color: var(--text-tertiary); }
+
+
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body { font-family: var(--font-sans); background: var(--bg-primary); color: var(--text-primary); -webkit-font-smoothing: antialiased; overflow: hidden; }
 ::-webkit-scrollbar { width: 5px; }
@@ -548,7 +631,7 @@ const SEARCH_ITEMS = [
 ];
 
 // ─── TOPBAR ──────────────────────────────────────────────────
-function Topbar({ title, onMenuToggle, setActivePage, onSearchNavigate }) {
+function Topbar({ title, onMenuToggle, setActivePage, onSearchNavigate, theme, onToggleTheme }) {
   const { user, logout } = useAuth();
   const [showMenu,    setShowMenu]    = useState(false);
   const [showNotif,   setShowNotif]   = useState(false);
@@ -654,6 +737,15 @@ function Topbar({ title, onMenuToggle, setActivePage, onSearchNavigate }) {
 
         {/* Notifications bell */}
         <div ref={notifRef} style={{ position: "relative" }}>
+          {/* Theme toggle */}
+          <div
+            className="topbar-btn"
+            onClick={onToggleTheme}
+            title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+            style={{ fontSize: 16 }}
+          >
+            {theme === "dark" ? "☀️" : "🌙"}
+          </div>
           <div className="topbar-btn" onClick={() => { setShowNotif(v => !v); setShowMenu(false); }}>
             {Icons.bell}
             {notifCalls.length > 0 && <span className="notif-dot" />}
@@ -1349,7 +1441,7 @@ function ScreeningModeOption({ opt, isActive, disabled, onSelect }) {
           <div style={{ position: "relative", display: "inline-flex" }}>
             <span onClick={e => { e.stopPropagation(); setShowInfo(v => !v); }} style={{ width: 16, height: 16, borderRadius: "50%", background: "var(--text-tertiary)", color: "#fff", fontSize: 10, fontWeight: 700, cursor: "pointer", display: "inline-flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>i</span>
             {showInfo && (
-              <div onClick={e => e.stopPropagation()} style={{ position: "absolute", left: 0, top: 22, zIndex: 100, background: "#1e1e2e", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 8, padding: "10px 14px", width: 260, fontSize: 12, color: "#ddd", lineHeight: 1.5, boxShadow: "0 8px 24px rgba(0,0,0,0.7)" }}>
+              <div onClick={e => e.stopPropagation()} style={{ position: "absolute", left: 0, top: 22, zIndex: 100, background: "var(--bg-card)", border: "1px solid var(--border-light)", borderRadius: 8, padding: "10px 14px", width: 260, fontSize: 12, color: "var(--text-primary)", lineHeight: 1.5, boxShadow: "0 8px 24px rgba(0,0,0,0.7)" }}>
                 {opt.info}
                 <div onClick={() => setShowInfo(false)} style={{ marginTop: 8, fontSize: 11, color: opt.color, cursor: "pointer", fontWeight: 600 }}>Close</div>
               </div>
@@ -3149,7 +3241,7 @@ function HelpChatWidget() {
     fontSize: 13.5,
     lineHeight: 1.55,
     background: role === "user" ? "#6c5ce7" : "#f0f0f5",
-    color: role === "user" ? "white" : "#1a1a2e",
+    color: role === "user" ? "white" : "var(--text-primary)",
     alignSelf: role === "user" ? "flex-end" : "flex-start",
     wordBreak: "break-word",
   });
@@ -3335,6 +3427,23 @@ export default function Dashboard() {
   const [liveCalls,     setLiveCalls]     = useState([]);
   const [callLogFilter, setCallLogFilter] = useState("all");
 
+  // ── Theme management ──────────────────────────────────────
+  const [theme, setTheme] = useState(() => {
+    const saved = localStorage.getItem("gateai_theme");
+    if (saved) return saved; // user has an explicit preference
+    // Fall back to OS preference
+    return window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
+  });
+
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", theme);
+    localStorage.setItem("gateai_theme", theme);
+  }, [theme]);
+
+  function toggleTheme() {
+    setTheme(t => t === "dark" ? "light" : "dark");
+  }
+
   // When navigating away from calls, reset filter so it starts fresh next time
   // unless the navigation explicitly sets a filter (stat card clicks)
   function navigateTo(page) {
@@ -3369,7 +3478,7 @@ export default function Dashboard() {
       <div className="app">
         <Sidebar active={activePage} setActive={navigateTo} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
         <div className="main">
-          <Topbar title={PAGE_TITLES[activePage] || "Dashboard"} onMenuToggle={() => setSidebarOpen(!sidebarOpen)} setActivePage={navigateTo} onSearchNavigate={handleSearchNavigate} />
+          <Topbar title={PAGE_TITLES[activePage] || "Dashboard"} onMenuToggle={() => setSidebarOpen(!sidebarOpen)} setActivePage={navigateTo} onSearchNavigate={handleSearchNavigate} theme={theme} onToggleTheme={toggleTheme} />
           <div className="content">
             {activePage === "dashboard"    && <DashboardPage onViewCall={setSelectedCall} liveCalls={liveCalls} setActivePage={setActivePage} setCallLogFilter={setCallLogFilter} />}
             {activePage === "calls"        && <CallLogPage   onViewCall={setSelectedCall} initialFilter={callLogFilter} />}
