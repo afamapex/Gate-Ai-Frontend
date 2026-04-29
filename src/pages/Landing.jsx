@@ -667,7 +667,7 @@ export default function Landing() {
       </section>
 
       {/* INDUSTRIES */}
-      <section className="industries" style={{backgroundImage:'url(/images/backgrounds/bg-industries.png)',backgroundSize:'cover',backgroundPosition:'center'}}>
+      <section className="industries" style={{backgroundImage:'url(/images/background/bg-industries.png)',backgroundSize:'cover',backgroundPosition:'center'}}>
         <div className="container">
           <div className="industries-label">Built for the industries that pick up every call</div>
           <div className="industries-grid">
@@ -687,7 +687,7 @@ export default function Landing() {
       </section>
 
       {/* STATS */}
-      <section className="stats" style={{backgroundImage:'url(/images/backgrounds/bg-stats.png)',backgroundSize:'cover',backgroundPosition:'center'}}>
+      <section className="stats" style={{backgroundImage:'url(/images/background/bg-stats.png)',backgroundSize:'cover',backgroundPosition:'center'}}>
         <div className="container">
           <div className="stats-head reveal">
             <div className="eyebrow"><span className="eyebrow-dot"></span>The numbers after 30 days</div>
@@ -748,7 +748,7 @@ export default function Landing() {
       </section>
 
       {/* PROBLEM */}
-      <section className="problem" style={{backgroundImage:'url(/images/backgrounds/bg-problem.png)',backgroundSize:'cover',backgroundPosition:'right top'}}>
+      <section className="problem" style={{backgroundImage:'url(/images/background/bg-problem.png)',backgroundSize:'cover',backgroundPosition:'right top'}}>
         <div className="container">
           <div className="problem-head reveal">
             <div className="eyebrow"><span className="eyebrow-dot"></span>The Problem</div>
@@ -800,7 +800,7 @@ export default function Landing() {
       </section>
 
       {/* CAPABILITIES */}
-      <section id="capabilities" style={{padding:'100px 0',backgroundImage:'url(/images/backgrounds/bg-capabilities.png)',backgroundSize:'cover',backgroundPosition:'right top'}}>
+      <section id="capabilities" style={{padding:'100px 0',backgroundImage:'url(/images/background/bg-capabilities.png)',backgroundSize:'cover',backgroundPosition:'right top'}}>
         <div className="container">
           <div className="caps-head reveal">
             <div className="eyebrow"><span className="eyebrow-dot"></span>Capabilities</div>
@@ -898,7 +898,7 @@ export default function Landing() {
       </section>
 
       {/* INTEGRATIONS */}
-      <section id="integrations" className="integrations" style={{backgroundImage:'url(/images/backgrounds/bg-integrations.png)',backgroundSize:'cover',backgroundPosition:'center'}}>
+      <section id="integrations" className="integrations" style={{backgroundImage:'url(/images/background/bg-integrations.png)',backgroundSize:'cover',backgroundPosition:'center'}}>
         <div className="container">
           <div className="integrations-label">Works with the stack you already have</div>
           <div className="integrations-grid">
@@ -932,7 +932,7 @@ export default function Landing() {
       </section>
 
       {/* PRICING */}
-      <section id="pricing" style={{padding:'100px 0',backgroundImage:'url(/images/backgrounds/bg-pricing.png)',backgroundSize:'cover',backgroundPosition:'right top'}}>
+      <section id="pricing" style={{padding:'100px 0',backgroundImage:'url(/images/background/bg-pricing.png)',backgroundSize:'cover',backgroundPosition:'right top'}}>
         <div className="container">
           <div className="pricing-head reveal">
             <div className="eyebrow"><span className="eyebrow-dot"></span>Pricing</div>
@@ -978,7 +978,7 @@ export default function Landing() {
       </section>
 
       {/* FAQ */}
-      <section id="faq" style={{backgroundImage:'url(/images/backgrounds/bg-faq.png)',backgroundSize:'cover',backgroundPosition:'center'}}>
+      <section id="faq" style={{backgroundImage:'url(/images/background/bg-faq.png)',backgroundSize:'cover',backgroundPosition:'center'}}>
         <div className="container">
           <div className="faq-head reveal">
             <div className="eyebrow"><span className="eyebrow-dot"></span>FAQ</div>
@@ -1006,7 +1006,7 @@ export default function Landing() {
       </section>
 
       {/* CTA */}
-      <section className="cta" style={{backgroundImage:'url(/images/backgrounds/bg-cta.png)',backgroundSize:'cover',backgroundPosition:'center'}}>
+      <section className="cta" style={{backgroundImage:'url(/images/background/bg-cta.png)',backgroundSize:'cover',backgroundPosition:'center'}}>
         {/* Floating left panel — incoming calls */}
         <div className="cta-float-left">
           <div className="cta-float-label">Incoming Calls</div>
@@ -1508,8 +1508,9 @@ h1,h2,h3{font-weight:700;letter-spacing:-0.03em;line-height:1.05;}
 .stat-cell:hover{background:rgba(108,92,231,0.06);}
 .stat-icon-circle{width:44px;height:44px;border-radius:50%;background:rgba(108,92,231,0.15);border:1px solid rgba(108,92,231,0.35);display:flex;align-items:center;justify-content:center;margin-bottom:20px;flex-shrink:0;}
 .stat-icon-circle svg{width:18px;height:18px;color:#a29bfe;}
-.stat-viz{width:100%;height:90px;margin-bottom:20px;opacity:0.75;}
-.problem-card-viz{width:100%;height:110px;margin-bottom:18px;opacity:0.75;}.stat-num{font-size:clamp(38px,4vw,54px);font-weight:700;letter-spacing:-0.04em;line-height:1;background:linear-gradient(180deg,#fff 0%,rgba(255,255,255,0.65) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:10px;}
+.stat-viz{width:100%;height:100px;margin-bottom:20px;opacity:0.8;}
+.problem-card-viz{width:100%;height:130px;margin-bottom:18px;opacity:0.8;}
+.stat-num{font-size:clamp(38px,4vw,54px);font-weight:700;letter-spacing:-0.04em;line-height:1;background:linear-gradient(180deg,#fff 0%,rgba(255,255,255,0.65) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:10px;}
 .stat-label{font-size:12.5px;color:var(--text-2);font-weight:500;line-height:1.45;}
 
 /* ── PROBLEM ── */
@@ -1521,7 +1522,6 @@ h1,h2,h3{font-weight:700;letter-spacing:-0.03em;line-height:1.05;}
 .problem-card:hover{border-color:rgba(108,92,231,0.45);transform:translateY(-3px);box-shadow:0 20px 50px -15px rgba(108,92,231,0.25);}
 .problem-card-icon{width:44px;height:44px;border-radius:50%;background:rgba(108,92,231,0.15);border:1px solid rgba(108,92,231,0.35);display:flex;align-items:center;justify-content:center;margin-bottom:18px;}
 .problem-card-icon svg{width:18px;height:18px;color:#a29bfe;}
-.problem-card-viz{margin-bottom:16px;opacity:0.65;}
 .problem-card .big{font-size:clamp(38px,4vw,52px);font-weight:700;letter-spacing:-0.035em;line-height:1;color:var(--text);margin-bottom:10px;}
 .problem-card .big .unit{font-size:0.45em;color:var(--text-3);font-weight:500;margin-left:4px;}
 .problem-card .head{font-size:14px;font-weight:600;color:var(--text);margin-bottom:8px;}
