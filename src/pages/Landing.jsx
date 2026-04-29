@@ -693,17 +693,59 @@ export default function Landing() {
             <div className="eyebrow"><span className="eyebrow-dot"></span>The numbers after 30 days</div>
             <h2 className="h-section">Real results from real call logs.</h2>
           </div>
-          <div className="stats-grid reveal">
-            <div className="stat"><div className="stat-num" data-target="94">0%</div><div className="stat-label">of cold calls<br/>blocked automatically</div></div>
-            <div className="stat"><div className="stat-num" data-target="12">0<span style={{fontSize:'0.5em',color:'var(--text-3)'}}>hrs/wk</span></div><div className="stat-label">saved per team<br/>on unwanted calls</div></div>
-            <div className="stat"><div className="stat-num" data-target="24">24<span style={{fontSize:'0.5em',color:'var(--text-3)'}}>/7</span></div><div className="stat-label">coverage,<br/>no shifts, no sick days</div></div>
-            <div className="stat"><div className="stat-num">$0</div><div className="stat-label">upfront cost —<br/>14 day free trial</div></div>
+          <div className="stats-panel reveal">
+            {/* Stat 1 */}
+            <div className="stat-cell">
+              <div className="stat-icon-circle">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.19 15.9 19.79 19.79 0 0 1 1.12 7.23 2 2 0 0 1 3.11 5h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+              </div>
+              <svg className="stat-viz" viewBox="0 0 80 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                {[32,24,16,8].map((r,i) => <circle key={i} cx="20" cy="20" r={r} stroke="rgba(108,92,231,0.35)" strokeWidth="1" fill="none"/>)}
+                <circle cx="20" cy="20" r="3" fill="rgba(108,92,231,0.7)"/>
+              </svg>
+              <div className="stat-num" data-target="94">0%</div>
+              <div className="stat-label">of cold calls<br/>blocked automatically</div>
+            </div>
+            {/* Stat 2 */}
+            <div className="stat-cell">
+              <div className="stat-icon-circle">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              </div>
+              <svg className="stat-viz" viewBox="0 0 80 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                {[8,14,10,18,12,16,9,20,14,17].map((h,i) => <rect key={i} x={i*8+2} y={40-h*1.5} width="5" height={h*1.5} rx="2" fill="rgba(108,92,231,0.45)"/>)}
+              </svg>
+              <div className="stat-num" data-target="12">0<span style={{fontSize:'0.5em',color:'var(--text-3)'}}>hrs/wk</span></div>
+              <div className="stat-label">saved per team<br/>on unwanted calls</div>
+            </div>
+            {/* Stat 3 */}
+            <div className="stat-cell">
+              <div className="stat-icon-circle">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/><path d="M16 5l2-2"/></svg>
+              </div>
+              <svg className="stat-viz" viewBox="0 0 80 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                {[0,1,2,3].map(i => <rect key={i} x="4" y={i*9+2} width={60-i*8} height="6" rx="3" fill={`rgba(108,92,231,${0.5-i*0.08})`}/>)}
+              </svg>
+              <div className="stat-num" data-target="24">24<span style={{fontSize:'0.5em',color:'var(--text-3)'}}>/7</span></div>
+              <div className="stat-label">coverage,<br/>no shifts, no sick days</div>
+            </div>
+            {/* Stat 4 */}
+            <div className="stat-cell">
+              <div className="stat-icon-circle">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+              </div>
+              <svg className="stat-viz" viewBox="0 0 80 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <polyline points="4,35 15,28 26,32 38,18 50,22 62,10 74,14" stroke="rgba(108,92,231,0.7)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+                <circle cx="74" cy="14" r="3" fill="#a29bfe"/>
+              </svg>
+              <div className="stat-num">$0</div>
+              <div className="stat-label">upfront cost —<br/>14 day free trial</div>
+            </div>
           </div>
         </div>
       </section>
 
       {/* PROBLEM */}
-      <section className="problem" style={{backgroundImage:'url(/images/backgrounds/bg-problem.png)',backgroundSize:'cover',backgroundPosition:'center top'}}>
+      <section className="problem" style={{backgroundImage:'url(/images/backgrounds/bg-problem.png)',backgroundSize:'cover',backgroundPosition:'right top'}}>
         <div className="container">
           <div className="problem-head reveal">
             <div className="eyebrow"><span className="eyebrow-dot"></span>The Problem</div>
@@ -711,15 +753,47 @@ export default function Landing() {
             <p className="lede">The average SMB fields 15–40 cold sales calls every single day. Every one interrupts an operations manager, a finance team member, or a receptionist who should be focused on real work.</p>
           </div>
           <div className="problem-grid">
-            <div className="problem-card reveal"><div className="big">25<span className="unit">calls/day</span></div><div className="head">Unwanted sales calls</div><div className="sub">The median SMB logs 25 cold pitches per day — solar, insurance, SEO, warranties, the works.</div></div>
-            <div className="problem-card reveal"><div className="big">3<span className="unit">min each</span></div><div className="head">Stolen from real work</div><div className="sub">Every cold call costs 2–5 minutes between answering, declining, and refocusing. That's over an hour a day, per employee.</div></div>
-            <div className="problem-card reveal"><div className="big">$14k<span className="unit">/year</span></div><div className="head">Wasted payroll</div><div className="sub">At $25/hour loaded cost, a 5-person ops team loses roughly $14,000 a year to calls that should never have been picked up.</div></div>
+            <div className="problem-card reveal">
+              <div className="problem-card-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.19 15.9 19.79 19.79 0 0 1 1.12 7.23 2 2 0 0 1 3.11 5h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+              </div>
+              <svg className="problem-card-viz" viewBox="0 0 100 36" fill="none">
+                {[28,22,16,10].map((r,i) => <circle key={i} cx="18" cy="18" r={r} stroke="rgba(108,92,231,0.3)" strokeWidth="1" fill="none"/>)}
+                <circle cx="18" cy="18" r="3" fill="rgba(108,92,231,0.6)"/>
+              </svg>
+              <div className="big">25<span className="unit">calls/day</span></div>
+              <div className="head">Unwanted sales calls</div>
+              <div className="sub">The median SMB logs 25 cold pitches per day — solar, insurance, SEO, warranties, the works.</div>
+            </div>
+            <div className="problem-card reveal">
+              <div className="problem-card-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              </div>
+              <svg className="problem-card-viz" viewBox="0 0 100 36" fill="none">
+                {[6,12,9,16,11,14,8,18,12,15,9].map((h,i) => <rect key={i} x={i*9+2} y={36-h*1.6} width="6" height={h*1.6} rx="2" fill="rgba(108,92,231,0.4)"/>)}
+              </svg>
+              <div className="big">3<span className="unit">min each</span></div>
+              <div className="head">Stolen from real work</div>
+              <div className="sub">Every cold call costs 2–5 minutes between answering, declining, and refocusing. That's over an hour a day, per employee.</div>
+            </div>
+            <div className="problem-card reveal">
+              <div className="problem-card-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+              </div>
+              <svg className="problem-card-viz" viewBox="0 0 100 36" fill="none">
+                <polyline points="4,30 18,24 32,28 48,14 62,18 78,8 94,12" stroke="rgba(108,92,231,0.65)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+                <circle cx="94" cy="12" r="3" fill="#a29bfe"/>
+              </svg>
+              <div className="big">$14k<span className="unit">/year</span></div>
+              <div className="head">Wasted payroll</div>
+              <div className="sub">At $25/hour loaded cost, a 5-person ops team loses roughly $14,000 a year to calls that should never have been picked up.</div>
+            </div>
           </div>
         </div>
       </section>
 
       {/* CAPABILITIES */}
-      <section id="capabilities" style={{backgroundImage:'url(/images/backgrounds/bg-capabilities.png)',backgroundSize:'cover',backgroundPosition:'center top'}}>
+      <section id="capabilities" style={{padding:'100px 0',backgroundImage:'url(/images/backgrounds/bg-capabilities.png)',backgroundSize:'cover',backgroundPosition:'right top'}}>
         <div className="container">
           <div className="caps-head reveal">
             <div className="eyebrow"><span className="eyebrow-dot"></span>Capabilities</div>
@@ -727,12 +801,88 @@ export default function Landing() {
             <p className="lede">Gate AI is not a voicemail menu. It's a real conversational agent that screens, classifies, routes, and summarizes in real time — powered by our Gate AI.</p>
           </div>
           <div className="caps-grid">
-            <div className="cap reveal"><span className="cap-num">01 · DETECT</span><h3>Cold-call detection in under 10 seconds</h3><p>Our AI listens to the opening line and classifies intent before the caller finishes their pitch. Solar, SEO, warranties, robocalls — gone.</p><div className="cap-demo"><span className="prompt">caller:</span> "Hi, I'm calling about your commercial solar..."<br/><span className="ok">gate-ai:</span> <span className="err">→ blocked (98% confidence)</span></div></div>
-            <div className="cap reveal"><span className="cap-num">02 · SCREEN</span><h3>Polite rejection in your voice</h3><p>Cold callers hear a professional, branded decline message — not dead air. Your brand stays intact, your team stays focused.</p><div className="cap-demo"><span className="prompt">gate-ai:</span> "Thanks for calling. We're not taking<br/>unsolicited calls right now. Have a good day."</div></div>
-            <div className="cap reveal"><span className="cap-num">03 · ROUTE</span><h3>Smart routing by intent</h3><p>Legitimate callers get matched to the right person based on what they're calling about — ops queries go to the operations manager, vendor calls go to purchasing, finance queries go to the finance team.</p><div className="cap-demo"><span className="prompt">intent:</span> Logistics Coordination<br/><span className="ok">route →</span> Dave M. (Ops Manager, ext. 201)</div></div>
-            <div className="cap reveal"><span className="cap-num">04 · SUMMARIZE</span><h3>Brief AI summary on every forward</h3><p>The moment a call is forwarded, the employee receives a concise AI summary — who's calling, which company, and exactly why. No more scrambling to catch up mid-conversation.</p><div className="cap-demo"><span className="prompt">summary:</span> Daniel at AB Logistics re:<br/>Tuesday pickup — needs dock #3 confirmation.</div></div>
+            {/* 01 DETECT */}
+            <div className="cap reveal">
+              <div className="cap-icon-row">
+                <div className="cap-icon-circle">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.19 15.9 19.79 19.79 0 0 1 1.12 7.23 2 2 0 0 1 3.11 5h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                </div>
+                <span className="cap-num">01 · DETECT</span>
+              </div>
+              <h3>Cold-call detection in under 10 seconds</h3>
+              <p>Our AI listens to the opening line and classifies intent before the caller finishes their pitch. Solar, SEO, warranties, robocalls — gone.</p>
+              <div className="cap-visual">
+                <svg style={{width:'100%',marginBottom:10}} viewBox="0 0 200 36" fill="none">
+                  {Array.from({length:40},(_,i)=>{const h=4+Math.abs(Math.sin(i*0.7)*14+Math.sin(i*1.3)*6);return<rect key={i} x={i*5+2} y={18-h/2} width="3" height={h} rx="1.5" fill={i>25?"rgba(255,107,107,0.7)":"rgba(108,92,231,0.45)"}/>;})}
+                </svg>
+                <span className="prompt">intent:</span> commercial_solar<br/>
+                <span className="prompt">confidence:</span> <span className="err">0.98</span><br/>
+                <span className="prompt">risk:</span> <span style={{color:'var(--green)'}}>low</span>
+              </div>
+            </div>
+            {/* 02 SCREEN */}
+            <div className="cap reveal">
+              <div className="cap-icon-row">
+                <div className="cap-icon-circle">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                </div>
+                <span className="cap-num">02 · SCREEN</span>
+              </div>
+              <h3>Polite rejection in your voice</h3>
+              <p>Cold callers hear a professional, branded decline message — not dead air. Your brand stays intact, your team stays focused.</p>
+              <div className="cap-visual">
+                <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:10}}>
+                  <div style={{width:28,height:28,borderRadius:'50%',background:'rgba(108,92,231,0.15)',border:'1px solid rgba(108,92,231,0.3)',display:'flex',alignItems:'center',justifyContent:'center'}}>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#a29bfe" strokeWidth="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                  </div>
+                  <div style={{fontSize:11,color:'var(--text-2)'}}>Polite decline delivered<br/><span style={{color:'var(--text-3)',fontSize:10}}>Caller not convinced. No transfer needed.</span></div>
+                </div>
+                <div className="cap-visual-badge">
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
+                  Resolved
+                </div>
+              </div>
+            </div>
+            {/* 03 ROUTE */}
+            <div className="cap reveal">
+              <div className="cap-icon-row">
+                <div className="cap-icon-circle">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+                </div>
+                <span className="cap-num">03 · ROUTE</span>
+              </div>
+              <h3>Smart routing by intent</h3>
+              <p>Legitimate callers get matched to the right person based on what they're calling about — ops, vendor, or finance.</p>
+              <div className="cap-visual">
+                <div className="cap-route-nodes">
+                  <div className="cap-route-node"><div className="cap-route-dot"></div><div><span style={{color:'var(--text)',fontSize:10,fontWeight:600}}>OPS MANAGER</span><span style={{color:'var(--text-3)',fontSize:10}}> · Ext. 201</span></div></div>
+                  <div className="cap-route-node"><div className="cap-route-dot" style={{background:'rgba(108,92,231,0.4)'}}></div><div><span style={{color:'var(--text)',fontSize:10,fontWeight:600}}>FINANCE TEAM</span><span style={{color:'var(--text-3)',fontSize:10}}> · Ext. 305</span></div></div>
+                  <div className="cap-route-node"><div className="cap-route-dot" style={{background:'rgba(108,92,231,0.25)'}}></div><div><span style={{color:'var(--text)',fontSize:10,fontWeight:600}}>VENDOR RELATIONS</span><span style={{color:'var(--text-3)',fontSize:10}}> · Ext. 410</span></div></div>
+                </div>
+              </div>
+            </div>
+            {/* 04 SUMMARIZE */}
+            <div className="cap reveal">
+              <div className="cap-icon-row">
+                <div className="cap-icon-circle">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                </div>
+                <span className="cap-num">04 · SUMMARIZE</span>
+              </div>
+              <h3>Brief AI summary on every forward</h3>
+              <p>The employee receives a concise AI summary — who's calling, which company, and exactly why.</p>
+              <div className="cap-visual">
+                <div style={{fontSize:11,fontWeight:600,color:'var(--text)',marginBottom:8}}>AI Summary</div>
+                <div className="cap-summary-items">
+                  <div className="cap-summary-item"><span className="cap-summary-check">✓</span>Caller: Daniel at AB Logistics</div>
+                  <div className="cap-summary-item"><span className="cap-summary-check">✓</span>Need: Tuesday dock #3 confirmation</div>
+                  <div className="cap-summary-item"><span className="cap-summary-check">✓</span>Reason: Reschedule pickup</div>
+                  <div className="cap-summary-item"><span className="cap-summary-check">✓</span>Outcome: Routed to Ops Manager</div>
+                </div>
+                <div style={{marginTop:10,display:'inline-flex',alignItems:'center',padding:'3px 10px',background:'rgba(108,92,231,0.15)',border:'1px solid rgba(108,92,231,0.3)',borderRadius:6,fontSize:10,color:'#a29bfe'}}>Confidence: High</div>
+              </div>
+            </div>
           </div>
-          {/* Book Demo CTA at bottom of capabilities */}
           <div className="caps-cta reveal">
             <a href="/capabilities" onClick={e => goPage(e, '/capabilities')} className="btn btn-ghost" style={{marginRight: 12}}>See all capabilities</a>
             <a href="/book-demo" onClick={goDemo} className="btn btn-primary">Book a Demo →</a>
@@ -775,7 +925,7 @@ export default function Landing() {
       </section>
 
       {/* PRICING */}
-      <section id="pricing" style={{backgroundImage:'url(/images/backgrounds/bg-pricing.png)',backgroundSize:'cover',backgroundPosition:'center top'}}>
+      <section id="pricing" style={{padding:'100px 0',backgroundImage:'url(/images/backgrounds/bg-pricing.png)',backgroundSize:'cover',backgroundPosition:'right top'}}>
         <div className="container">
           <div className="pricing-head reveal">
             <div className="eyebrow"><span className="eyebrow-dot"></span>Pricing</div>
@@ -784,6 +934,9 @@ export default function Landing() {
           </div>
           <div className="pricing-grid">
             <div className="tier reveal">
+              <div className="tier-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.19 15.9 19.79 19.79 0 0 1 1.12 7.23 2 2 0 0 1 3.11 5h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+              </div>
               <div className="tier-name">Starter</div>
               <div className="tier-price"><span className="num">$79</span><span className="per">/ month</span></div>
               <div className="tier-desc">For small teams getting 5–20 calls a day. Everything you need to silence cold callers.</div>
@@ -791,6 +944,9 @@ export default function Landing() {
               <a href="/auth?plan=starter" onClick={e => goAuth(e, 'starter')} className="btn btn-ghost">Get started</a>
             </div>
             <div className="tier featured reveal">
+              <div className="tier-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              </div>
               <div className="tier-name">Pro</div>
               <div className="tier-price"><span className="num">$149</span><span className="per">/ month</span></div>
               <div className="tier-desc">Built for logistics and manufacturing SMBs with real inbound call volume.</div>
@@ -798,6 +954,9 @@ export default function Landing() {
               <a href="/auth?plan=pro" onClick={e => goAuth(e, 'pro')} className="btn btn-primary">Get started</a>
             </div>
             <div className="tier reveal">
+              <div className="tier-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+              </div>
               <div className="tier-name">Business</div>
               <div className="tier-price"><span className="num">$249</span><span className="per">/ month</span></div>
               <div className="tier-desc">For multi-location operations that need custom integrations and priority support.</div>
@@ -841,10 +1000,35 @@ export default function Landing() {
 
       {/* CTA */}
       <section className="cta" style={{backgroundImage:'url(/images/backgrounds/bg-cta.png)',backgroundSize:'cover',backgroundPosition:'center'}}>
+        {/* Floating left panel — incoming calls */}
+        <div className="cta-float-left">
+          <div className="cta-float-label">Incoming Calls</div>
+          {[{num:'+1 (205) 555-0143',t:'1 min ago'},{num:'+1 (702) 555-0187',t:'3 min ago'},{num:'+1 (312) 555-0192',t:'5 min ago'}].map((c,i) => (
+            <div key={i} className="cta-float-call">
+              <span className="cta-float-call-dot"></span>
+              <span>{c.num}</span>
+              <span className="cta-float-time">{c.t}</span>
+            </div>
+          ))}
+        </div>
+        {/* Center */}
         <div className="container cta-inner reveal">
           <h2>Stop answering<br/>calls that waste your time.</h2>
           <p>Gate AI takes 10 minutes to set up and starts saving your team time on day one.</p>
           <a href="/book-demo" onClick={goDemo} className="btn btn-primary" style={{padding:'16px 32px',fontSize:15}}>Book a Demo →</a>
+        </div>
+        {/* Floating right panel */}
+        <div className="cta-float-right">
+          <div className="cta-routed-badge">
+            <div className="cta-routed-top">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              Call Routed
+            </div>
+            <div className="cta-routed-detail">High priority<br/>Dispatched</div>
+          </div>
+          <div className="cta-headset">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg>
+          </div>
         </div>
       </section>
 
@@ -1305,80 +1489,130 @@ h1,h2,h3{font-weight:700;letter-spacing:-0.03em;line-height:1.05;}
   .ind-body{font-size:13px;line-height:1.6;}
 }
 .industry-chip svg{width:14px;height:14px;color:var(--accent-2);}
-.stats{padding:120px 0;}
-.stats-head{text-align:center;margin-bottom:72px;}
-.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;}
-@media(max-width:820px){.stats-grid{grid-template-columns:repeat(2,1fr);}}
-.stat{background:var(--bg-2);padding:40px 32px;transition:background 250ms ease;}
-.stat:hover{background:var(--bg-3);}
-.stat-num{font-size:clamp(48px,6vw,72px);font-weight:700;letter-spacing:-0.04em;line-height:1;background:linear-gradient(180deg,var(--text) 0%,var(--text-2) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:14px;}
-.stat-label{font-size:13px;color:var(--text-2);font-weight:500;line-height:1.4;}
-.problem{border-top:1px solid var(--border);border-bottom:1px solid var(--border);}
-.problem-head{max-width:700px;margin-bottom:64px;}
-.problem-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;}
+
+/* ── STATS ── */
+.stats{padding:100px 0;}
+.stats-head{text-align:center;margin-bottom:56px;}
+.stats-panel{display:grid;grid-template-columns:repeat(4,1fr);background:rgba(8,9,20,0.7);border:1px solid rgba(108,92,231,0.22);border-radius:20px;overflow:hidden;backdrop-filter:blur(20px);}
+@media(max-width:900px){.stats-panel{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:500px){.stats-panel{grid-template-columns:1fr;}}
+.stat-cell{padding:32px 28px;border-right:1px solid rgba(108,92,231,0.12);position:relative;overflow:hidden;transition:background 250ms ease;}
+.stat-cell:last-child{border-right:none;}
+.stat-cell:hover{background:rgba(108,92,231,0.06);}
+.stat-icon-circle{width:44px;height:44px;border-radius:50%;background:rgba(108,92,231,0.15);border:1px solid rgba(108,92,231,0.35);display:flex;align-items:center;justify-content:center;margin-bottom:20px;flex-shrink:0;}
+.stat-icon-circle svg{width:18px;height:18px;color:#a29bfe;}
+.stat-viz{width:100%;margin-bottom:16px;opacity:0.7;}
+.stat-num{font-size:clamp(38px,4vw,54px);font-weight:700;letter-spacing:-0.04em;line-height:1;background:linear-gradient(180deg,#fff 0%,rgba(255,255,255,0.65) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:10px;}
+.stat-label{font-size:12.5px;color:var(--text-2);font-weight:500;line-height:1.45;}
+
+/* ── PROBLEM ── */
+.problem{border-top:1px solid rgba(108,92,231,0.12);border-bottom:1px solid rgba(108,92,231,0.12);padding:100px 0;}
+.problem-head{max-width:700px;margin-bottom:56px;}
+.problem-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;}
 @media(max-width:820px){.problem-grid{grid-template-columns:1fr;}}
-.problem-card{background:var(--bg-3);border:1px solid var(--border);border-radius:var(--radius);padding:36px 32px;transition:all 250ms ease;}
-.problem-card:hover{border-color:var(--border-2);transform:translateY(-3px);}
-.problem-card .big{font-size:clamp(44px,5vw,60px);font-weight:700;letter-spacing:-0.035em;line-height:1;color:var(--text);margin-bottom:14px;}
-.problem-card .big .unit{font-size:0.5em;color:var(--text-3);font-weight:500;margin-left:4px;}
-.problem-card .head{font-size:15px;font-weight:600;color:var(--text);margin-bottom:10px;}
-.problem-card .sub{font-size:13.5px;color:var(--text-2);line-height:1.55;}
-.caps-head{max-width:760px;margin-bottom:64px;}
-.caps-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:20px;}
-@media(max-width:820px){.caps-grid{grid-template-columns:1fr;}}
-.cap{background:var(--bg-2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:36px 36px 40px;position:relative;overflow:hidden;transition:all 250ms ease;}
+.problem-card{background:rgba(8,9,20,0.7);border:1px solid rgba(108,92,231,0.2);border-radius:18px;padding:28px;backdrop-filter:blur(16px);overflow:hidden;position:relative;transition:all 250ms ease;}
+.problem-card:hover{border-color:rgba(108,92,231,0.45);transform:translateY(-3px);box-shadow:0 20px 50px -15px rgba(108,92,231,0.25);}
+.problem-card-icon{width:44px;height:44px;border-radius:50%;background:rgba(108,92,231,0.15);border:1px solid rgba(108,92,231,0.35);display:flex;align-items:center;justify-content:center;margin-bottom:18px;}
+.problem-card-icon svg{width:18px;height:18px;color:#a29bfe;}
+.problem-card-viz{margin-bottom:16px;opacity:0.65;}
+.problem-card .big{font-size:clamp(38px,4vw,52px);font-weight:700;letter-spacing:-0.035em;line-height:1;color:var(--text);margin-bottom:10px;}
+.problem-card .big .unit{font-size:0.45em;color:var(--text-3);font-weight:500;margin-left:4px;}
+.problem-card .head{font-size:14px;font-weight:600;color:var(--text);margin-bottom:8px;}
+.problem-card .sub{font-size:13px;color:var(--text-2);line-height:1.55;}
+
+/* ── CAPABILITIES ── */
+.caps-head{max-width:760px;margin-bottom:56px;}
+.caps-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;}
+@media(max-width:1100px){.caps-grid{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:600px){.caps-grid{grid-template-columns:1fr;}}
+.cap{background:rgba(8,9,20,0.72);border:1px solid rgba(108,92,231,0.2);border-radius:18px;padding:24px;position:relative;overflow:hidden;transition:all 250ms ease;display:flex;flex-direction:column;gap:0;}
 .cap::before{content:'';position:absolute;top:0;left:0;width:100%;height:1px;background:linear-gradient(90deg,transparent,var(--accent),transparent);opacity:0;transition:opacity 300ms ease;}
-.cap:hover{border-color:var(--border-2);transform:translateY(-3px);}
+.cap:hover{border-color:rgba(108,92,231,0.45);transform:translateY(-3px);box-shadow:0 20px 50px -15px rgba(108,92,231,0.25);}
 .cap:hover::before{opacity:1;}
-.cap-num{font-family:var(--mono);font-size:12px;color:var(--accent-2);letter-spacing:1px;margin-bottom:20px;display:block;font-weight:500;}
-.cap h3{font-size:24px;font-weight:700;letter-spacing:-0.02em;margin-bottom:12px;}
-.cap p{font-size:14.5px;color:var(--text-2);line-height:1.6;margin-bottom:24px;}
-.cap-demo{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:14px 16px;font-family:var(--mono);font-size:12px;color:var(--text-2);line-height:1.6;}
-.cap-demo .prompt{color:var(--accent-2);}.cap-demo .ok{color:var(--green);}.cap-demo .err{color:var(--red);}
-.caps-cta{display:flex;align-items:center;gap:12px;margin-top:40px;flex-wrap:wrap;}
-.integrations{padding:80px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);}
-.integrations-label{text-align:center;font-size:12px;color:var(--text-3);text-transform:uppercase;letter-spacing:2px;margin-bottom:32px;}
-.integrations-grid{display:flex;justify-content:center;flex-wrap:wrap;gap:16px;}
-.int-card{display:flex;align-items:center;gap:10px;padding:12px 20px;background:var(--bg-3);border:1px solid var(--border);border-radius:12px;font-size:14px;font-weight:600;color:var(--text);transition:all 200ms ease;}
-.int-card:hover{border-color:var(--accent);box-shadow:0 0 30px -10px var(--accent-glow);transform:translateY(-2px);}
-.int-logo{width:24px;height:24px;object-fit:contain;border-radius:4px;}
-.integrations-more{text-align:center;margin-top:24px;}
+.cap-icon-row{display:flex;align-items:center;gap:12px;margin-bottom:18px;}
+.cap-icon-circle{width:44px;height:44px;border-radius:50%;background:rgba(108,92,231,0.15);border:1px solid rgba(108,92,231,0.35);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.cap-icon-circle svg{width:18px;height:18px;color:#a29bfe;}
+.cap-num{font-family:var(--mono);font-size:11px;color:var(--accent-2);letter-spacing:1px;font-weight:500;}
+.cap h3{font-size:16px;font-weight:700;letter-spacing:-0.01em;margin-bottom:8px;line-height:1.3;}
+.cap p{font-size:13px;color:var(--text-2);line-height:1.55;margin-bottom:16px;flex:1;}
+.cap-visual{background:rgba(0,0,0,0.35);border:1px solid rgba(108,92,231,0.15);border-radius:10px;padding:12px 14px;font-family:var(--mono);font-size:11px;color:var(--text-2);line-height:1.7;margin-top:auto;}
+.cap-visual .prompt{color:var(--accent-2);}
+.cap-visual .ok{color:var(--green);}
+.cap-visual .err{color:var(--red);}
+.cap-visual .cap-visual-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(0,214,143,0.12);border:1px solid rgba(0,214,143,0.25);border-radius:6px;padding:4px 10px;font-size:11px;color:var(--green);}
+.cap-visual .cap-visual-badge svg{color:var(--green);}
+.cap-route-nodes{display:flex;flex-direction:column;gap:8px;margin-top:4px;}
+.cap-route-node{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--text-2);}
+.cap-route-dot{width:6px;height:6px;border-radius:50%;background:var(--accent-2);flex-shrink:0;}
+.cap-summary-items{display:flex;flex-direction:column;gap:5px;margin-top:4px;}
+.cap-summary-item{display:flex;align-items:flex-start;gap:6px;font-size:11px;color:var(--text-2);}
+.cap-summary-check{color:var(--green);flex-shrink:0;}
+.caps-cta{display:flex;align-items:center;gap:12px;margin-top:36px;flex-wrap:wrap;}
+
+/* ── INTEGRATIONS ── */
+.integrations{padding:80px 0;border-top:1px solid rgba(108,92,231,0.12);border-bottom:1px solid rgba(108,92,231,0.12);}
+.integrations-label{text-align:center;font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:2.5px;margin-bottom:40px;}
+.integrations-grid{display:flex;justify-content:center;flex-wrap:wrap;gap:12px;}
+.int-card{display:flex;align-items:center;gap:10px;padding:14px 22px;background:rgba(8,9,20,0.7);border:1px solid rgba(108,92,231,0.18);border-radius:14px;font-size:14px;font-weight:600;color:var(--text);transition:all 220ms ease;backdrop-filter:blur(12px);}
+.int-card:hover{border-color:rgba(108,92,231,0.55);box-shadow:0 0 30px -8px rgba(108,92,231,0.4);transform:translateY(-2px);}
+.int-logo{width:26px;height:26px;object-fit:contain;border-radius:5px;}
+.integrations-more{text-align:center;margin-top:28px;}
 .integrations-more a{font-size:13px;color:var(--accent-2);font-weight:500;transition:color 180ms;}
 .integrations-more a:hover{color:var(--text);}
+
+/* ── PRICING ── */
 .pricing-head{text-align:center;margin-bottom:64px;}
 .pricing-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;max-width:1100px;margin:0 auto;}
 @media(max-width:900px){.pricing-grid{grid-template-columns:1fr;max-width:440px;}}
-.tier{background:var(--bg-2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:36px 32px;display:flex;flex-direction:column;transition:all 250ms ease;}
-.tier:hover{border-color:var(--border-2);transform:translateY(-3px);}
-.tier.featured{border-color:var(--accent);background:linear-gradient(180deg,rgba(108,92,231,0.08),var(--bg-2));box-shadow:0 20px 60px -20px var(--accent-glow);position:relative;}
+.tier{background:rgba(8,9,20,0.72);border:1px solid rgba(108,92,231,0.18);border-radius:20px;padding:32px 28px;display:flex;flex-direction:column;transition:all 250ms ease;backdrop-filter:blur(16px);}
+.tier:hover{border-color:rgba(108,92,231,0.4);transform:translateY(-3px);box-shadow:0 20px 50px -15px rgba(108,92,231,0.2);}
+.tier.featured{border-color:rgba(108,92,231,0.6);background:linear-gradient(180deg,rgba(108,92,231,0.12),rgba(8,9,20,0.72));box-shadow:0 20px 60px -20px rgba(108,92,231,0.4);position:relative;}
 .tier.featured::before{content:'Most Popular';position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:var(--accent);color:white;font-size:11px;font-weight:600;padding:5px 14px;border-radius:100px;text-transform:uppercase;letter-spacing:0.8px;}
-.tier-name{font-size:14px;color:var(--text-2);font-weight:500;margin-bottom:10px;text-transform:uppercase;letter-spacing:1px;}
+.tier-icon{width:44px;height:44px;border-radius:50%;background:rgba(108,92,231,0.15);border:1px solid rgba(108,92,231,0.35);display:flex;align-items:center;justify-content:center;margin-bottom:20px;}
+.tier-icon svg{width:18px;height:18px;color:#a29bfe;}
+.tier-name{font-size:13px;color:var(--text-2);font-weight:500;margin-bottom:10px;text-transform:uppercase;letter-spacing:1px;}
 .tier-price{display:flex;align-items:baseline;gap:6px;margin-bottom:8px;}
 .tier-price .num{font-size:52px;font-weight:700;letter-spacing:-0.035em;line-height:1;}
 .tier-price .per{font-size:14px;color:var(--text-3);}
-.tier-desc{font-size:13.5px;color:var(--text-2);margin-bottom:28px;padding-bottom:28px;border-bottom:1px solid var(--border);line-height:1.5;}
-.tier-features{list-style:none;display:flex;flex-direction:column;gap:12px;margin-bottom:32px;flex:1;}
-.tier-features li{display:flex;gap:10px;font-size:13.5px;color:var(--text-2);line-height:1.5;}
+.tier-desc{font-size:13px;color:var(--text-2);margin-bottom:24px;padding-bottom:24px;border-bottom:1px solid rgba(108,92,231,0.12);line-height:1.5;}
+.tier-features{list-style:none;display:flex;flex-direction:column;gap:11px;margin-bottom:28px;flex:1;}
+.tier-features li{display:flex;gap:10px;font-size:13px;color:var(--text-2);line-height:1.5;}
 .tier-features li::before{content:'';min-width:16px;height:16px;margin-top:2px;border-radius:50%;background:rgba(0,214,143,0.14);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%2300d68f' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:center;}
 .tier .btn{justify-content:center;width:100%;}
-#faq{border-top:1px solid var(--border);}
+
+/* ── FAQ ── */
+#faq{border-top:1px solid rgba(108,92,231,0.12);padding:100px 0;}
 .faq-head{text-align:center;margin-bottom:60px;}
-.faq-list{max-width:780px;margin:0 auto;display:flex;flex-direction:column;gap:12px;}
-.faq-item{background:var(--bg-3);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;transition:all 200ms ease;}
-.faq-item[open]{border-color:var(--border-2);}
-.faq-item summary{padding:22px 28px;cursor:pointer;font-size:16px;font-weight:600;list-style:none;display:flex;justify-content:space-between;align-items:center;gap:20px;}
+.faq-list{max-width:780px;margin:0 auto;display:flex;flex-direction:column;gap:10px;}
+.faq-item{background:rgba(8,9,20,0.7);border:1px solid rgba(108,92,231,0.18);border-radius:14px;overflow:hidden;transition:all 200ms ease;backdrop-filter:blur(14px);}
+.faq-item[open]{border-color:rgba(108,92,231,0.4);background:rgba(8,9,20,0.85);}
+.faq-item summary{padding:20px 26px;cursor:pointer;font-size:15px;font-weight:600;list-style:none;display:flex;justify-content:space-between;align-items:center;gap:20px;}
 .faq-item summary::-webkit-details-marker{display:none;}
-.faq-item summary::after{content:'+';font-size:26px;color:var(--text-3);font-weight:300;transition:transform 200ms ease;line-height:1;}
+.faq-item summary::after{content:'+';font-size:24px;color:var(--text-3);font-weight:300;transition:transform 200ms ease;line-height:1;flex-shrink:0;}
 .faq-item[open] summary::after{transform:rotate(45deg);color:var(--accent-2);}
-.faq-item p{padding:0 28px 24px;color:var(--text-2);font-size:14.5px;line-height:1.65;}
+.faq-item p{padding:0 26px 22px;color:var(--text-2);font-size:14px;line-height:1.65;}
 .faq-more{text-align:center;margin-top:28px;}
 .faq-more a{font-size:14px;color:var(--accent-2);font-weight:500;transition:color 180ms;}
 .faq-more a:hover{color:var(--text);}
-.cta{padding:140px 0;text-align:center;position:relative;overflow:hidden;border-top:1px solid var(--border);}
-.cta::before{display:none;}
-.cta-inner{position:relative;z-index:1;max-width:720px;margin:0 auto;}
-.cta h2{font-size:clamp(40px,6vw,72px);font-weight:700;letter-spacing:-0.035em;line-height:1.02;margin-bottom:24px;}
-.cta p{font-size:17px;color:var(--text-2);margin-bottom:36px;}
+
+/* ── CTA ── */
+.cta{padding:120px 0;text-align:center;position:relative;overflow:hidden;border-top:1px solid rgba(108,92,231,0.12);}
+.cta-inner{position:relative;z-index:2;max-width:660px;margin:0 auto;}
+.cta h2{font-size:clamp(36px,5.5vw,64px);font-weight:700;letter-spacing:-0.035em;line-height:1.05;margin-bottom:20px;}
+.cta p{font-size:16px;color:var(--text-2);margin-bottom:32px;}
+.cta-float-left{position:absolute;left:5%;top:50%;transform:translateY(-50%);z-index:1;background:rgba(8,9,20,0.75);border:1px solid rgba(108,92,231,0.22);border-radius:14px;padding:16px 18px;backdrop-filter:blur(16px);min-width:210px;display:flex;flex-direction:column;gap:10px;}
+.cta-float-right{position:absolute;right:5%;top:50%;transform:translateY(-50%);z-index:1;display:flex;flex-direction:column;gap:12px;align-items:flex-end;}
+.cta-float-label{font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:4px;}
+.cta-float-call{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text-2);}
+.cta-float-call-dot{width:6px;height:6px;border-radius:50%;background:var(--accent-2);flex-shrink:0;}
+.cta-float-time{font-size:11px;color:var(--text-3);margin-left:auto;padding-left:8px;}
+.cta-routed-badge{background:rgba(8,9,20,0.75);border:1px solid rgba(108,92,231,0.25);border-radius:14px;padding:16px 18px;backdrop-filter:blur(16px);min-width:190px;}
+.cta-routed-top{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:var(--green);margin-bottom:8px;}
+.cta-routed-detail{font-size:12px;color:var(--text-2);line-height:1.5;}
+.cta-headset{width:44px;height:44px;border-radius:50%;background:rgba(108,92,231,0.2);border:1px solid rgba(108,92,231,0.4);display:flex;align-items:center;justify-content:center;align-self:flex-end;}
+.cta-headset svg{width:18px;height:18px;color:#a29bfe;}
+@media(max-width:1100px){.cta-float-left,.cta-float-right{display:none;}}
+
 footer{padding:48px 0 40px;border-top:1px solid var(--border);}
 .footer-inner{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:20px;}
 .footer-links{display:flex;gap:24px;list-style:none;flex-wrap:wrap;}
