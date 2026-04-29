@@ -699,9 +699,11 @@ export default function Landing() {
               <div className="stat-icon-circle">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.19 15.9 19.79 19.79 0 0 1 1.12 7.23 2 2 0 0 1 3.11 5h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
               </div>
-              <svg className="stat-viz" viewBox="0 0 80 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-                {[32,24,16,8].map((r,i) => <circle key={i} cx="20" cy="20" r={r} stroke="rgba(108,92,231,0.35)" strokeWidth="1" fill="none"/>)}
-                <circle cx="20" cy="20" r="3" fill="rgba(108,92,231,0.7)"/>
+              <svg className="stat-viz" viewBox="0 0 200 90" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
+                {[72,56,40,24,10].map((r,i) => <circle key={i} cx="100" cy="45" r={r} stroke="rgba(108,92,231,0.35)" strokeWidth="1.5" fill="none"/>)}
+                <circle cx="100" cy="45" r="5" fill="rgba(108,92,231,0.8)"/>
+                <line x1="100" y1="45" x2="156" y2="20" stroke="rgba(108,92,231,0.4)" strokeWidth="1" strokeDasharray="3 2"/>
+                <circle cx="156" cy="20" r="3" fill="#a29bfe"/>
               </svg>
               <div className="stat-num" data-target="94">0%</div>
               <div className="stat-label">of cold calls<br/>blocked automatically</div>
@@ -711,8 +713,8 @@ export default function Landing() {
               <div className="stat-icon-circle">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
               </div>
-              <svg className="stat-viz" viewBox="0 0 80 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-                {[8,14,10,18,12,16,9,20,14,17].map((h,i) => <rect key={i} x={i*8+2} y={40-h*1.5} width="5" height={h*1.5} rx="2" fill="rgba(108,92,231,0.45)"/>)}
+              <svg className="stat-viz" viewBox="0 0 200 90" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
+                {[22,34,26,48,36,54,28,62,44,50,30,58].map((h,i) => <rect key={i} x={i*16+4} y={90-h} width="11" height={h} rx="3" fill={`rgba(108,92,231,${0.3+i*0.025})`}/>)}
               </svg>
               <div className="stat-num" data-target="12">0<span style={{fontSize:'0.5em',color:'var(--text-3)'}}>hrs/wk</span></div>
               <div className="stat-label">saved per team<br/>on unwanted calls</div>
@@ -722,8 +724,8 @@ export default function Landing() {
               <div className="stat-icon-circle">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/><path d="M16 5l2-2"/></svg>
               </div>
-              <svg className="stat-viz" viewBox="0 0 80 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-                {[0,1,2,3].map(i => <rect key={i} x="4" y={i*9+2} width={60-i*8} height="6" rx="3" fill={`rgba(108,92,231,${0.5-i*0.08})`}/>)}
+              <svg className="stat-viz" viewBox="0 0 200 90" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
+                {[0,1,2,3,4].map(i => <rect key={i} x="10" y={i*16+5} width={170-i*28} height="11" rx="5" fill={`rgba(108,92,231,${0.55-i*0.08})`}/>)}
               </svg>
               <div className="stat-num" data-target="24">24<span style={{fontSize:'0.5em',color:'var(--text-3)'}}>/7</span></div>
               <div className="stat-label">coverage,<br/>no shifts, no sick days</div>
@@ -733,9 +735,10 @@ export default function Landing() {
               <div className="stat-icon-circle">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
               </div>
-              <svg className="stat-viz" viewBox="0 0 80 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <polyline points="4,35 15,28 26,32 38,18 50,22 62,10 74,14" stroke="rgba(108,92,231,0.7)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
-                <circle cx="74" cy="14" r="3" fill="#a29bfe"/>
+              <svg className="stat-viz" viewBox="0 0 200 90" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
+                <polyline points="10,80 36,68 62,72 88,48 114,55 140,28 166,38 190,18" stroke="rgba(108,92,231,0.7)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+                <polyline points="10,80 36,68 62,72 88,48 114,55 140,28 166,38 190,18 190,90 10,90" fill="rgba(108,92,231,0.08)"/>
+                <circle cx="190" cy="18" r="5" fill="#a29bfe"/>
               </svg>
               <div className="stat-num">$0</div>
               <div className="stat-label">upfront cost —<br/>14 day free trial</div>
@@ -757,9 +760,11 @@ export default function Landing() {
               <div className="problem-card-icon">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.19 15.9 19.79 19.79 0 0 1 1.12 7.23 2 2 0 0 1 3.11 5h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
               </div>
-              <svg className="problem-card-viz" viewBox="0 0 100 36" fill="none">
-                {[28,22,16,10].map((r,i) => <circle key={i} cx="18" cy="18" r={r} stroke="rgba(108,92,231,0.3)" strokeWidth="1" fill="none"/>)}
-                <circle cx="18" cy="18" r="3" fill="rgba(108,92,231,0.6)"/>
+              <svg className="problem-card-viz" viewBox="0 0 300 110" fill="none" preserveAspectRatio="xMidYMid meet">
+                {[95,75,55,37,20].map((r,i) => <circle key={i} cx="130" cy="55" r={r} stroke={`rgba(108,92,231,${0.18+i*0.04})`} strokeWidth="1.5" fill="none"/>)}
+                <circle cx="130" cy="55" r="7" fill="rgba(108,92,231,0.7)"/>
+                <line x1="130" y1="55" x2="205" y2="18" stroke="rgba(108,92,231,0.35)" strokeWidth="1" strokeDasharray="4 3"/>
+                <circle cx="205" cy="18" r="4" fill="#a29bfe"/>
               </svg>
               <div className="big">25<span className="unit">calls/day</span></div>
               <div className="head">Unwanted sales calls</div>
@@ -769,8 +774,8 @@ export default function Landing() {
               <div className="problem-card-icon">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
               </div>
-              <svg className="problem-card-viz" viewBox="0 0 100 36" fill="none">
-                {[6,12,9,16,11,14,8,18,12,15,9].map((h,i) => <rect key={i} x={i*9+2} y={36-h*1.6} width="6" height={h*1.6} rx="2" fill="rgba(108,92,231,0.4)"/>)}
+              <svg className="problem-card-viz" viewBox="0 0 300 110" fill="none" preserveAspectRatio="xMidYMid meet">
+                {[28,52,38,72,48,82,34,96,60,74,42,88,56,78,44].map((h,i) => <rect key={i} x={i*19+10} y={110-h} width="13" height={h} rx="4" fill={`rgba(108,92,231,${0.28+i*0.018})`}/>)}
               </svg>
               <div className="big">3<span className="unit">min each</span></div>
               <div className="head">Stolen from real work</div>
@@ -780,9 +785,11 @@ export default function Landing() {
               <div className="problem-card-icon">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
               </div>
-              <svg className="problem-card-viz" viewBox="0 0 100 36" fill="none">
-                <polyline points="4,30 18,24 32,28 48,14 62,18 78,8 94,12" stroke="rgba(108,92,231,0.65)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
-                <circle cx="94" cy="12" r="3" fill="#a29bfe"/>
+              <svg className="problem-card-viz" viewBox="0 0 300 110" fill="none" preserveAspectRatio="xMidYMid meet">
+                <polyline points="10,95 50,82 90,87 130,62 170,70 210,38 255,52 285,22" stroke="rgba(108,92,231,0.7)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+                <polyline points="10,95 50,82 90,87 130,62 170,70 210,38 255,52 285,22 285,110 10,110" fill="rgba(108,92,231,0.07)"/>
+                <circle cx="285" cy="22" r="6" fill="#a29bfe"/>
+                <circle cx="285" cy="22" r="10" fill="rgba(162,155,254,0.2)"/>
               </svg>
               <div className="big">$14k<span className="unit">/year</span></div>
               <div className="head">Wasted payroll</div>
@@ -812,8 +819,8 @@ export default function Landing() {
               <h3>Cold-call detection in under 10 seconds</h3>
               <p>Our AI listens to the opening line and classifies intent before the caller finishes their pitch. Solar, SEO, warranties, robocalls — gone.</p>
               <div className="cap-visual">
-                <svg style={{width:'100%',marginBottom:10}} viewBox="0 0 200 36" fill="none">
-                  {Array.from({length:40},(_,i)=>{const h=4+Math.abs(Math.sin(i*0.7)*14+Math.sin(i*1.3)*6);return<rect key={i} x={i*5+2} y={18-h/2} width="3" height={h} rx="1.5" fill={i>25?"rgba(255,107,107,0.7)":"rgba(108,92,231,0.45)"}/>;})}
+                <svg style={{width:'100%',height:48,marginBottom:10}} viewBox="0 0 200 48" fill="none">
+                  {Array.from({length:40},(_,i)=>{const h=5+Math.abs(Math.sin(i*0.7)*18+Math.sin(i*1.3)*8);return<rect key={i} x={i*5+2} y={24-h/2} width="3.5" height={h} rx="2" fill={i>25?"rgba(255,107,107,0.75)":"rgba(108,92,231,0.5)"}/>;})}
                 </svg>
                 <span className="prompt">intent:</span> commercial_solar<br/>
                 <span className="prompt">confidence:</span> <span className="err">0.98</span><br/>
@@ -1459,7 +1466,7 @@ h1,h2,h3{font-weight:700;letter-spacing:-0.03em;line-height:1.05;}
 .result-sub{font-size:11.5px;color:#5c6078;opacity:0;transition:opacity 350ms ease 400ms;text-align:center;}
 .result-sub.show{opacity:1;}
 
-.industries{padding:60px 0;background:var(--bg-2);border-top:1px solid var(--border);border-bottom:1px solid var(--border);}
+.industries{padding:60px 0;border-top:1px solid rgba(108,92,231,0.12);border-bottom:1px solid rgba(108,92,231,0.12);}
 .industries-label{text-align:center;font-size:12px;color:var(--text-3);text-transform:uppercase;letter-spacing:2px;margin-bottom:32px;font-weight:500;}
 .industries-grid{display:flex;justify-content:center;flex-wrap:wrap;gap:14px 18px;}
 .industry-chip{display:inline-flex;align-items:center;gap:8px;padding:10px 18px;background:var(--bg-3);border:1px solid var(--border);border-radius:100px;font-size:13.5px;color:var(--text-2);font-weight:500;transition:all 200ms ease;}
@@ -1501,8 +1508,8 @@ h1,h2,h3{font-weight:700;letter-spacing:-0.03em;line-height:1.05;}
 .stat-cell:hover{background:rgba(108,92,231,0.06);}
 .stat-icon-circle{width:44px;height:44px;border-radius:50%;background:rgba(108,92,231,0.15);border:1px solid rgba(108,92,231,0.35);display:flex;align-items:center;justify-content:center;margin-bottom:20px;flex-shrink:0;}
 .stat-icon-circle svg{width:18px;height:18px;color:#a29bfe;}
-.stat-viz{width:100%;margin-bottom:16px;opacity:0.7;}
-.stat-num{font-size:clamp(38px,4vw,54px);font-weight:700;letter-spacing:-0.04em;line-height:1;background:linear-gradient(180deg,#fff 0%,rgba(255,255,255,0.65) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:10px;}
+.stat-viz{width:100%;height:90px;margin-bottom:20px;opacity:0.75;}
+.problem-card-viz{width:100%;height:110px;margin-bottom:18px;opacity:0.75;}.stat-num{font-size:clamp(38px,4vw,54px);font-weight:700;letter-spacing:-0.04em;line-height:1;background:linear-gradient(180deg,#fff 0%,rgba(255,255,255,0.65) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:10px;}
 .stat-label{font-size:12.5px;color:var(--text-2);font-weight:500;line-height:1.45;}
 
 /* ── PROBLEM ── */
