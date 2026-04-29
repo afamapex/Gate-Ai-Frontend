@@ -667,7 +667,7 @@ export default function Landing() {
       </section>
 
       {/* INDUSTRIES */}
-      <section className="industries">
+      <section className="industries" style={{backgroundImage:'url(/images/backgrounds/bg-industries.png)',backgroundSize:'cover',backgroundPosition:'center'}}>
         <div className="container">
           <div className="industries-label">Built for the industries that pick up every call</div>
           <div className="industries-grid">
@@ -687,7 +687,7 @@ export default function Landing() {
       </section>
 
       {/* STATS */}
-      <section className="stats">
+      <section className="stats" style={{backgroundImage:'url(/images/backgrounds/bg-stats.png)',backgroundSize:'cover',backgroundPosition:'center'}}>
         <div className="container">
           <div className="stats-head reveal">
             <div className="eyebrow"><span className="eyebrow-dot"></span>The numbers after 30 days</div>
@@ -703,7 +703,7 @@ export default function Landing() {
       </section>
 
       {/* PROBLEM */}
-      <section className="problem">
+      <section className="problem" style={{backgroundImage:'url(/images/backgrounds/bg-problem.png)',backgroundSize:'cover',backgroundPosition:'center top'}}>
         <div className="container">
           <div className="problem-head reveal">
             <div className="eyebrow"><span className="eyebrow-dot"></span>The Problem</div>
@@ -719,7 +719,7 @@ export default function Landing() {
       </section>
 
       {/* CAPABILITIES */}
-      <section id="capabilities">
+      <section id="capabilities" style={{backgroundImage:'url(/images/backgrounds/bg-capabilities.png)',backgroundSize:'cover',backgroundPosition:'center top'}}>
         <div className="container">
           <div className="caps-head reveal">
             <div className="eyebrow"><span className="eyebrow-dot"></span>Capabilities</div>
@@ -741,7 +741,7 @@ export default function Landing() {
       </section>
 
       {/* INTEGRATIONS */}
-      <section id="integrations" className="integrations">
+      <section id="integrations" className="integrations" style={{backgroundImage:'url(/images/backgrounds/bg-integrations.png)',backgroundSize:'cover',backgroundPosition:'center'}}>
         <div className="container">
           <div className="integrations-label">Works with the stack you already have</div>
           <div className="integrations-grid">
@@ -775,7 +775,7 @@ export default function Landing() {
       </section>
 
       {/* PRICING */}
-      <section id="pricing">
+      <section id="pricing" style={{backgroundImage:'url(/images/backgrounds/bg-pricing.png)',backgroundSize:'cover',backgroundPosition:'center top'}}>
         <div className="container">
           <div className="pricing-head reveal">
             <div className="eyebrow"><span className="eyebrow-dot"></span>Pricing</div>
@@ -812,7 +812,7 @@ export default function Landing() {
       </section>
 
       {/* FAQ */}
-      <section id="faq">
+      <section id="faq" style={{backgroundImage:'url(/images/backgrounds/bg-faq.png)',backgroundSize:'cover',backgroundPosition:'center'}}>
         <div className="container">
           <div className="faq-head reveal">
             <div className="eyebrow"><span className="eyebrow-dot"></span>FAQ</div>
@@ -840,7 +840,7 @@ export default function Landing() {
       </section>
 
       {/* CTA */}
-      <section className="cta">
+      <section className="cta" style={{backgroundImage:'url(/images/backgrounds/bg-cta.png)',backgroundSize:'cover',backgroundPosition:'center'}}>
         <div className="container cta-inner reveal">
           <h2>Stop answering<br/>calls that waste your time.</h2>
           <p>Gate AI takes 10 minutes to set up and starts saving your team time on day one.</p>
@@ -1313,7 +1313,7 @@ h1,h2,h3{font-weight:700;letter-spacing:-0.03em;line-height:1.05;}
 .stat:hover{background:var(--bg-3);}
 .stat-num{font-size:clamp(48px,6vw,72px);font-weight:700;letter-spacing:-0.04em;line-height:1;background:linear-gradient(180deg,var(--text) 0%,var(--text-2) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:14px;}
 .stat-label{font-size:13px;color:var(--text-2);font-weight:500;line-height:1.4;}
-.problem{background:var(--bg-2);border-top:1px solid var(--border);border-bottom:1px solid var(--border);}
+.problem{border-top:1px solid var(--border);border-bottom:1px solid var(--border);}
 .problem-head{max-width:700px;margin-bottom:64px;}
 .problem-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;}
 @media(max-width:820px){.problem-grid{grid-template-columns:1fr;}}
@@ -1336,7 +1336,7 @@ h1,h2,h3{font-weight:700;letter-spacing:-0.03em;line-height:1.05;}
 .cap-demo{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:14px 16px;font-family:var(--mono);font-size:12px;color:var(--text-2);line-height:1.6;}
 .cap-demo .prompt{color:var(--accent-2);}.cap-demo .ok{color:var(--green);}.cap-demo .err{color:var(--red);}
 .caps-cta{display:flex;align-items:center;gap:12px;margin-top:40px;flex-wrap:wrap;}
-.integrations{padding:80px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);background:var(--bg-2);}
+.integrations{padding:80px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);}
 .integrations-label{text-align:center;font-size:12px;color:var(--text-3);text-transform:uppercase;letter-spacing:2px;margin-bottom:32px;}
 .integrations-grid{display:flex;justify-content:center;flex-wrap:wrap;gap:16px;}
 .int-card{display:flex;align-items:center;gap:10px;padding:12px 20px;background:var(--bg-3);border:1px solid var(--border);border-radius:12px;font-size:14px;font-weight:600;color:var(--text);transition:all 200ms ease;}
@@ -1361,7 +1361,7 @@ h1,h2,h3{font-weight:700;letter-spacing:-0.03em;line-height:1.05;}
 .tier-features li{display:flex;gap:10px;font-size:13.5px;color:var(--text-2);line-height:1.5;}
 .tier-features li::before{content:'';min-width:16px;height:16px;margin-top:2px;border-radius:50%;background:rgba(0,214,143,0.14);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%2300d68f' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:center;}
 .tier .btn{justify-content:center;width:100%;}
-#faq{background:var(--bg-2);border-top:1px solid var(--border);}
+#faq{border-top:1px solid var(--border);}
 .faq-head{text-align:center;margin-bottom:60px;}
 .faq-list{max-width:780px;margin:0 auto;display:flex;flex-direction:column;gap:12px;}
 .faq-item{background:var(--bg-3);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;transition:all 200ms ease;}
@@ -1374,8 +1374,8 @@ h1,h2,h3{font-weight:700;letter-spacing:-0.03em;line-height:1.05;}
 .faq-more{text-align:center;margin-top:28px;}
 .faq-more a{font-size:14px;color:var(--accent-2);font-weight:500;transition:color 180ms;}
 .faq-more a:hover{color:var(--text);}
-.cta{padding:140px 0;text-align:center;position:relative;overflow:hidden;background:var(--bg-2);border-top:1px solid var(--border);}
-.cta::before{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:800px;height:800px;background:radial-gradient(circle,var(--accent-glow) 0%,transparent 60%);pointer-events:none;}
+.cta{padding:140px 0;text-align:center;position:relative;overflow:hidden;border-top:1px solid var(--border);}
+.cta::before{display:none;}
 .cta-inner{position:relative;z-index:1;max-width:720px;margin:0 auto;}
 .cta h2{font-size:clamp(40px,6vw,72px);font-weight:700;letter-spacing:-0.035em;line-height:1.02;margin-bottom:24px;}
 .cta p{font-size:17px;color:var(--text-2);margin-bottom:36px;}
